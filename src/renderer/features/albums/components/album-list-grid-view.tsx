@@ -14,7 +14,6 @@ import {
 import { useListContext } from '/@/renderer/context/list-context';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { useHandleFavorite } from '/@/renderer/features/shared/hooks/use-handle-favorite';
-import { useAlbumSearch } from '/@/renderer/hooks/use-album-search';
 import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServer, useListStoreActions, useListStoreByKey } from '/@/renderer/store';
 import {
@@ -39,6 +38,9 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const initialScrollOffset = Number(id ? scrollOffset : grid?.scrollOffset) || 0;
 
     const handleFavorite = useHandleFavorite({ gridRef, server });
+
+    // Use the provided itemCount, which should include Spotify albums if they exist
+    const totalItemCount = itemCount || 0;
 
     const cardRows = useMemo(() => {
         const rows: CardRow<Album>[] = [ALBUM_CARD_ROWS.name];
@@ -162,56 +164,28 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 return { items: [], totalRecordCount: 0 };
             }
 
-            const localItemCount = (itemCount || 0) - (spotifyAlbums?.length || 0);
-
-            // If we're only fetching local albums or no Spotify results exist
-            if (!hasSpotifyResults || skip < localItemCount) {
-                const query: AlbumListQuery = {
-                    limit: take,
-                    ...filter,
-                    ...customFilters,
-                    startIndex: skip,
-                };
-
-                const queryKey = queryKeys.albums.list(server?.id || '', query, id);
-
-                const localAlbums = await queryClient.fetchQuery(queryKey, async ({ signal }) =>
-                    controller.getAlbumList({
-                        apiClientProps: {
-                            server,
-                            signal,
-                        },
-                        query,
-                    }),
-                );
-
-                // If we need to include some Spotify albums as well
-                if (hasSpotifyResults && spotifyAlbums && skip + take > localItemCount) {
-                    const spotifyStart = Math.max(0, skip - localItemCount);
-                    const spotifyCount = Math.min(take - (localAlbums?.items?.length || 0), spotifyAlbums.length - spotifyStart);
-                    const spotifySlice = spotifyAlbums.slice(spotifyStart, spotifyStart + spotifyCount);
-
-                    return {
-                        ...localAlbums,
-                        items: [...(localAlbums?.items || []), ...spotifySlice],
-                        totalRecordCount: (localAlbums?.totalRecordCount || 0) + spotifyAlbums.length,
-                    };
-                }
-
-                return localAlbums;
-            }
-
-            // If we're only fetching Spotify albums
-            const spotifyStart = skip - localItemCount;
-            const spotifySlice = spotifyAlbums?.slice(spotifyStart, spotifyStart + take) || [];
-
-            return {
-                items: spotifySlice,
-                totalRecordCount: localItemCount + (spotifyAlbums?.length || 0),
+            const query: AlbumListQuery = {
+                limit: take,
+                ...filter,
+                ...customFilters,
                 startIndex: skip,
             };
+
+            const queryKey = queryKeys.albums.list(server?.id || '', query, id);
+
+            const albums = await queryClient.fetchQuery(queryKey, async ({ signal }) =>
+                controller.getAlbumList({
+                    apiClientProps: {
+                        server,
+                        signal,
+                    },
+                    query,
+                }),
+            );
+
+            return albums;
         },
-        [customFilters, filter, id, queryClient, server, hasSpotifyResults, spotifyAlbums, itemCount],
+        [customFilters, filter, id, queryClient, server],
     );
 
     return (
@@ -227,12 +201,12 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         handlePlayQueueAdd={handlePlayQueueAdd}
                         height={height}
                         initialScrollOffset={initialScrollOffset}
-                        itemCount={itemCount || 0}
+                        itemCount={totalItemCount}
                         itemGap={grid?.itemGap ?? 10}
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}
                         key={`album-list-${server?.id}-${display}`}
-                        loading={itemCount === undefined || itemCount === null}
+                        loading={totalItemCount === undefined || totalItemCount === null}
                         minimumBatchSize={40}
                         onScroll={handleGridScroll}
                         ref={gridRef}
