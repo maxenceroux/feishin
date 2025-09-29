@@ -39,7 +39,13 @@ const AlbumListRoute = () => {
 
     const toggleSpotify = useCallback(() => {
         setSpotifyEnabled((prev) => !prev);
-    }, []);
+        // Invalidate cache to force refresh when toggle state changes
+        queryClient.invalidateQueries(queryKeys.albums.list(server?.id || ''));
+        // Reset grid cache as well
+        if (gridRef.current) {
+            gridRef.current.resetLoadMoreItemsCache();
+        }
+    }, [server?.id]);
 
     const customFilters = useMemo(() => {
         const value = {

@@ -63,6 +63,7 @@ export const PosterCard = ({
                         <Image className={styles.image} src={data?.imageUrl} />
                         <div className={styles.spotifyBadge}>
                             <span>🎵</span>
+                            <span>Spotify</span>
                         </div>
                         <GridCardControls
                             handleFavorite={controls.handleFavorite}
