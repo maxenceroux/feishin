@@ -57,6 +57,11 @@ export const PosterCard = ({
             >
                 <Link className={styles.imageContainer} to={path}>
                     <Image className={styles.image} src={data?.imageUrl} />
+                    {(data as any)?.__isSpotify && (
+                        <div className={styles.spotifyBadge}>
+                            <span>🎵</span>
+                        </div>
+                    )}
                     <GridCardControls
                         handleFavorite={controls.handleFavorite}
                         handlePlayQueueAdd={controls.handlePlayQueueAdd}

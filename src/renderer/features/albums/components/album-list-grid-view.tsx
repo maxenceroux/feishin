@@ -29,7 +29,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const queryClient = useQueryClient();
     const server = useCurrentServer();
     const handlePlayQueueAdd = usePlayQueueAdd();
-    const { customFilters, id, pageKey } = useListContext();
+    const { customFilters, id, pageKey, spotifyAlbums } = useListContext();
     const { display, filter, grid } = useListStoreByKey<AlbumListQuery>({ key: pageKey });
     const { setGrid } = useListStoreActions();
 
@@ -180,9 +180,17 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 }),
             );
 
+            // If we're at the first page and have Spotify albums, prepend them
+            if (skip === 0 && spotifyAlbums && spotifyAlbums.length > 0) {
+                return {
+                    ...albums,
+                    items: [...spotifyAlbums, ...(albums?.items || [])],
+                };
+            }
+
             return albums;
         },
-        [customFilters, filter, id, queryClient, server],
+        [customFilters, filter, id, queryClient, server, spotifyAlbums],
     );
 
     return (
@@ -198,7 +206,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         handlePlayQueueAdd={handlePlayQueueAdd}
                         height={height}
                         initialScrollOffset={initialScrollOffset}
-                        itemCount={itemCount || 0}
+                        itemCount={(itemCount || 0) + (spotifyAlbums?.length || 0)}
                         itemGap={grid?.itemGap ?? 10}
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}

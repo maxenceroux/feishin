@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 
 import { ListKey } from '/@/renderer/store';
+import { Album } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
 
 interface ListContextProps {
@@ -8,6 +9,8 @@ interface ListContextProps {
     handlePlay?: (args: { initialSongId?: string; playType: Play }) => void;
     id?: string;
     pageKey: ListKey;
+    spotifyAlbums?: Album[];
+    spotifySearchQuery?: string;
 }
 
 export const ListContext = createContext<ListContextProps>({

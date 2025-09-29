@@ -49,6 +49,22 @@
     }
 }
 
+.spotify-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    background: #1db954;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 20%);
+}
+
 .image {
     width: 100%;
     max-width: 100%;
