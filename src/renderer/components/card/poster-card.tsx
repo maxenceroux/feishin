@@ -38,15 +38,18 @@ export const PosterCard = ({
     const [isHovered, setIsHovered] = useState(false);
 
     if (!isLoading) {
-        const path = generatePath(
-            controls.route.route as string,
-            controls.route.slugs?.reduce((acc, slug) => {
-                return {
-                    ...acc,
-                    [slug.slugProperty]: data[slug.idProperty],
-                };
-            }, {}),
-        );
+        const isSpotifyAlbum = (data as any)?.__isSpotify;
+        const path = isSpotifyAlbum
+            ? '#'
+            : generatePath(
+                  controls.route.route as string,
+                  controls.route.slugs?.reduce((acc, slug) => {
+                      return {
+                          ...acc,
+                          [slug.slugProperty]: data[slug.idProperty],
+                      };
+                  }, {}),
+              );
 
         return (
             <div
@@ -55,16 +58,33 @@ export const PosterCard = ({
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
-                <Link className={styles.imageContainer} to={path}>
-                    <Image className={styles.image} src={data?.imageUrl} />
-                    <GridCardControls
-                        handleFavorite={controls.handleFavorite}
-                        handlePlayQueueAdd={controls.handlePlayQueueAdd}
-                        isHovered={isHovered}
-                        itemData={data}
-                        itemType={controls.itemType}
-                    />
-                </Link>
+                {isSpotifyAlbum ? (
+                    <div className={styles.imageContainer}>
+                        <Image className={styles.image} src={data?.imageUrl} />
+                        <div className={styles.spotifyBadge}>
+                            <span>🎵</span>
+                            <span>Spotify</span>
+                        </div>
+                        <GridCardControls
+                            handleFavorite={controls.handleFavorite}
+                            handlePlayQueueAdd={undefined}
+                            isHovered={isHovered}
+                            itemData={data}
+                            itemType={controls.itemType}
+                        />
+                    </div>
+                ) : (
+                    <Link className={styles.imageContainer} to={path}>
+                        <Image className={styles.image} src={data?.imageUrl} />
+                        <GridCardControls
+                            handleFavorite={controls.handleFavorite}
+                            handlePlayQueueAdd={controls.handlePlayQueueAdd}
+                            isHovered={isHovered}
+                            itemData={data}
+                            itemType={controls.itemType}
+                        />
+                    </Link>
+                )}
                 <div className={styles.detailContainer}>
                     <CardRows data={data} rows={controls.cardRows} />
                 </div>

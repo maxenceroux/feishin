@@ -29,7 +29,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const queryClient = useQueryClient();
     const server = useCurrentServer();
     const handlePlayQueueAdd = usePlayQueueAdd();
-    const { customFilters, id, pageKey } = useListContext();
+    const { customFilters, id, pageKey, spotifyAlbums } = useListContext();
     const { display, filter, grid } = useListStoreByKey<AlbumListQuery>({ key: pageKey });
     const { setGrid } = useListStoreActions();
 
@@ -152,8 +152,15 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
         }
 
+        // If we have Spotify albums and this is the first page, append them
+        if (spotifyAlbums && spotifyAlbums.length > 0) {
+            const spotify = [...spotifyAlbums];
+            const local = itemData.filter((item) => item); // Remove undefined items
+            return [...local, ...spotify];
+        }
+
         return itemData;
-    }, [customFilters, filter, id, queryClient, server?.id]);
+    }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums]);
 
     const fetch = useCallback(
         async ({ skip, take }: { skip: number; take: number }) => {
@@ -180,9 +187,17 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 }),
             );
 
+            // If we're at the first page and have Spotify albums, append them
+            if (skip === 0 && spotifyAlbums && spotifyAlbums.length > 0) {
+                return {
+                    ...albums,
+                    items: [...(albums?.items || []), ...spotifyAlbums],
+                };
+            }
+
             return albums;
         },
-        [customFilters, filter, id, queryClient, server],
+        [customFilters, filter, id, queryClient, server, spotifyAlbums],
     );
 
     return (
@@ -198,7 +213,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         handlePlayQueueAdd={handlePlayQueueAdd}
                         height={height}
                         initialScrollOffset={initialScrollOffset}
-                        itemCount={itemCount || 0}
+                        itemCount={(itemCount || 0) + (spotifyAlbums?.length || 0)}
                         itemGap={grid?.itemGap ?? 10}
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}

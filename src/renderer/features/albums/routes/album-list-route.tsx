@@ -1,7 +1,7 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
 
 import isEmpty from 'lodash/isEmpty';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { api } from '/@/renderer/api';
@@ -14,6 +14,7 @@ import { useAlbumListCount } from '/@/renderer/features/albums/queries/album-lis
 import { useGenreList } from '/@/renderer/features/genres';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
+import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
 import {
@@ -33,6 +34,19 @@ const AlbumListRoute = () => {
     const pageKey = albumArtistId ? `albumArtistAlbum` : 'album';
     const handlePlayQueueAdd = usePlayQueueAdd();
 
+    // State for Spotify integration toggle
+    const [spotifyEnabled, setSpotifyEnabled] = useState(false);
+
+    const toggleSpotify = useCallback(() => {
+        setSpotifyEnabled((prev) => !prev);
+        // Invalidate cache to force refresh when toggle state changes
+        queryClient.invalidateQueries(queryKeys.albums.list(server?.id || ''));
+        // Reset grid cache as well
+        if (gridRef.current) {
+            gridRef.current.resetLoadMoreItemsCache();
+        }
+    }, [server?.id]);
+
     const customFilters = useMemo(() => {
         const value = {
             ...(albumArtistId && { artistIds: [albumArtistId] }),
@@ -51,6 +65,16 @@ const AlbumListRoute = () => {
     const albumListFilter = useListFilterByKey<AlbumListQuery>({
         filter: customFilters,
         key: pageKey,
+    });
+
+    // Get search term from the filter state (from the search bar)
+    const searchTerm = albumListFilter.searchTerm || '';
+
+    // Use Spotify search hook with the search term from the search bar
+    const spotifySearchResult = useSpotifySearch({
+        enabled: !!searchTerm.trim() && spotifyEnabled,
+        query: searchTerm,
+        serverId: server?.id || 'default',
     });
 
     const genreList = useGenreList({
@@ -128,8 +152,20 @@ const AlbumListRoute = () => {
             handlePlay,
             id: albumArtistId ?? genreId,
             pageKey,
+            spotifyAlbums: spotifyEnabled ? spotifySearchResult.data || [] : [],
+            spotifyEnabled,
+            spotifySearchQuery: searchTerm,
         };
-    }, [albumArtistId, customFilters, genreId, handlePlay, pageKey]);
+    }, [
+        albumArtistId,
+        customFilters,
+        genreId,
+        handlePlay,
+        pageKey,
+        spotifyEnabled,
+        spotifySearchResult.data,
+        searchTerm,
+    ]);
 
     const artist = searchParams.get('artistName');
     const title = artist ? artist : genreId ? genreTitle : undefined;
@@ -141,6 +177,8 @@ const AlbumListRoute = () => {
                     genreId={genreId}
                     gridRef={gridRef}
                     itemCount={itemCount}
+                    onToggleSpotify={toggleSpotify}
+                    spotifyEnabled={spotifyEnabled}
                     tableRef={tableRef}
                     title={title}
                 />
