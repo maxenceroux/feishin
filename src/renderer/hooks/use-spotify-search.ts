@@ -27,6 +27,7 @@ export const useSpotifySearch = ({ enabled = true, query, serverId }: UseSpotify
                 console.log('Spotify access token set');
 
                 const spotifyAlbums = await spotifyClient.searchAlbums(query);
+                console.log('Spotify search results:', spotifyAlbums);
                 return spotifyAlbums.map((album) =>
                     spotifyClient.mapSpotifyAlbumToAlbum(album, serverId),
                 );

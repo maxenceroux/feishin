@@ -111,7 +111,7 @@ class SpotifyClient {
         } as Album & { __isSpotify: boolean };
     }
 
-    public async searchAlbums(query: string, limit = 20): Promise<SpotifyAlbum[]> {
+    public async searchAlbums(query: string, limit = 5): Promise<SpotifyAlbum[]> {
         if (!this.accessToken) {
             throw new Error('Spotify access token not set');
         }
