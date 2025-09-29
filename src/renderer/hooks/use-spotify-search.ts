@@ -14,13 +14,18 @@ export const useSpotifySearch = ({ enabled = true, query, serverId }: UseSpotify
         cacheTime: 1000 * 60 * 10, // 10 minutes
         enabled: enabled && !!query.trim(),
         queryFn: async (): Promise<Album[]> => {
+            console.log('useSpotifySearch queryFn called with query:', query);
             if (!query.trim()) {
                 return [];
             }
 
             try {
-                // In a real implementation, we would get the token from the backend
-                // For now, we'll just return empty results if no token is available
+                // Fetch the token from the backend
+                const tokenRes = await fetch('http://192.168.1.31:3001/api/spotify-token');
+                const { access_token } = await tokenRes.json();
+                await spotifyClient.setAccessToken(access_token);
+                console.log('Spotify access token set');
+
                 const spotifyAlbums = await spotifyClient.searchAlbums(query);
                 return spotifyAlbums.map((album) =>
                     spotifyClient.mapSpotifyAlbumToAlbum(album, serverId),
