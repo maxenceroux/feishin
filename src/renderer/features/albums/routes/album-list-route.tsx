@@ -1,7 +1,7 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
 
 import isEmpty from 'lodash/isEmpty';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { api } from '/@/renderer/api';
@@ -34,6 +34,13 @@ const AlbumListRoute = () => {
     const pageKey = albumArtistId ? `albumArtistAlbum` : 'album';
     const handlePlayQueueAdd = usePlayQueueAdd();
 
+    // State for Spotify integration toggle
+    const [spotifyEnabled, setSpotifyEnabled] = useState(false);
+
+    const toggleSpotify = useCallback(() => {
+        setSpotifyEnabled((prev) => !prev);
+    }, []);
+
     const customFilters = useMemo(() => {
         const value = {
             ...(albumArtistId && { artistIds: [albumArtistId] }),
@@ -59,7 +66,7 @@ const AlbumListRoute = () => {
 
     // Use Spotify search hook with the search term from the search bar
     const spotifySearchResult = useSpotifySearch({
-        enabled: !!searchTerm.trim(),
+        enabled: !!searchTerm.trim() && spotifyEnabled,
         query: searchTerm,
         serverId: server?.id || 'default',
     });
@@ -139,7 +146,8 @@ const AlbumListRoute = () => {
             handlePlay,
             id: albumArtistId ?? genreId,
             pageKey,
-            spotifyAlbums: spotifySearchResult.data || [],
+            spotifyAlbums: spotifyEnabled ? spotifySearchResult.data || [] : [],
+            spotifyEnabled,
             spotifySearchQuery: searchTerm,
         };
     }, [
@@ -148,6 +156,7 @@ const AlbumListRoute = () => {
         genreId,
         handlePlay,
         pageKey,
+        spotifyEnabled,
         spotifySearchResult.data,
         searchTerm,
     ]);
@@ -162,6 +171,8 @@ const AlbumListRoute = () => {
                     genreId={genreId}
                     gridRef={gridRef}
                     itemCount={itemCount}
+                    onToggleSpotify={toggleSpotify}
+                    spotifyEnabled={spotifyEnabled}
                     tableRef={tableRef}
                     title={title}
                 />

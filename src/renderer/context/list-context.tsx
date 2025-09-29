@@ -10,6 +10,7 @@ interface ListContextProps {
     id?: string;
     pageKey: ListKey;
     spotifyAlbums?: Album[];
+    spotifyEnabled?: boolean;
     spotifySearchQuery?: string;
 }
 
