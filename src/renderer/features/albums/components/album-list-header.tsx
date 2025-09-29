@@ -17,7 +17,7 @@ import { Flex } from '/@/shared/components/flex/flex';
 import { Group } from '/@/shared/components/group/group';
 import { Stack } from '/@/shared/components/stack/stack';
 import { AlbumListQuery, LibraryItem } from '/@/shared/types/domain-types';
-import { useSpotifySearch } from '/@/renderer/hooks/useSpotifySearch';
+import { useAlbumSearch } from '/@/renderer/hooks/use-album-search';
 
 interface AlbumListHeaderProps {
     genreId?: string;
@@ -25,6 +25,7 @@ interface AlbumListHeaderProps {
     itemCount?: number;
     tableRef: MutableRefObject<AgGridReactType | null>;
     title?: string;
+    onSpotifySearch?: (query: string) => void;
 }
 
 export const AlbumListHeader = ({
@@ -33,6 +34,7 @@ export const AlbumListHeader = ({
     itemCount,
     tableRef,
     title,
+    onSpotifySearch,
 }: AlbumListHeaderProps) => {
     const { t } = useTranslation();
     const server = useCurrentServer();
@@ -46,21 +48,19 @@ export const AlbumListHeader = ({
         server,
         tableRef,
     });
-    const {
-        results: spotifyResults,
-
-        searchSpotify,
-    } = useSpotifySearch();
 
     const handleSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
         const updatedFilters = search(e) as AlbumListFilter;
         refresh(updatedFilters);
     }, 500);
 
-    // Independent handler for the second search bar
-    const handleSecondSearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
-        console.log('Searching Spotify for:', e.target.value);
-        searchSpotify(e.target.value);
+    // Independent handler for the Spotify search bar
+    const handleSpotifySearch = debounce((e: ChangeEvent<HTMLInputElement>) => {
+        const query = e.target.value;
+        console.log('Searching Spotify for:', query);
+        if (onSpotifySearch) {
+            onSpotifySearch(query);
+        }
     }, 500);
 
     useEffect(() => {
@@ -70,17 +70,6 @@ export const AlbumListHeader = ({
 
         genreRef.current = genreId;
     }, [filter, genreId, refresh, tableRef]);
-
-    // Log artist names from Spotify results
-    useEffect(() => {
-        if (spotifyResults && spotifyResults.length > 0) {
-            const artistNames = spotifyResults.flatMap((album: any) =>
-                album.artists?.map((a: any) => a.name),
-            );
-            // eslint-disable-next-line no-console
-            console.log('Spotify artist names:', Array.from(new Set(artistNames)));
-        }
-    }, [spotifyResults]);
 
     return (
         <Stack gap={0} ref={cq.ref}>
@@ -111,7 +100,7 @@ export const AlbumListHeader = ({
                         >
                             <SearchInput
                                 placeholder="Spotify search..."
-                                onChange={handleSecondSearch}
+                                onChange={handleSpotifySearch}
                             />
                         </div>
                     </Group>

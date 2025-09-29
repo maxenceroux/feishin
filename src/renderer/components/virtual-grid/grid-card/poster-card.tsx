@@ -7,6 +7,7 @@ import styles from './poster-card.module.css';
 
 import { CardRows } from '/@/renderer/components/card/card-rows';
 import { GridCardControls } from '/@/renderer/components/virtual-grid/grid-card/grid-card-controls';
+import { Badge } from '/@/shared/components/badge/badge';
 import { Image } from '/@/shared/components/image/image';
 import { Skeleton } from '/@/shared/components/skeleton/skeleton';
 import { Stack } from '/@/shared/components/stack/stack';
@@ -17,6 +18,7 @@ import {
     LibraryItem,
     Playlist,
     Song,
+    ServerType,
 } from '/@/shared/types/domain-types';
 import { CardRoute, CardRow, Play, PlayQueueAddOptions } from '/@/shared/types/types';
 
@@ -52,6 +54,9 @@ export const PosterCard = ({
 
     const [isHovered, setIsHovered] = useState(false);
 
+    // Check if this is a Spotify album
+    const isSpotifyAlbum = data?.serverType === ServerType.SPOTIFY;
+
     if (data) {
         const path = generatePath(
             controls.route.route as string,
@@ -63,6 +68,20 @@ export const PosterCard = ({
             }, {}),
         );
 
+        const handleCardClick = () => {
+            if (isSpotifyAlbum) {
+                // For Spotify albums, show a message or open Spotify URL
+                const spotifyUrl = (data as any)?._spotifyUrl;
+                if (spotifyUrl) {
+                    window.open(spotifyUrl, '_blank');
+                }
+                // Alternatively, show a toast notification
+                console.log('Cannot navigate to Spotify album in local library');
+            } else {
+                navigate(path);
+            }
+        };
+
         return (
             <div
                 className={styles.container}
@@ -73,19 +92,39 @@ export const PosterCard = ({
                     margin: controls.itemGap,
                 }}
             >
-                <div className={styles.linkContainer} onClick={() => navigate(path)}>
+                <div className={styles.linkContainer} onClick={handleCardClick}>
                     <div
                         className={`${styles.imageContainer} ${data?.userFavorite ? styles.isFavorite : ''}`}
+                        style={{ position: 'relative' }}
                     >
                         <Image className={styles.image} src={data?.imageUrl} />
-                        <GridCardControls
-                            handleFavorite={controls.handleFavorite}
-                            handlePlayQueueAdd={controls.handlePlayQueueAdd}
-                            isHovered={isHovered}
-                            itemData={data}
-                            itemType={controls.itemType}
-                            resetInfiniteLoaderCache={controls.resetInfiniteLoaderCache}
-                        />
+                        {isSpotifyAlbum && (
+                            <Badge
+                                style={{
+                                    position: 'absolute',
+                                    top: '8px',
+                                    right: '8px',
+                                    fontSize: '10px',
+                                    padding: '2px 6px',
+                                    backgroundColor: '#1db954',
+                                    color: 'white',
+                                    zIndex: 2,
+                                }}
+                                variant="filled"
+                            >
+                                Spotify
+                            </Badge>
+                        )}
+                        {!isSpotifyAlbum && (
+                            <GridCardControls
+                                handleFavorite={controls.handleFavorite}
+                                handlePlayQueueAdd={controls.handlePlayQueueAdd}
+                                isHovered={isHovered}
+                                itemData={data}
+                                itemType={controls.itemType}
+                                resetInfiniteLoaderCache={controls.resetInfiniteLoaderCache}
+                            />
+                        )}
                     </div>
                 </div>
                 <div className={styles.detailContainer}>
