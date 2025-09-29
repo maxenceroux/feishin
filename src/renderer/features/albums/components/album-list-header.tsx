@@ -83,7 +83,7 @@ export const AlbumListHeader = ({
                             {itemCount}
                         </LibraryHeaderBar.Badge>
                     </LibraryHeaderBar>
-                    <Group>
+                    <Group align="center">
                         <SearchInput defaultValue={filter.searchTerm} onChange={handleSearch} />
                         <Button
                             onClick={onToggleSpotify}

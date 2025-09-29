@@ -1,5 +1,5 @@
 import { QueryKey, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
 import { ListOnScrollProps } from 'react-window';
@@ -199,6 +199,13 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
         },
         [customFilters, filter, id, queryClient, server, spotifyAlbums],
     );
+
+    // Reset grid cache when Spotify albums change to ensure proper merging
+    useEffect(() => {
+        if (gridRef.current) {
+            gridRef.current.resetLoadMoreItemsCache();
+        }
+    }, [spotifyAlbums, gridRef]);
 
     return (
         <VirtualGridAutoSizerContainer>
