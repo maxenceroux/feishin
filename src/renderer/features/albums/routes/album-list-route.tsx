@@ -34,16 +34,6 @@ const AlbumListRoute = () => {
     const pageKey = albumArtistId ? `albumArtistAlbum` : 'album';
     const handlePlayQueueAdd = usePlayQueueAdd();
 
-    // Get Spotify search query from search params
-    const spotifySearchQuery = searchParams.get('spotifySearch') || '';
-
-    // Use Spotify search hook
-    const spotifySearchResult = useSpotifySearch({
-        enabled: !!spotifySearchQuery.trim(),
-        query: spotifySearchQuery,
-        serverId: server?.id || 'default',
-    });
-
     const customFilters = useMemo(() => {
         const value = {
             ...(albumArtistId && { artistIds: [albumArtistId] }),
@@ -62,6 +52,16 @@ const AlbumListRoute = () => {
     const albumListFilter = useListFilterByKey<AlbumListQuery>({
         filter: customFilters,
         key: pageKey,
+    });
+
+    // Get search term from the filter state (from the search bar)
+    const searchTerm = albumListFilter.searchTerm || '';
+
+    // Use Spotify search hook with the search term from the search bar
+    const spotifySearchResult = useSpotifySearch({
+        enabled: !!searchTerm.trim(),
+        query: searchTerm,
+        serverId: server?.id || 'default',
     });
 
     const genreList = useGenreList({
@@ -140,7 +140,7 @@ const AlbumListRoute = () => {
             id: albumArtistId ?? genreId,
             pageKey,
             spotifyAlbums: spotifySearchResult.data || [],
-            spotifySearchQuery,
+            spotifySearchQuery: searchTerm,
         };
     }, [
         albumArtistId,
@@ -149,7 +149,7 @@ const AlbumListRoute = () => {
         handlePlay,
         pageKey,
         spotifySearchResult.data,
-        spotifySearchQuery,
+        searchTerm,
     ]);
 
     const artist = searchParams.get('artistName');
