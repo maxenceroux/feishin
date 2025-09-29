@@ -152,11 +152,11 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
         }
 
-        // If we have Spotify albums and this is the first page, prepend them
+        // If we have Spotify albums and this is the first page, append them
         if (spotifyAlbums && spotifyAlbums.length > 0) {
             const spotify = [...spotifyAlbums];
             const local = itemData.filter((item) => item); // Remove undefined items
-            return [...spotify, ...local];
+            return [...local, ...spotify];
         }
 
         return itemData;
@@ -187,11 +187,11 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 }),
             );
 
-            // If we're at the first page and have Spotify albums, prepend them
+            // If we're at the first page and have Spotify albums, append them
             if (skip === 0 && spotifyAlbums && spotifyAlbums.length > 0) {
                 return {
                     ...albums,
-                    items: [...spotifyAlbums, ...(albums?.items || [])],
+                    items: [...(albums?.items || []), ...spotifyAlbums],
                 };
             }
 
