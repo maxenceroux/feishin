@@ -152,8 +152,15 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
         }
 
+        // If we have Spotify albums and this is the first page, prepend them
+        if (spotifyAlbums && spotifyAlbums.length > 0) {
+            const spotify = [...spotifyAlbums];
+            const local = itemData.filter((item) => item); // Remove undefined items
+            return [...spotify, ...local];
+        }
+
         return itemData;
-    }, [customFilters, filter, id, queryClient, server?.id]);
+    }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums]);
 
     const fetch = useCallback(
         async ({ skip, take }: { skip: number; take: number }) => {
