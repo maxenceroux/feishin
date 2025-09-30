@@ -153,7 +153,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
         }
 
         // Always append Spotify albums at the end after all local albums
-        if (spotifyAlbums && spotifyAlbums.length > 0) {
+        if (spotifyAlbums && spotifyAlbums.length > 0 && itemCount !== undefined) {
             const localItemCount = itemCount || 0;
             // Place Spotify albums at indices starting from localItemCount
             for (let i = 0; i < spotifyAlbums.length; i++) {
@@ -210,14 +210,19 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
 
                 // If request overlaps into Spotify range, append Spotify items
                 const remainingTake = take - localTake;
-                if (remainingTake > 0 && spotifyAlbums && spotifyAlbums.length > 0) {
+                if (
+                    remainingTake > 0 &&
+                    spotifyAlbums &&
+                    spotifyAlbums.length > 0 &&
+                    albums?.items
+                ) {
                     const spotifyItems = spotifyAlbums.slice(
                         0,
                         Math.min(remainingTake, spotifyAlbums.length),
                     );
                     return {
                         ...albums,
-                        items: [...(albums?.items || []), ...spotifyItems],
+                        items: [...albums.items, ...spotifyItems],
                         totalRecordCount: totalItemCount,
                     };
                 }
@@ -238,8 +243,11 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     useEffect(() => {
         if (gridRef.current) {
             gridRef.current.resetLoadMoreItemsCache();
+            // Also directly update the grid's data to ensure it reflects the new state
+            const newData = fetchInitialData();
+            gridRef.current.setItemData(newData);
         }
-    }, [spotifyAlbums, gridRef]);
+    }, [spotifyAlbums, gridRef, fetchInitialData]);
 
     return (
         <VirtualGridAutoSizerContainer>
@@ -258,7 +266,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         itemGap={grid?.itemGap ?? 10}
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}
-                        key={`album-list-${server?.id}-${display}`}
+                        key={`album-list-${server?.id}-${display}-spotify-${!!spotifyAlbums && spotifyAlbums.length > 0 ? 'enabled' : 'disabled'}-${spotifyAlbums?.length || 0}-${filter.searchTerm || 'no-search'}`}
                         loading={itemCount === undefined || itemCount === null}
                         minimumBatchSize={40}
                         onScroll={handleGridScroll}
