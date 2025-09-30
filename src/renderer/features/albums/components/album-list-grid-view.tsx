@@ -152,52 +152,86 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
         }
 
-        // If we have Spotify albums and this is the first page, append them
+        // Always append Spotify albums at the end after all local albums
         if (spotifyAlbums && spotifyAlbums.length > 0) {
-            const spotify = [...spotifyAlbums];
-            const local = itemData.filter((item) => item); // Remove undefined items
-            return [...local, ...spotify];
+            const localItemCount = itemCount || 0;
+            // Place Spotify albums at indices starting from localItemCount
+            for (let i = 0; i < spotifyAlbums.length; i++) {
+                itemData[localItemCount + i] = spotifyAlbums[i];
+            }
         }
 
         return itemData;
-    }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums]);
+    }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums, itemCount]);
 
     const fetch = useCallback(
         async ({ skip, take }: { skip: number; take: number }) => {
             if (!server) {
-                return [];
+                return { items: [], totalRecordCount: 0 };
             }
 
-            const query: AlbumListQuery = {
-                limit: take,
-                ...filter,
-                ...customFilters,
-                startIndex: skip,
-            };
+            const localItemCount = itemCount || 0;
+            const totalItemCount = localItemCount + (spotifyAlbums?.length || 0);
 
-            const queryKey = queryKeys.albums.list(server?.id || '', query, id);
+            // If request is entirely within Spotify range, return Spotify albums
+            if (skip >= localItemCount && spotifyAlbums && spotifyAlbums.length > 0) {
+                const spotifyStart = skip - localItemCount;
+                const spotifyEnd = Math.min(spotifyStart + take, spotifyAlbums.length);
+                const spotifyItems = spotifyAlbums.slice(spotifyStart, spotifyEnd);
 
-            const albums = await queryClient.fetchQuery(queryKey, async ({ signal }) =>
-                controller.getAlbumList({
-                    apiClientProps: {
-                        server,
-                        signal,
-                    },
-                    query,
-                }),
-            );
-
-            // If we're at the first page and have Spotify albums, append them
-            if (skip === 0 && spotifyAlbums && spotifyAlbums.length > 0) {
                 return {
-                    ...albums,
-                    items: [...(albums?.items || []), ...spotifyAlbums],
+                    items: spotifyItems,
+                    totalRecordCount: totalItemCount,
                 };
             }
 
-            return albums;
+            // If request is entirely within local range or overlaps
+            if (skip < localItemCount) {
+                const localTake = Math.min(take, localItemCount - skip);
+
+                const query: AlbumListQuery = {
+                    limit: localTake,
+                    ...filter,
+                    ...customFilters,
+                    startIndex: skip,
+                };
+
+                const queryKey = queryKeys.albums.list(server?.id || '', query, id);
+
+                const albums = await queryClient.fetchQuery(queryKey, async ({ signal }) =>
+                    controller.getAlbumList({
+                        apiClientProps: {
+                            server,
+                            signal,
+                        },
+                        query,
+                    }),
+                );
+
+                // If request overlaps into Spotify range, append Spotify items
+                const remainingTake = take - localTake;
+                if (remainingTake > 0 && spotifyAlbums && spotifyAlbums.length > 0) {
+                    const spotifyItems = spotifyAlbums.slice(
+                        0,
+                        Math.min(remainingTake, spotifyAlbums.length),
+                    );
+                    return {
+                        ...albums,
+                        items: [...(albums?.items || []), ...spotifyItems],
+                        totalRecordCount: totalItemCount,
+                    };
+                }
+
+                return {
+                    ...albums,
+                    totalRecordCount: totalItemCount,
+                };
+            }
+
+            // Fallback: return empty result
+            return { items: [], totalRecordCount: totalItemCount };
         },
-        [customFilters, filter, id, queryClient, server, spotifyAlbums],
+        [customFilters, filter, id, queryClient, server, spotifyAlbums, itemCount],
     );
 
     // Reset grid cache when Spotify albums change to ensure proper merging
