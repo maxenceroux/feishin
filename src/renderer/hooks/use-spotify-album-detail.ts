@@ -25,7 +25,17 @@ export const useSpotifyAlbumDetail = ({
             try {
                 // Fetch the token from the backend
                 const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token');
+
+                if (!tokenRes.ok) {
+                    throw new Error(`Failed to fetch Spotify token: ${tokenRes.status}`);
+                }
+
                 const { access_token } = await tokenRes.json();
+
+                if (!access_token) {
+                    throw new Error('No access token received from backend');
+                }
+
                 await spotifyClient.setAccessToken(access_token);
 
                 const spotifyAlbumDetails = await spotifyClient.getAlbumDetails(albumId);
@@ -46,6 +56,8 @@ export const useSpotifyAlbumDetail = ({
             }
         },
         queryKey: ['spotify', 'album', 'detail', albumId],
+        retry: 2, // Retry twice on failure
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 };
