@@ -83,16 +83,16 @@ export const AlbumListHeader = ({
                             {itemCount}
                         </LibraryHeaderBar.Badge>
                     </LibraryHeaderBar>
-                    <Group align="center">
+                    <Flex align="center" direction="row" gap={8}>
                         <SearchInput defaultValue={filter.searchTerm} onChange={handleSearch} />
                         <Button
                             onClick={onToggleSpotify}
                             size="sm"
                             variant={spotifyEnabled ? 'filled' : 'subtle'}
                         >
-                            🎵 Spotify
+                            Search Spotify
                         </Button>
-                    </Group>
+                    </Flex>
                 </Flex>
             </PageHeader>
             <FilterBar>

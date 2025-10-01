@@ -134,12 +134,13 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             stale: false,
         });
 
-        const itemData: Album[] = [];
+        const localItemCount = itemCount || 0;
+        // Fill local albums from cache
+        const itemData: Album[] = new Array(localItemCount);
 
         for (const [, data] of queriesFromCache) {
             const { items, startIndex } = data || {};
-
-            if (items && items.length !== 1 && startIndex !== undefined) {
+            if (items && items.length > 0 && startIndex !== undefined) {
                 let itemIndex = 0;
                 for (
                     let rowIndex = startIndex;
@@ -154,13 +155,16 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
 
         // Always append Spotify albums at the end after all local albums
         if (spotifyAlbums && spotifyAlbums.length > 0 && itemCount !== undefined) {
-            const localItemCount = itemCount || 0;
-            // Place Spotify albums at indices starting from localItemCount
             for (let i = 0; i < spotifyAlbums.length; i++) {
                 itemData[localItemCount + i] = spotifyAlbums[i];
             }
         }
-
+        // Remove leading empty slots if no local albums
+        // (optional: if you want a compact array)
+        // const compacted = itemData.filter(Boolean);
+        // return compacted;
+        console.log('fetchInitialData returning items:', itemData.length);
+        console.log('fetchInitialData returning items:', itemData);
         return itemData;
     }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums, itemCount]);
 
@@ -178,7 +182,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 const spotifyStart = skip - localItemCount;
                 const spotifyEnd = Math.min(spotifyStart + take, spotifyAlbums.length);
                 const spotifyItems = spotifyAlbums.slice(spotifyStart, spotifyEnd);
-
+                console.log('fetch returning Spotify items:', spotifyItems);
                 return {
                     items: spotifyItems,
                     totalRecordCount: totalItemCount,
@@ -226,7 +230,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         totalRecordCount: totalItemCount,
                     };
                 }
-
+                console.log('fetch returning local albums:', albums);
                 return {
                     ...albums,
                     totalRecordCount: totalItemCount,
@@ -234,6 +238,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
 
             // Fallback: return empty result
+
             return { items: [], totalRecordCount: totalItemCount };
         },
         [customFilters, filter, id, queryClient, server, spotifyAlbums, itemCount],
