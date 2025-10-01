@@ -8,6 +8,7 @@ import { useAlbumDetail } from '/@/renderer/features/albums/queries/album-detail
 import { LibraryHeader, useSetRating } from '/@/renderer/features/shared';
 import { useContainerQuery } from '/@/renderer/hooks';
 import { useSongChange } from '/@/renderer/hooks/use-song-change';
+import { useSpotifyAlbumDetail } from '/@/renderer/hooks/use-spotify-album-detail';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServer } from '/@/renderer/store';
@@ -30,7 +31,25 @@ export const AlbumDetailHeader = forwardRef(
     ({ background }: AlbumDetailHeaderProps, ref: Ref<HTMLDivElement>) => {
         const { albumId } = useParams() as { albumId: string };
         const server = useCurrentServer();
-        const detailQuery = useAlbumDetail({ query: { id: albumId }, serverId: server?.id });
+
+        // Determine if this is a Spotify album
+        const isSpotifyAlbum = albumId.startsWith('spotify:');
+
+        // Use appropriate query based on album type
+        const regularDetailQuery = useAlbumDetail({
+            options: { enabled: !isSpotifyAlbum },
+            query: { id: albumId },
+            serverId: server?.id,
+        });
+
+        const spotifyDetailQuery = useSpotifyAlbumDetail({
+            albumId,
+            enabled: isSpotifyAlbum,
+            serverId: server?.id || '',
+        });
+
+        // Use the appropriate query result
+        const detailQuery = isSpotifyAlbum ? spotifyDetailQuery : regularDetailQuery;
         const cq = useContainerQuery();
         const { t } = useTranslation();
 
