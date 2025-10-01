@@ -11,6 +11,25 @@
     }
 }
 
+.spotify-badge {
+    position: absolute;
+    top: 80%;
+    right: 8px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 24px;
+    height: 24px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: white;
+    background: var(--theme-colors-primary-filled);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
+}
 .container.hidden {
     opacity: 0;
 }

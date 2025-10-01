@@ -129,7 +129,11 @@ export const VirtualInfiniteGrid = forwardRef(
                     const newData = [...itemData];
 
                     let itemIndex = 0;
-                    for (let rowIndex = start; rowIndex < itemCount; rowIndex += 1) {
+                    for (
+                        let rowIndex = start;
+                        rowIndex < Math.min(start + (data.items?.length || 0), itemCount);
+                        rowIndex += 1
+                    ) {
                         newData[rowIndex] = data.items[itemIndex];
                         itemIndex += 1;
                     }

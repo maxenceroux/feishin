@@ -21,7 +21,7 @@ export const useSpotifySearch = ({ enabled = true, query, serverId }: UseSpotify
 
             try {
                 // Fetch the token from the backend
-                const tokenRes = await fetch('http://192.168.1.31:3001/api/spotify-token');
+                const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token');
                 const { access_token } = await tokenRes.json();
                 await spotifyClient.setAccessToken(access_token);
                 console.log('Spotify access token set');

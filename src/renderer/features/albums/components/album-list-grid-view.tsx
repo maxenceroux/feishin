@@ -1,5 +1,5 @@
 import { QueryKey, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
 import { ListOnScrollProps } from 'react-window';
@@ -134,12 +134,13 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             stale: false,
         });
 
-        const itemData: Album[] = [];
+        const localItemCount = itemCount || 0;
+        // Fill local albums from cache
+        const itemData: Album[] = new Array(localItemCount);
 
         for (const [, data] of queriesFromCache) {
             const { items, startIndex } = data || {};
-
-            if (items && items.length !== 1 && startIndex !== undefined) {
+            if (items && items.length > 0 && startIndex !== undefined) {
                 let itemIndex = 0;
                 for (
                     let rowIndex = startIndex;
@@ -152,53 +153,106 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
         }
 
-        // If we have Spotify albums and this is the first page, append them
-        if (spotifyAlbums && spotifyAlbums.length > 0) {
-            const spotify = [...spotifyAlbums];
-            const local = itemData.filter((item) => item); // Remove undefined items
-            return [...local, ...spotify];
+        // Always append Spotify albums at the end after all local albums
+        if (spotifyAlbums && spotifyAlbums.length > 0 && itemCount !== undefined) {
+            for (let i = 0; i < spotifyAlbums.length; i++) {
+                itemData[localItemCount + i] = spotifyAlbums[i];
+            }
         }
-
+        // Remove leading empty slots if no local albums
+        // (optional: if you want a compact array)
+        // const compacted = itemData.filter(Boolean);
+        // return compacted;
+        console.log('fetchInitialData returning items:', itemData.length);
+        console.log('fetchInitialData returning items:', itemData);
         return itemData;
-    }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums]);
+    }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums, itemCount]);
 
     const fetch = useCallback(
         async ({ skip, take }: { skip: number; take: number }) => {
             if (!server) {
-                return [];
+                return { items: [], totalRecordCount: 0 };
             }
 
-            const query: AlbumListQuery = {
-                limit: take,
-                ...filter,
-                ...customFilters,
-                startIndex: skip,
-            };
+            const localItemCount = itemCount || 0;
+            const totalItemCount = localItemCount + (spotifyAlbums?.length || 0);
 
-            const queryKey = queryKeys.albums.list(server?.id || '', query, id);
-
-            const albums = await queryClient.fetchQuery(queryKey, async ({ signal }) =>
-                controller.getAlbumList({
-                    apiClientProps: {
-                        server,
-                        signal,
-                    },
-                    query,
-                }),
-            );
-
-            // If we're at the first page and have Spotify albums, append them
-            if (skip === 0 && spotifyAlbums && spotifyAlbums.length > 0) {
+            // If request is entirely within Spotify range, return Spotify albums
+            if (skip >= localItemCount && spotifyAlbums && spotifyAlbums.length > 0) {
+                const spotifyStart = skip - localItemCount;
+                const spotifyEnd = Math.min(spotifyStart + take, spotifyAlbums.length);
+                const spotifyItems = spotifyAlbums.slice(spotifyStart, spotifyEnd);
+                console.log('fetch returning Spotify items:', spotifyItems);
                 return {
-                    ...albums,
-                    items: [...(albums?.items || []), ...spotifyAlbums],
+                    items: spotifyItems,
+                    totalRecordCount: totalItemCount,
                 };
             }
 
-            return albums;
+            // If request is entirely within local range or overlaps
+            if (skip < localItemCount) {
+                const localTake = Math.min(take, localItemCount - skip);
+
+                const query: AlbumListQuery = {
+                    limit: localTake,
+                    ...filter,
+                    ...customFilters,
+                    startIndex: skip,
+                };
+
+                const queryKey = queryKeys.albums.list(server?.id || '', query, id);
+
+                const albums = await queryClient.fetchQuery(queryKey, async ({ signal }) =>
+                    controller.getAlbumList({
+                        apiClientProps: {
+                            server,
+                            signal,
+                        },
+                        query,
+                    }),
+                );
+
+                // If request overlaps into Spotify range, append Spotify items
+                const remainingTake = take - localTake;
+                if (
+                    remainingTake > 0 &&
+                    spotifyAlbums &&
+                    spotifyAlbums.length > 0 &&
+                    albums?.items
+                ) {
+                    const spotifyItems = spotifyAlbums.slice(
+                        0,
+                        Math.min(remainingTake, spotifyAlbums.length),
+                    );
+                    return {
+                        ...albums,
+                        items: [...albums.items, ...spotifyItems],
+                        totalRecordCount: totalItemCount,
+                    };
+                }
+                console.log('fetch returning local albums:', albums);
+                return {
+                    ...albums,
+                    totalRecordCount: totalItemCount,
+                };
+            }
+
+            // Fallback: return empty result
+
+            return { items: [], totalRecordCount: totalItemCount };
         },
-        [customFilters, filter, id, queryClient, server, spotifyAlbums],
+        [customFilters, filter, id, queryClient, server, spotifyAlbums, itemCount],
     );
+
+    // Reset grid cache when Spotify albums change to ensure proper merging
+    useEffect(() => {
+        if (gridRef.current) {
+            gridRef.current.resetLoadMoreItemsCache();
+            // Also directly update the grid's data to ensure it reflects the new state
+            const newData = fetchInitialData();
+            gridRef.current.setItemData(newData);
+        }
+    }, [spotifyAlbums, gridRef, fetchInitialData]);
 
     return (
         <VirtualGridAutoSizerContainer>
@@ -217,7 +271,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         itemGap={grid?.itemGap ?? 10}
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}
-                        key={`album-list-${server?.id}-${display}`}
+                        key={`album-list-${server?.id}-${display}-spotify-${!!spotifyAlbums && spotifyAlbums.length > 0 ? 'enabled' : 'disabled'}-${spotifyAlbums?.length || 0}-${filter.searchTerm || 'no-search'}`}
                         loading={itemCount === undefined || itemCount === null}
                         minimumBatchSize={40}
                         onScroll={handleGridScroll}

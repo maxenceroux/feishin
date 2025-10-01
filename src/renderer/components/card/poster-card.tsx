@@ -60,7 +60,7 @@ export const PosterCard = ({
             >
                 {isSpotifyAlbum ? (
                     <div className={styles.imageContainer}>
-                        <Image className={styles.image} src={data?.imageUrl} />
+                        <Image className={`${styles.image} grayscale`} src={data?.imageUrl} />
                         <div className={styles.spotifyBadge}>
                             <span>🎵</span>
                             <span>Spotify</span>
