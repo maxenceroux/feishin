@@ -51,7 +51,7 @@
 
 .spotify-badge {
     position: absolute;
-    top: 8px;
+    top: 80%;
     right: 8px;
     z-index: 3;
     display: flex;
@@ -64,7 +64,7 @@
     font-size: 11px;
     font-weight: 600;
     color: white;
-    background: #1db954;
+    background: var(--theme-colors-primary-filled);
     border-radius: 12px;
     box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
 }

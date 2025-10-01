@@ -53,6 +53,7 @@ export const PosterCard = ({
     const [isHovered, setIsHovered] = useState(false);
 
     if (data) {
+        const isSpotifyAlbum = data?.__isSpotify;
         const path = generatePath(
             controls.route.route as string,
             controls.route.slugs?.reduce((acc, slug) => {
@@ -77,7 +78,12 @@ export const PosterCard = ({
                     <div
                         className={`${styles.imageContainer} ${data?.userFavorite ? styles.isFavorite : ''}`}
                     >
-                        <Image className={styles.image} src={data?.imageUrl} />
+                        <Image className={`${styles.image} `} src={data?.imageUrl} />
+                        {isSpotifyAlbum && (
+                            <div className={styles.spotifyBadge}>
+                                <span>🔍</span>
+                            </div>
+                        )}
                         <GridCardControls
                             handleFavorite={controls.handleFavorite}
                             handlePlayQueueAdd={controls.handlePlayQueueAdd}
