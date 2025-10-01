@@ -1,17 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { Album, LibraryItem, ServerType } from '/@/shared/types/domain-types';
+import { Album, LibraryItem, ServerType, Song } from '/@/shared/types/domain-types';
 
 export interface SpotifyAlbum {
     album_type: string;
-    artists: Array<{
-        external_urls: { spotify: string };
-        href: string;
-        id: string;
-        name: string;
-        type: string;
-        uri: string;
-    }>;
+    artists: SpotifyArtist[];
     external_urls: { spotify: string };
     href: string;
     id: string;
@@ -28,6 +21,27 @@ export interface SpotifyAlbum {
     uri: string;
 }
 
+export interface SpotifyAlbumDetails extends SpotifyAlbum {
+    tracks: {
+        href: string;
+        items: SpotifyTrack[];
+        limit: number;
+        next: null | string;
+        offset: number;
+        previous: null | string;
+        total: number;
+    };
+}
+
+export interface SpotifyArtist {
+    external_urls: { spotify: string };
+    href: string;
+    id: string;
+    name: string;
+    type: string;
+    uri: string;
+}
+
 export interface SpotifySearchResponse {
     albums: {
         href: string;
@@ -38,6 +52,22 @@ export interface SpotifySearchResponse {
         previous: null | string;
         total: number;
     };
+}
+
+export interface SpotifyTrack {
+    artists: SpotifyArtist[];
+    disc_number: number;
+    duration_ms: number;
+    explicit: boolean;
+    external_urls: { spotify: string };
+    href: string;
+    id: string;
+    is_local: boolean;
+    name: string;
+    preview_url: null | string;
+    track_number: number;
+    type: 'track';
+    uri: string;
 }
 
 class SpotifyClient {
@@ -57,6 +87,18 @@ class SpotifyClient {
             }
             return config;
         });
+    }
+
+    public async getAlbumDetails(albumId: string): Promise<SpotifyAlbumDetails> {
+        if (!this.accessToken) {
+            throw new Error('Spotify access token not set');
+        }
+
+        // Extract Spotify ID from our ID format if needed
+        const spotifyId = albumId.startsWith('spotify:') ? albumId.split(':')[1] : albumId;
+
+        const response = await this.client.get<SpotifyAlbumDetails>(`/albums/${spotifyId}`);
+        return response.data;
     }
 
     public mapSpotifyAlbumToAlbum(spotifyAlbum: SpotifyAlbum, serverId: string): Album {
@@ -109,6 +151,71 @@ class SpotifyClient {
             userFavorite: false,
             userRating: null,
         } as Album & { __isSpotify: boolean };
+    }
+
+    public mapSpotifyTrackToSong(
+        spotifyTrack: SpotifyTrack,
+        album: SpotifyAlbum,
+        serverId: string,
+    ): Song {
+        const primaryArtist = spotifyTrack.artists[0];
+
+        return {
+            album: album.name,
+            albumArtists: album.artists.map((artist) => ({
+                id: artist.id,
+                imageUrl: null,
+                itemType: LibraryItem.ALBUM_ARTIST,
+                name: artist.name,
+            })),
+            albumId: `spotify:${album.id}`,
+            artistName: primaryArtist?.name || 'Unknown Artist',
+            artists: spotifyTrack.artists.map((artist) => ({
+                id: artist.id,
+                imageUrl: null,
+                itemType: LibraryItem.ARTIST,
+                name: artist.name,
+            })),
+            bitDepth: null,
+            bitRate: 0, // Spotify doesn't provide bit rate info
+            bpm: null,
+            channels: null,
+            comment: null,
+            compilation: album.album_type === 'compilation',
+            container: null,
+            createdAt: new Date().toISOString(),
+            discNumber: spotifyTrack.disc_number,
+            discSubtitle: null,
+            duration: Math.round(spotifyTrack.duration_ms / 1000), // Convert to seconds
+            gain: null,
+            genres: [],
+            id: `spotify:${spotifyTrack.id}`,
+            imagePlaceholderUrl: null,
+            imageUrl: album.images?.[0]?.url || null,
+            itemType: LibraryItem.SONG,
+            lastPlayedAt: null,
+            lyrics: null,
+            name: spotifyTrack.name,
+            participants: null,
+            path: null,
+            peak: null,
+            playCount: 0,
+            releaseDate: album.release_date || null,
+            releaseYear: album.release_date
+                ? new Date(album.release_date).getFullYear().toString()
+                : null,
+            sampleRate: null,
+            serverId,
+            serverType: ServerType.SUBSONIC, // Using as placeholder
+            size: 0,
+            streamUrl: spotifyTrack.preview_url || '', // Spotify only provides 30s previews
+            tags: null,
+            trackNumber: spotifyTrack.track_number,
+            uniqueId: `spotify:${spotifyTrack.id}:${serverId}`,
+            updatedAt: new Date().toISOString(),
+            userFavorite: false,
+            userRating: null,
+        } as Song;
     }
 
     public async searchAlbums(query: string, limit = 5): Promise<SpotifyAlbum[]> {

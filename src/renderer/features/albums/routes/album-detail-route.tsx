@@ -10,6 +10,7 @@ import { useAlbumDetail } from '/@/renderer/features/albums/queries/album-detail
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage, LibraryHeaderBar } from '/@/renderer/features/shared';
 import { useFastAverageColor } from '/@/renderer/hooks';
+import { useSpotifyAlbumDetail } from '/@/renderer/hooks/use-spotify-album-detail';
 import { useCurrentServer, useGeneralSettings } from '/@/renderer/store';
 import { usePlayButtonBehavior } from '/@/renderer/store/settings.store';
 import { LibraryItem } from '/@/shared/types/domain-types';
@@ -22,7 +23,26 @@ const AlbumDetailRoute = () => {
 
     const { albumId } = useParams() as { albumId: string };
     const server = useCurrentServer();
-    const detailQuery = useAlbumDetail({ query: { id: albumId }, serverId: server?.id });
+
+    // Determine if this is a Spotify album
+    const isSpotifyAlbum = albumId.startsWith('spotify:');
+
+    // Use appropriate query based on album type
+    const regularDetailQuery = useAlbumDetail({
+        options: { enabled: !isSpotifyAlbum },
+        query: { id: albumId },
+        serverId: server?.id,
+    });
+
+    const spotifyDetailQuery = useSpotifyAlbumDetail({
+        albumId,
+        enabled: isSpotifyAlbum,
+        serverId: server?.id || '',
+    });
+
+    // Use the appropriate query result
+    const detailQuery = isSpotifyAlbum ? spotifyDetailQuery : regularDetailQuery;
+
     const { background: backgroundColor, colorId } = useFastAverageColor({
         id: albumId,
         src: detailQuery.data?.imageUrl,
