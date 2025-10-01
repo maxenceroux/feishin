@@ -33,6 +33,7 @@ import { PlayButton, useCreateFavorite, useDeleteFavorite } from '/@/renderer/fe
 import { LibraryBackgroundOverlay } from '/@/renderer/features/shared/components/library-background-overlay';
 import { useAppFocus, useContainerQuery } from '/@/renderer/hooks';
 import { useGenreRoute } from '/@/renderer/hooks/use-genre-route';
+import { useSpotifyAlbumDetail } from '/@/renderer/hooks/use-spotify-album-detail';
 import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServer, useCurrentSong, useCurrentStatus } from '/@/renderer/store';
 import {
@@ -71,7 +72,25 @@ export const AlbumDetailContent = ({ background, tableRef }: AlbumDetailContentP
     const { t } = useTranslation();
     const { albumId } = useParams() as { albumId: string };
     const server = useCurrentServer();
-    const detailQuery = useAlbumDetail({ query: { id: albumId }, serverId: server?.id });
+
+    // Determine if this is a Spotify album
+    const isSpotifyAlbum = albumId.startsWith('spotify:');
+
+    // Use appropriate query based on album type
+    const regularDetailQuery = useAlbumDetail({
+        options: { enabled: !isSpotifyAlbum },
+        query: { id: albumId },
+        serverId: server?.id,
+    });
+
+    const spotifyDetailQuery = useSpotifyAlbumDetail({
+        albumId,
+        enabled: isSpotifyAlbum,
+        serverId: server?.id || '',
+    });
+
+    // Use the appropriate query result
+    const detailQuery = isSpotifyAlbum ? spotifyDetailQuery : regularDetailQuery;
     const cq = useContainerQuery();
     const handlePlayQueueAdd = usePlayQueueAdd();
     const tableConfig = useTableSettings('albumDetail');
