@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { Album, LibraryItem, ServerType, Song } from '/@/shared/types/domain-types';
+import { Album, AlbumArtist, LibraryItem, ServerType, Song } from '/@/shared/types/domain-types';
 
 export interface SpotifyAlbum {
     album_type: string;
@@ -39,6 +39,26 @@ export interface SpotifyArtist {
     id: string;
     name: string;
     type: string;
+    uri: string;
+}
+
+export interface SpotifyArtistDetails {
+    external_urls: { spotify: string };
+    followers: {
+        href: null | string;
+        total: number;
+    };
+    genres: string[];
+    href: string;
+    id: string;
+    images: Array<{
+        height: number;
+        url: string;
+        width: number;
+    }>;
+    name: string;
+    popularity: number;
+    type: 'artist';
     uri: string;
 }
 
@@ -116,6 +136,33 @@ class SpotifyClient {
         }
     }
 
+    public async getArtistDetails(artistId: string): Promise<SpotifyArtistDetails> {
+        if (!this.accessToken) {
+            throw new Error('Spotify access token not set');
+        }
+
+        if (!artistId) {
+            throw new Error('Artist ID is required');
+        }
+
+        // Extract Spotify ID from our ID format if needed
+        const spotifyId = artistId.startsWith('spotify:') ? artistId.split(':')[1] : artistId;
+
+        if (!spotifyId) {
+            throw new Error('Invalid Spotify artist ID format');
+        }
+
+        try {
+            const response = await this.client.get<SpotifyArtistDetails>(`/artists/${spotifyId}`);
+            return response.data;
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch Spotify artist details: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
     public mapSpotifyAlbumToAlbum(spotifyAlbum: SpotifyAlbum, serverId: string): Album {
         const primaryArtist = spotifyAlbum.artists[0];
         const releaseYear = spotifyAlbum.release_date
@@ -127,13 +174,13 @@ class SpotifyClient {
             __isSpotify: true,
             albumArtist: primaryArtist?.name || 'Unknown Artist',
             albumArtists: spotifyAlbum.artists.map((artist) => ({
-                id: artist.id,
+                id: `spotify:${artist.id}`,
                 imageUrl: null,
                 itemType: LibraryItem.ALBUM_ARTIST,
                 name: artist.name,
             })),
             artists: spotifyAlbum.artists.map((artist) => ({
-                id: artist.id,
+                id: `spotify:${artist.id}`,
                 imageUrl: null,
                 itemType: LibraryItem.ARTIST,
                 name: artist.name,
@@ -168,6 +215,39 @@ class SpotifyClient {
         } as Album & { __isSpotify: boolean };
     }
 
+    public mapSpotifyArtistToAlbumArtist(
+        spotifyArtist: SpotifyArtistDetails,
+        serverId: string,
+    ): AlbumArtist {
+        return {
+            // Mark as Spotify source for identification
+            __isSpotify: true,
+            albumCount: null, // Spotify doesn't provide album count in artist details
+            backgroundImageUrl: null,
+            biography: null, // Spotify doesn't provide biography in basic details
+            duration: null,
+            genres: spotifyArtist.genres.map((genre) => ({
+                id: genre,
+                imageUrl: null,
+                itemType: LibraryItem.GENRE,
+                name: genre,
+            })),
+            id: `spotify:${spotifyArtist.id}`,
+            imageUrl: spotifyArtist.images?.[0]?.url || null,
+            itemType: LibraryItem.ALBUM_ARTIST,
+            lastPlayedAt: null,
+            mbz: null,
+            name: spotifyArtist.name,
+            playCount: null,
+            serverId,
+            serverType: ServerType.SUBSONIC, // Using as placeholder since Spotify isn't a server type
+            similarArtists: null,
+            songCount: null,
+            userFavorite: false,
+            userRating: null,
+        } as AlbumArtist & { __isSpotify: boolean };
+    }
+
     public mapSpotifyTrackToSong(
         spotifyTrack: SpotifyTrack,
         album: SpotifyAlbum,
@@ -182,7 +262,7 @@ class SpotifyClient {
         return {
             album: album.name || 'Unknown Album',
             albumArtists: (album.artists || []).map((artist) => ({
-                id: artist.id || '',
+                id: `spotify:${artist.id || ''}`,
                 imageUrl: null,
                 itemType: LibraryItem.ALBUM_ARTIST,
                 name: artist.name || 'Unknown Artist',
@@ -190,7 +270,7 @@ class SpotifyClient {
             albumId: `spotify:${album.id}`,
             artistName: primaryArtist?.name || 'Unknown Artist',
             artists: (spotifyTrack.artists || []).map((artist) => ({
-                id: artist.id || '',
+                id: `spotify:${artist.id || ''}`,
                 imageUrl: null,
                 itemType: LibraryItem.ARTIST,
                 name: artist.name || 'Unknown Artist',
