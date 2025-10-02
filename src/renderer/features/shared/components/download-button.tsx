@@ -35,7 +35,7 @@ export const DownloadButton = ({
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://192.168.1.31:8000', {
+            const response = await fetch('http://100.98.104.55:8000/download_album', {
                 body: JSON.stringify({
                     album: albumName,
                     artist: albumArtist,
