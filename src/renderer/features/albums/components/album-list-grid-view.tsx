@@ -163,8 +163,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
         // (optional: if you want a compact array)
         // const compacted = itemData.filter(Boolean);
         // return compacted;
-        console.log('fetchInitialData returning items:', itemData.length);
-        console.log('fetchInitialData returning items:', itemData);
+
         return itemData;
     }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums, itemCount]);
 
@@ -182,7 +181,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 const spotifyStart = skip - localItemCount;
                 const spotifyEnd = Math.min(spotifyStart + take, spotifyAlbums.length);
                 const spotifyItems = spotifyAlbums.slice(spotifyStart, spotifyEnd);
-                console.log('fetch returning Spotify items:', spotifyItems);
+
                 return {
                     items: spotifyItems,
                     totalRecordCount: totalItemCount,
@@ -230,7 +229,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         totalRecordCount: totalItemCount,
                     };
                 }
-                console.log('fetch returning local albums:', albums);
+
                 return {
                     ...albums,
                     totalRecordCount: totalItemCount,
