@@ -15,7 +15,6 @@ import { AlbumListFilter, useCurrentServer, usePlayButtonBehavior } from '/@/ren
 import { titleCase } from '/@/renderer/utils';
 import { Button } from '/@/shared/components/button/button';
 import { Flex } from '/@/shared/components/flex/flex';
-import { Group } from '/@/shared/components/group/group';
 import { Stack } from '/@/shared/components/stack/stack';
 import { AlbumListQuery, LibraryItem } from '/@/shared/types/domain-types';
 
