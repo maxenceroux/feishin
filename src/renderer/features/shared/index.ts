@@ -1,4 +1,5 @@
 export * from './components/animated-page';
+export * from './components/download-button';
 export * from './components/filter-bar';
 export * from './components/library-header';
 export * from './components/library-header-bar';
