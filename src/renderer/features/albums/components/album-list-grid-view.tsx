@@ -120,6 +120,9 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     );
 
     const fetchInitialData = useCallback(() => {
+        // Check if we're displaying a Spotify artist's discography
+        const isSpotifyArtist = id?.startsWith('spotify:');
+        
         const query: AlbumListQuery = {
             ...filter,
             ...customFilters,
@@ -134,37 +137,42 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             stale: false,
         });
 
-        const localItemCount = itemCount || 0;
-        // Fill local albums from cache
-        const itemData: Album[] = new Array(localItemCount);
+        // For Spotify artists, we have no local albums, only Spotify albums
+        const localItemCount = isSpotifyArtist ? 0 : (itemCount || 0);
+        const totalItemCount = localItemCount + (spotifyAlbums?.length || 0);
+        
+        // Initialize array with total count needed
+        const itemData: Album[] = new Array(totalItemCount);
 
-        for (const [, data] of queriesFromCache) {
-            const { items, startIndex } = data || {};
-            if (items && items.length > 0 && startIndex !== undefined) {
-                let itemIndex = 0;
-                for (
-                    let rowIndex = startIndex;
-                    rowIndex < startIndex + items.length;
-                    rowIndex += 1
-                ) {
-                    itemData[rowIndex] = items[itemIndex];
-                    itemIndex += 1;
+        // Fill local albums from cache (only for non-Spotify artists)
+        if (!isSpotifyArtist) {
+            for (const [, data] of queriesFromCache) {
+                const { items, startIndex } = data || {};
+                if (items && items.length > 0 && startIndex !== undefined) {
+                    let itemIndex = 0;
+                    for (
+                        let rowIndex = startIndex;
+                        rowIndex < startIndex + items.length;
+                        rowIndex += 1
+                    ) {
+                        itemData[rowIndex] = items[itemIndex];
+                        itemIndex += 1;
+                    }
                 }
             }
         }
 
-        // Always append Spotify albums at the end after all local albums
-        if (spotifyAlbums && spotifyAlbums.length > 0 && itemCount !== undefined) {
+        // Add Spotify albums at the correct position
+        if (spotifyAlbums && spotifyAlbums.length > 0) {
             for (let i = 0; i < spotifyAlbums.length; i++) {
                 itemData[localItemCount + i] = spotifyAlbums[i];
             }
         }
-        // Remove leading empty slots if no local albums
-        // (optional: if you want a compact array)
-        // const compacted = itemData.filter(Boolean);
-        // return compacted;
+        
         console.log('fetchInitialData returning items:', itemData.length);
-        console.log('fetchInitialData returning items:', itemData);
+        console.log('fetchInitialData isSpotifyArtist:', isSpotifyArtist);
+        console.log('fetchInitialData localItemCount:', localItemCount);
+        console.log('fetchInitialData spotifyAlbums count:', spotifyAlbums?.length || 0);
         return itemData;
     }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums, itemCount]);
 
@@ -174,15 +182,28 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 return { items: [], totalRecordCount: 0 };
             }
 
-            const localItemCount = itemCount || 0;
+            // Check if we're displaying a Spotify artist's discography
+            const isSpotifyArtist = id?.startsWith('spotify:');
+            const localItemCount = isSpotifyArtist ? 0 : (itemCount || 0);
             const totalItemCount = localItemCount + (spotifyAlbums?.length || 0);
 
-            // If request is entirely within Spotify range, return Spotify albums
+            // If this is a Spotify artist, return Spotify albums directly
+            if (isSpotifyArtist && spotifyAlbums && spotifyAlbums.length > 0) {
+                const spotifyEnd = Math.min(skip + take, spotifyAlbums.length);
+                const spotifyItems = spotifyAlbums.slice(skip, spotifyEnd);
+                console.log('fetch returning Spotify items for Spotify artist:', spotifyItems.length);
+                return {
+                    items: spotifyItems,
+                    totalRecordCount: spotifyAlbums.length,
+                };
+            }
+
+            // If request is entirely within Spotify range (for non-Spotify artists with Spotify search)
             if (skip >= localItemCount && spotifyAlbums && spotifyAlbums.length > 0) {
                 const spotifyStart = skip - localItemCount;
                 const spotifyEnd = Math.min(spotifyStart + take, spotifyAlbums.length);
                 const spotifyItems = spotifyAlbums.slice(spotifyStart, spotifyEnd);
-                console.log('fetch returning Spotify items:', spotifyItems);
+                console.log('fetch returning Spotify search items:', spotifyItems.length);
                 return {
                     items: spotifyItems,
                     totalRecordCount: totalItemCount,
