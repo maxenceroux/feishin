@@ -4,6 +4,7 @@ import { useParams } from 'react-router';
 
 import { useAlbumArtistDetail } from '/@/renderer/features/artists/queries/album-artist-detail-query';
 import { LibraryHeader, useSetRating } from '/@/renderer/features/shared';
+import { useSpotifyArtistDetail } from '/@/renderer/hooks/use-spotify-artist-detail';
 import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServer } from '/@/renderer/store';
 import { formatDurationString } from '/@/renderer/utils';
@@ -27,10 +28,25 @@ export const AlbumArtistDetailHeader = forwardRef(
         const routeId = (artistId || albumArtistId) as string;
         const server = useCurrentServer();
         const { t } = useTranslation();
-        const detailQuery = useAlbumArtistDetail({
+
+        // Determine if this is a Spotify artist
+        const isSpotifyArtist = routeId.startsWith('spotify:');
+
+        // Use appropriate query based on artist type
+        const regularDetailQuery = useAlbumArtistDetail({
+            options: { enabled: !isSpotifyArtist },
             query: { id: routeId },
             serverId: server?.id,
         });
+
+        const spotifyDetailQuery = useSpotifyArtistDetail({
+            artistId: routeId,
+            enabled: isSpotifyArtist,
+            serverId: server?.id || '',
+        });
+
+        // Use the appropriate query result
+        const detailQuery = isSpotifyArtist ? spotifyDetailQuery : regularDetailQuery;
 
         const albumCount = detailQuery?.data?.albumCount;
         const songCount = detailQuery?.data?.songCount;

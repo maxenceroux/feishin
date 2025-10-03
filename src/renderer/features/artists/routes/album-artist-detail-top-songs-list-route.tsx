@@ -9,6 +9,7 @@ import { AlbumArtistDetailTopSongsListHeader } from '/@/renderer/features/artist
 import { useAlbumArtistDetail } from '/@/renderer/features/artists/queries/album-artist-detail-query';
 import { useTopSongsList } from '/@/renderer/features/artists/queries/top-songs-list-query';
 import { AnimatedPage } from '/@/renderer/features/shared';
+import { useSpotifyArtistDetail } from '/@/renderer/hooks/use-spotify-artist-detail';
 import { useCurrentServer } from '/@/renderer/store/auth.store';
 import { LibraryItem } from '/@/shared/types/domain-types';
 
@@ -22,10 +23,24 @@ const AlbumArtistDetailTopSongsListRoute = () => {
     const server = useCurrentServer();
     const pageKey = LibraryItem.SONG;
 
-    const detailQuery = useAlbumArtistDetail({
+    // Determine if this is a Spotify artist
+    const isSpotifyArtist = routeId.startsWith('spotify:');
+
+    // Use appropriate query based on artist type
+    const regularDetailQuery = useAlbumArtistDetail({
+        options: { enabled: !isSpotifyArtist },
         query: { id: routeId },
         serverId: server?.id,
     });
+
+    const spotifyDetailQuery = useSpotifyArtistDetail({
+        artistId: routeId,
+        enabled: isSpotifyArtist,
+        serverId: server?.id || '',
+    });
+
+    // Use the appropriate query result
+    const detailQuery = isSpotifyArtist ? spotifyDetailQuery : regularDetailQuery;
 
     const topSongsQuery = useTopSongsList({
         options: { enabled: !!detailQuery?.data?.name },

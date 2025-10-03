@@ -8,6 +8,7 @@ import { useAlbumArtistDetail } from '/@/renderer/features/artists/queries/album
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage, LibraryHeaderBar } from '/@/renderer/features/shared';
 import { useFastAverageColor } from '/@/renderer/hooks';
+import { useSpotifyArtistDetail } from '/@/renderer/hooks/use-spotify-artist-detail';
 import { useCurrentServer } from '/@/renderer/store';
 import { usePlayButtonBehavior } from '/@/renderer/store/settings.store';
 import { LibraryItem } from '/@/shared/types/domain-types';
@@ -24,12 +25,27 @@ const AlbumArtistDetailRoute = () => {
 
     const routeId = (artistId || albumArtistId) as string;
 
+    // Determine if this is a Spotify artist
+    const isSpotifyArtist = routeId.startsWith('spotify:');
+
     const handlePlayQueueAdd = usePlayQueueAdd();
     const playButtonBehavior = usePlayButtonBehavior();
-    const detailQuery = useAlbumArtistDetail({
+
+    // Use appropriate query based on artist type
+    const regularDetailQuery = useAlbumArtistDetail({
+        options: { enabled: !isSpotifyArtist },
         query: { id: routeId },
         serverId: server?.id,
     });
+
+    const spotifyDetailQuery = useSpotifyArtistDetail({
+        artistId: routeId,
+        enabled: isSpotifyArtist,
+        serverId: server?.id || '',
+    });
+
+    // Use the appropriate query result
+    const detailQuery = isSpotifyArtist ? spotifyDetailQuery : regularDetailQuery;
     const { background, colorId } = useFastAverageColor({
         id: routeId,
         src: detailQuery.data?.imageUrl,

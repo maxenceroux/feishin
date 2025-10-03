@@ -14,6 +14,7 @@ import { useAlbumListCount } from '/@/renderer/features/albums/queries/album-lis
 import { useGenreList } from '/@/renderer/features/genres';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
+import { useSpotifyArtistAlbums } from '/@/renderer/hooks/use-spotify-artist-albums';
 import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
@@ -36,6 +37,20 @@ const AlbumListRoute = () => {
 
     // State for Spotify integration toggle
     const [spotifyEnabled, setSpotifyEnabled] = useState(false);
+
+    // Check if this is a Spotify artist discography
+    const isSpotifyArtist = albumArtistId?.startsWith('spotify:');
+
+    // Hook for Spotify artist albums (discography)
+    const spotifyArtistAlbums = useSpotifyArtistAlbums({
+        artistId: albumArtistId || '',
+        enabled: isSpotifyArtist,
+        options: {
+            include_groups: 'album,single', // Get albums and singles
+            limit: 50,
+        },
+        serverId: server?.id || '',
+    });
 
     const toggleSpotify = useCallback(() => {
         setSpotifyEnabled((prev) => !prev);
@@ -102,6 +117,8 @@ const AlbumListRoute = () => {
     const itemCountCheck = useAlbumListCount({
         options: {
             cacheTime: 1000 * 60,
+            // Disable the query for Spotify artists since we get count from the albums result
+            enabled: !isSpotifyArtist,
             staleTime: 1000 * 60,
         },
         query: {
@@ -110,30 +127,44 @@ const AlbumListRoute = () => {
         serverId: server?.id,
     });
 
-    const itemCount = itemCountCheck.data === null ? undefined : itemCountCheck.data;
+    // For Spotify artists, use the length of the albums array as item count
+    const itemCount = isSpotifyArtist
+        ? spotifyArtistAlbums.data?.length
+        : itemCountCheck.data === null
+          ? undefined
+          : itemCountCheck.data;
 
     const handlePlay = useCallback(
         async (args: { initialSongId?: string; playType: Play }) => {
             if (!itemCount || itemCount === 0) return;
             const { playType } = args;
-            const query = {
-                ...albumListFilter,
-                ...customFilters,
-                startIndex: 0,
-            };
-            const queryKey = queryKeys.albums.list(server?.id || '', query);
 
-            const albumListRes = await queryClient.fetchQuery({
-                queryFn: ({ signal }) => {
-                    return api.controller.getAlbumList({
-                        apiClientProps: { server, signal },
-                        query,
-                    });
-                },
-                queryKey,
-            });
+            let albumIds: string[] = [];
 
-            const albumIds = albumListRes?.items?.map((a) => a.id) || [];
+            if (isSpotifyArtist) {
+                // For Spotify artists, use the albums from the Spotify API result
+                albumIds = spotifyArtistAlbums.data?.map((a) => a.id) || [];
+            } else {
+                // For regular albums, fetch from the backend API
+                const query = {
+                    ...albumListFilter,
+                    ...customFilters,
+                    startIndex: 0,
+                };
+                const queryKey = queryKeys.albums.list(server?.id || '', query);
+
+                const albumListRes = await queryClient.fetchQuery({
+                    queryFn: ({ signal }) => {
+                        return api.controller.getAlbumList({
+                            apiClientProps: { server, signal },
+                            query,
+                        });
+                    },
+                    queryKey,
+                });
+
+                albumIds = albumListRes?.items?.map((a) => a.id) || [];
+            }
 
             handlePlayQueueAdd?.({
                 byItemType: {
@@ -143,17 +174,35 @@ const AlbumListRoute = () => {
                 playType,
             });
         },
-        [albumListFilter, customFilters, handlePlayQueueAdd, itemCount, server],
+        [
+            albumListFilter,
+            customFilters,
+            handlePlayQueueAdd,
+            isSpotifyArtist,
+            itemCount,
+            server,
+            spotifyArtistAlbums.data,
+        ],
     );
 
     const providerValue = useMemo(() => {
+        // For Spotify artists, use their discography albums
+        // For search, use search results when Spotify is enabled
+        // Otherwise, empty array
+        let spotifyAlbums: Album[] = [];
+        if (isSpotifyArtist) {
+            spotifyAlbums = spotifyArtistAlbums.data || [];
+        } else if (spotifyEnabled) {
+            spotifyAlbums = spotifySearchResult.data || [];
+        }
+
         return {
             customFilters,
             handlePlay,
             id: albumArtistId ?? genreId,
             pageKey,
-            spotifyAlbums: spotifyEnabled ? spotifySearchResult.data || [] : [],
-            spotifyEnabled,
+            spotifyAlbums,
+            spotifyEnabled: spotifyEnabled || isSpotifyArtist, // Enable Spotify display for Spotify artists
             spotifySearchQuery: searchTerm,
         };
     }, [
@@ -161,7 +210,9 @@ const AlbumListRoute = () => {
         customFilters,
         genreId,
         handlePlay,
+        isSpotifyArtist,
         pageKey,
+        spotifyArtistAlbums.data,
         spotifyEnabled,
         spotifySearchResult.data,
         searchTerm,
