@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { Album, AlbumArtist, LibraryItem, ServerType, Song } from '/@/shared/types/domain-types';
+import { Album, AlbumArtist, LibraryItem, RelatedArtist, ServerType, Song } from '/@/shared/types/domain-types';
 
 export interface SpotifyAlbum {
     album_type: string;
@@ -50,6 +50,10 @@ export interface SpotifyArtistAlbumsResponse {
     offset: number;
     previous: null | string;
     total: number;
+}
+
+export interface SpotifyRelatedArtistsResponse {
+    artists: SpotifyArtistDetails[];
 }
 
 export interface SpotifyArtistDetails {
@@ -217,6 +221,35 @@ class SpotifyClient {
         }
     }
 
+    public async getRelatedArtists(artistId: string): Promise<SpotifyRelatedArtistsResponse> {
+        if (!this.accessToken) {
+            throw new Error('Spotify access token not set');
+        }
+
+        if (!artistId) {
+            throw new Error('Artist ID is required');
+        }
+
+        // Extract Spotify ID from our ID format if needed
+        const spotifyId = artistId.startsWith('spotify:') ? artistId.split(':')[1] : artistId;
+
+        if (!spotifyId) {
+            throw new Error('Invalid Spotify artist ID format');
+        }
+
+        try {
+            const response = await this.client.get<SpotifyRelatedArtistsResponse>(
+                `/artists/${spotifyId}/related-artists`,
+            );
+            return response.data;
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch Spotify related artists: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
     public mapSpotifyAlbumToAlbum(spotifyAlbum: SpotifyAlbum, serverId: string): Album {
         const primaryArtist = spotifyAlbum.artists[0];
         const releaseYear = spotifyAlbum.release_date
@@ -300,6 +333,14 @@ class SpotifyClient {
             userFavorite: false,
             userRating: null,
         } as AlbumArtist & { __isSpotify: boolean };
+    }
+
+    public mapSpotifyRelatedArtists(relatedArtists: SpotifyArtistDetails[]): RelatedArtist[] {
+        return relatedArtists.map((artist) => ({
+            id: `spotify:${artist.id}`,
+            imageUrl: artist.images?.[0]?.url || null,
+            name: artist.name,
+        }));
     }
 
     public mapSpotifyTrackToSong(

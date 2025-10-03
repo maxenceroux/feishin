@@ -25,6 +25,7 @@ import { LibraryBackgroundOverlay } from '/@/renderer/features/shared/components
 import { useContainerQuery } from '/@/renderer/hooks';
 import { useGenreRoute } from '/@/renderer/hooks/use-genre-route';
 import { useSpotifyArtistDetail } from '/@/renderer/hooks/use-spotify-artist-detail';
+import { useSpotifyRelatedArtists } from '/@/renderer/hooks/use-spotify-related-artists';
 import { AppRoute } from '/@/renderer/router/routes';
 import { ArtistItem, useCurrentServer } from '/@/renderer/store';
 import { useGeneralSettings, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
@@ -94,6 +95,13 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     // Use the appropriate query result
     const detailQuery = isSpotifyArtist ? spotifyDetailQuery : regularDetailQuery;
+
+    // Hook for Spotify related artists (only for Spotify artists)
+    const spotifyRelatedArtists = useSpotifyRelatedArtists({
+        artistId: routeId,
+        enabled: isSpotifyArtist,
+        serverId: server?.id || '',
+    });
 
     const artistDiscographyLink = `${generatePath(
         AppRoute.LIBRARY_ALBUM_ARTISTS_DETAIL_DISCOGRAPHY,
@@ -251,8 +259,12 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
                 uniqueId: 'compilationAlbums',
             },
             {
-                data: detailQuery?.data?.similarArtists || [],
-                isHidden: !detailQuery?.data?.similarArtists || !enabledItem.similarArtists,
+                data: isSpotifyArtist 
+                    ? (spotifyRelatedArtists.data || [])
+                    : (detailQuery?.data?.similarArtists || []),
+                isHidden: isSpotifyArtist 
+                    ? (!spotifyRelatedArtists.data || spotifyRelatedArtists.data.length === 0 || !enabledItem.similarArtists)
+                    : (!detailQuery?.data?.similarArtists || !enabledItem.similarArtists),
                 itemType: LibraryItem.ALBUM_ARTIST,
                 order: itemOrder.similarArtists,
                 title: (
@@ -274,6 +286,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         enabledItem.compilations,
         enabledItem.recentAlbums,
         enabledItem.similarArtists,
+        isSpotifyArtist,
         itemOrder.compilations,
         itemOrder.recentAlbums,
         itemOrder.similarArtists,
@@ -281,6 +294,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         recentAlbumsQuery.isFetching,
         recentAlbumsQuery?.isLoading,
         server?.type,
+        spotifyRelatedArtists.data,
         t,
     ]);
 
