@@ -7,4 +7,5 @@ export * from './random-string';
 export * from './rgb-to-rgba';
 export * from './sentence-case';
 export * from './set-local-storage-setttings';
+export * from './spotify-toggle-persistence';
 export * from './title-case';

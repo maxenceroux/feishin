@@ -13,9 +13,9 @@ import { useContainerQuery } from '/@/renderer/hooks';
 import { useDisplayRefresh } from '/@/renderer/hooks/use-display-refresh';
 import { AlbumListFilter, useCurrentServer, usePlayButtonBehavior } from '/@/renderer/store';
 import { titleCase } from '/@/renderer/utils';
-import { Button } from '/@/shared/components/button/button';
 import { Flex } from '/@/shared/components/flex/flex';
 import { Stack } from '/@/shared/components/stack/stack';
+import { Switch } from '/@/shared/components/switch/switch';
 import { AlbumListQuery, LibraryItem } from '/@/shared/types/domain-types';
 
 interface AlbumListHeaderProps {
@@ -84,13 +84,16 @@ export const AlbumListHeader = ({
                     </LibraryHeaderBar>
                     <Flex align="center" direction="row" gap={8}>
                         <SearchInput defaultValue={filter.searchTerm} onChange={handleSearch} />
-                        <Button
-                            onClick={onToggleSpotify}
-                            size="sm"
-                            variant={spotifyEnabled ? 'filled' : 'subtle'}
-                        >
-                            Search Spotify
-                        </Button>
+                        <Flex align="center" gap={6}>
+                            <Switch
+                                checked={spotifyEnabled}
+                                onChange={() => onToggleSpotify?.()}
+                                size="sm"
+                            />
+                            <span style={{ fontSize: '14px', userSelect: 'none' }}>
+                                Search Spotify
+                            </span>
+                        </Flex>
                     </Flex>
                 </Flex>
             </PageHeader>
