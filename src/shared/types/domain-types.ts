@@ -40,6 +40,7 @@ export enum ServerType {
     JELLYFIN = 'jellyfin',
     NAVIDROME = 'navidrome',
     SUBSONIC = 'subsonic',
+    SPOTIFY = 'spotify',
 }
 
 export enum SortOrder {

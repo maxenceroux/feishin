@@ -1,7 +1,7 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
 
 import isEmpty from 'lodash/isEmpty';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import { api } from '/@/renderer/api';
@@ -14,6 +14,7 @@ import { useAlbumListCount } from '/@/renderer/features/albums/queries/album-lis
 import { useGenreList } from '/@/renderer/features/genres';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
+import { useAlbumSearch } from '/@/renderer/hooks/use-album-search';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
 import {
@@ -88,6 +89,20 @@ const AlbumListRoute = () => {
 
     const itemCount = itemCountCheck.data === null ? undefined : itemCountCheck.data;
 
+    // Initialize Spotify search functionality
+    const albumSearch = useAlbumSearch({ 
+        localAlbumCount: itemCount 
+    });
+
+    const handleSpotifySearch = useCallback((query: string) => {
+        albumSearch.handleSpotifySearch(query);
+    }, [albumSearch]);
+
+    // Use the total item count that includes Spotify results
+    const totalItemCount = albumSearch.hasSpotifyResults 
+        ? albumSearch.totalItemCount 
+        : itemCount;
+
     const handlePlay = useCallback(
         async (args: { initialSongId?: string; playType: Play }) => {
             if (!itemCount || itemCount === 0) return;
@@ -128,8 +143,10 @@ const AlbumListRoute = () => {
             handlePlay,
             id: albumArtistId ?? genreId,
             pageKey,
+            spotifyAlbums: albumSearch.spotifyAlbums,
+            hasSpotifyResults: albumSearch.hasSpotifyResults,
         };
-    }, [albumArtistId, customFilters, genreId, handlePlay, pageKey]);
+    }, [albumArtistId, customFilters, genreId, handlePlay, pageKey, albumSearch.spotifyAlbums, albumSearch.hasSpotifyResults]);
 
     const artist = searchParams.get('artistName');
     const title = artist ? artist : genreId ? genreTitle : undefined;
@@ -140,11 +157,12 @@ const AlbumListRoute = () => {
                 <AlbumListHeader
                     genreId={genreId}
                     gridRef={gridRef}
-                    itemCount={itemCount}
+                    itemCount={totalItemCount}
                     tableRef={tableRef}
                     title={title}
+                    onSpotifySearch={handleSpotifySearch}
                 />
-                <AlbumListContent gridRef={gridRef} itemCount={itemCount} tableRef={tableRef} />
+                <AlbumListContent gridRef={gridRef} itemCount={totalItemCount} tableRef={tableRef} />
             </ListContext.Provider>
         </AnimatedPage>
     );

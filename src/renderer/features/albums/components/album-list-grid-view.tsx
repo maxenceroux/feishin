@@ -29,7 +29,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const queryClient = useQueryClient();
     const server = useCurrentServer();
     const handlePlayQueueAdd = usePlayQueueAdd();
-    const { customFilters, id, pageKey } = useListContext();
+    const { customFilters, id, pageKey, spotifyAlbums, hasSpotifyResults } = useListContext();
     const { display, filter, grid } = useListStoreByKey<AlbumListQuery>({ key: pageKey });
     const { setGrid } = useListStoreActions();
 
@@ -38,6 +38,9 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const initialScrollOffset = Number(id ? scrollOffset : grid?.scrollOffset) || 0;
 
     const handleFavorite = useHandleFavorite({ gridRef, server });
+
+    // Use the provided itemCount, which should include Spotify albums if they exist
+    const totalItemCount = itemCount || 0;
 
     const cardRows = useMemo(() => {
         const rows: CardRow<Album>[] = [ALBUM_CARD_ROWS.name];
@@ -158,7 +161,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const fetch = useCallback(
         async ({ skip, take }: { skip: number; take: number }) => {
             if (!server) {
-                return [];
+                return { items: [], totalRecordCount: 0 };
             }
 
             const query: AlbumListQuery = {
@@ -198,12 +201,12 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         handlePlayQueueAdd={handlePlayQueueAdd}
                         height={height}
                         initialScrollOffset={initialScrollOffset}
-                        itemCount={itemCount || 0}
+                        itemCount={totalItemCount}
                         itemGap={grid?.itemGap ?? 10}
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}
                         key={`album-list-${server?.id}-${display}`}
-                        loading={itemCount === undefined || itemCount === null}
+                        loading={totalItemCount === undefined || totalItemCount === null}
                         minimumBatchSize={40}
                         onScroll={handleGridScroll}
                         ref={gridRef}
