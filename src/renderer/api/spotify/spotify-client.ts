@@ -42,6 +42,16 @@ export interface SpotifyArtist {
     uri: string;
 }
 
+export interface SpotifyArtistAlbumsResponse {
+    href: string;
+    items: SpotifyAlbum[];
+    limit: number;
+    next: null | string;
+    offset: number;
+    previous: null | string;
+    total: number;
+}
+
 export interface SpotifyArtistDetails {
     external_urls: { spotify: string };
     followers: {
@@ -131,6 +141,50 @@ class SpotifyClient {
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(`Failed to fetch Spotify album details: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    public async getArtistAlbums(
+        artistId: string,
+        options: {
+            include_groups?: 'album' | 'appears_on' | 'compilation' | 'single' | string;
+            limit?: number;
+            offset?: number;
+        } = {},
+    ): Promise<SpotifyArtistAlbumsResponse> {
+        if (!this.accessToken) {
+            throw new Error('Spotify access token not set');
+        }
+
+        if (!artistId) {
+            throw new Error('Artist ID is required');
+        }
+
+        // Extract Spotify ID from our ID format if needed
+        const spotifyId = artistId.startsWith('spotify:') ? artistId.split(':')[1] : artistId;
+
+        if (!spotifyId) {
+            throw new Error('Invalid Spotify artist ID format');
+        }
+
+        try {
+            const response = await this.client.get<SpotifyArtistAlbumsResponse>(
+                `/artists/${spotifyId}/albums`,
+                {
+                    params: {
+                        include_groups: options.include_groups || 'album,single',
+                        limit: options.limit || 50,
+                        market: 'US', // Add market parameter for better results
+                        offset: options.offset || 0,
+                    },
+                },
+            );
+            return response.data;
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch Spotify artist albums: ${error.message}`);
             }
             throw error;
         }
