@@ -1,6 +1,13 @@
 import axios, { AxiosInstance } from 'axios';
 
-import { Album, AlbumArtist, LibraryItem, RelatedArtist, ServerType, Song } from '/@/shared/types/domain-types';
+import {
+    Album,
+    AlbumArtist,
+    LibraryItem,
+    RelatedArtist,
+    ServerType,
+    Song,
+} from '/@/shared/types/domain-types';
 
 export interface SpotifyAlbum {
     album_type: string;
@@ -52,10 +59,6 @@ export interface SpotifyArtistAlbumsResponse {
     total: number;
 }
 
-export interface SpotifyRelatedArtistsResponse {
-    artists: SpotifyArtistDetails[];
-}
-
 export interface SpotifyArtistDetails {
     external_urls: { spotify: string };
     followers: {
@@ -74,6 +77,10 @@ export interface SpotifyArtistDetails {
     popularity: number;
     type: 'artist';
     uri: string;
+}
+
+export interface SpotifyRelatedArtistsResponse {
+    artists: SpotifyArtistDetails[];
 }
 
 export interface SpotifySearchResponse {

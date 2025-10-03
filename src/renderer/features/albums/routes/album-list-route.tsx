@@ -19,6 +19,7 @@ import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
 import {
+    Album,
     AlbumListQuery,
     GenreListSort,
     LibraryItem,

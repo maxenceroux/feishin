@@ -122,7 +122,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const fetchInitialData = useCallback(() => {
         // Check if we're displaying a Spotify artist's discography
         const isSpotifyArtist = id?.startsWith('spotify:');
-        
+
         const query: AlbumListQuery = {
             ...filter,
             ...customFilters,
@@ -138,9 +138,9 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
         });
 
         // For Spotify artists, we have no local albums, only Spotify albums
-        const localItemCount = isSpotifyArtist ? 0 : (itemCount || 0);
+        const localItemCount = isSpotifyArtist ? 0 : itemCount || 0;
         const totalItemCount = localItemCount + (spotifyAlbums?.length || 0);
-        
+
         // Initialize array with total count needed
         const itemData: Album[] = new Array(totalItemCount);
 
@@ -168,7 +168,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                 itemData[localItemCount + i] = spotifyAlbums[i];
             }
         }
-        
+
         console.log('fetchInitialData returning items:', itemData.length);
         console.log('fetchInitialData isSpotifyArtist:', isSpotifyArtist);
         console.log('fetchInitialData localItemCount:', localItemCount);
@@ -184,14 +184,17 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
 
             // Check if we're displaying a Spotify artist's discography
             const isSpotifyArtist = id?.startsWith('spotify:');
-            const localItemCount = isSpotifyArtist ? 0 : (itemCount || 0);
+            const localItemCount = isSpotifyArtist ? 0 : itemCount || 0;
             const totalItemCount = localItemCount + (spotifyAlbums?.length || 0);
 
             // If this is a Spotify artist, return Spotify albums directly
             if (isSpotifyArtist && spotifyAlbums && spotifyAlbums.length > 0) {
                 const spotifyEnd = Math.min(skip + take, spotifyAlbums.length);
                 const spotifyItems = spotifyAlbums.slice(skip, spotifyEnd);
-                console.log('fetch returning Spotify items for Spotify artist:', spotifyItems.length);
+                console.log(
+                    'fetch returning Spotify items for Spotify artist:',
+                    spotifyItems.length,
+                );
                 return {
                     items: spotifyItems,
                     totalRecordCount: spotifyAlbums.length,

@@ -6,13 +6,11 @@ import { RelatedArtist } from '/@/shared/types/domain-types';
 interface UseSpotifyRelatedArtistsArgs {
     artistId: string;
     enabled?: boolean;
-    serverId: string;
 }
 
 export const useSpotifyRelatedArtists = ({
     artistId,
     enabled = true,
-    serverId,
 }: UseSpotifyRelatedArtistsArgs) => {
     return useQuery({
         cacheTime: 1000 * 60 * 15, // 15 minutes (related artists don't change often)
@@ -39,7 +37,9 @@ export const useSpotifyRelatedArtists = ({
                 await spotifyClient.setAccessToken(access_token);
 
                 const relatedArtistsResponse = await spotifyClient.getRelatedArtists(artistId);
-                const relatedArtists = spotifyClient.mapSpotifyRelatedArtists(relatedArtistsResponse.artists);
+                const relatedArtists = spotifyClient.mapSpotifyRelatedArtists(
+                    relatedArtistsResponse.artists,
+                );
 
                 return relatedArtists;
             } catch (error) {
