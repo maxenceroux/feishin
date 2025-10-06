@@ -15,6 +15,7 @@ import {
     SidebarPlaylistList,
     SidebarSharedPlaylistList,
 } from '/@/renderer/features/sidebar/components/sidebar-playlist-list';
+import { AppRoute } from '/@/renderer/router/routes';
 import {
     useAppStoreActions,
     useCurrentSong,
@@ -141,7 +142,7 @@ export const Sidebar = () => {
                         item: styles.accordionItem,
                         root: styles.accordionRoot,
                     }}
-                    defaultValue={['library', 'playlists']}
+                    defaultValue={['library', 'playlists', 'slskd']}
                     multiple
                 >
                     <Accordion.Item value="library">
@@ -166,6 +167,33 @@ export const Sidebar = () => {
                                     </SidebarItem>
                                 );
                             })}
+                        </Accordion.Panel>
+                    </Accordion.Item>
+                    <Accordion.Item value="slskd">
+                        <Accordion.Control>
+                            <Text fw={600} variant="secondary">
+                                slskd
+                            </Text>
+                        </Accordion.Control>
+                        <Accordion.Panel>
+                            <SidebarItem to={AppRoute.SLSKD_SEARCH}>
+                                <Group gap="sm">
+                                    <SidebarIcon
+                                        active={location.pathname === AppRoute.SLSKD_SEARCH}
+                                        route={AppRoute.SLSKD_SEARCH}
+                                    />
+                                    {t('page.sidebar.search', { postProcess: 'titleCase' })}
+                                </Group>
+                            </SidebarItem>
+                            <SidebarItem to={AppRoute.SLSKD_DOWNLOADS}>
+                                <Group gap="sm">
+                                    <SidebarIcon
+                                        active={location.pathname === AppRoute.SLSKD_DOWNLOADS}
+                                        route={AppRoute.SLSKD_DOWNLOADS}
+                                    />
+                                    Downloads
+                                </Group>
+                            </SidebarItem>
                         </Accordion.Panel>
                     </Accordion.Item>
                     {sidebarPlaylistList && (

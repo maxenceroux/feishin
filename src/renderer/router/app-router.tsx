@@ -63,6 +63,12 @@ const SettingsRoute = lazy(() => import('/@/renderer/features/settings/routes/se
 
 const SearchRoute = lazy(() => import('/@/renderer/features/search/routes/search-route'));
 
+const SlskdSearchRoute = lazy(() => import('/@/renderer/features/slskd/routes/slskd-search-route'));
+
+const SlskdDownloadsRoute = lazy(
+    () => import('/@/renderer/features/slskd/routes/slskd-downloads-route'),
+);
+
 const RouteErrorBoundary = lazy(
     () => import('/@/renderer/features/action-required/components/route-error-boundary'),
 );
@@ -170,6 +176,16 @@ export const AppRouter = () => {
                                     element={<PlaylistDetailSongListRoute />}
                                     errorElement={<RouteErrorBoundary />}
                                     path={AppRoute.PLAYLISTS_DETAIL_SONGS}
+                                />
+                                <Route
+                                    element={<SlskdSearchRoute />}
+                                    errorElement={<RouteErrorBoundary />}
+                                    path={AppRoute.SLSKD_SEARCH}
+                                />
+                                <Route
+                                    element={<SlskdDownloadsRoute />}
+                                    errorElement={<RouteErrorBoundary />}
+                                    path={AppRoute.SLSKD_DOWNLOADS}
                                 />
                                 <Route
                                     errorElement={<RouteErrorBoundary />}

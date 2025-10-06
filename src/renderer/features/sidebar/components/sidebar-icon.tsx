@@ -1,6 +1,8 @@
 import {
     RiAlbumFill,
     RiAlbumLine,
+    RiDownload2Fill,
+    RiDownload2Line,
     RiFlag2Fill,
     RiFlag2Line,
     RiFolder3Fill,
@@ -63,6 +65,12 @@ export const SidebarIcon = ({ active, route, size }: SidebarIconProps) => {
         case AppRoute.SETTINGS:
             if (active) return <RiSettings2Fill size={size} />;
             return <RiSettings2Line size={size} />;
+        case AppRoute.SLSKD_DOWNLOADS:
+            if (active) return <RiDownload2Fill size={size} />;
+            return <RiDownload2Line size={size} />;
+        case AppRoute.SLSKD_SEARCH:
+            if (active) return <RiSearchFill size={size} />;
+            return <RiSearchLine size={size} />;
         case generatePath(AppRoute.SEARCH, { itemType: LibraryItem.SONG }):
             if (active) return <RiSearchFill size={size} />;
             return <RiSearchLine size={size} />;

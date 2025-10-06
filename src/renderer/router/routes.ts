@@ -27,4 +27,6 @@ export enum AppRoute {
     SEARCH = '/search/:itemType',
     SERVERS = '/servers',
     SETTINGS = '/settings',
+    SLSKD_DOWNLOADS = '/slskd/downloads',
+    SLSKD_SEARCH = '/slskd/search',
 }
