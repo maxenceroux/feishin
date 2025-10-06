@@ -85,12 +85,14 @@ export const AlbumListHeader = ({
                     <Flex align="center" direction="row" gap={8}>
                         <SearchInput defaultValue={filter.searchTerm} onChange={handleSearch} />
 
-                        <Switch
-                            checked={spotifyEnabled}
-                            label="slsk"
-                            onChange={() => onToggleSpotify?.()}
-                            size="sm"
-                        />
+                        {onToggleSpotify && (
+                            <Switch
+                                checked={spotifyEnabled}
+                                label="slsk"
+                                onChange={() => onToggleSpotify?.()}
+                                size="sm"
+                            />
+                        )}
                     </Flex>
                 </Flex>
             </PageHeader>

@@ -40,13 +40,6 @@ const DiscoverAlbumsRoute = () => {
         serverId: server?.id || '',
     });
 
-    const [itemCount, setItemCount] = useState(0);
-
-    // Update item count when Spotify results change
-    useEffect(() => {
-        setItemCount(spotifySearchResult.data?.length || 0);
-    }, [spotifySearchResult.data]);
-
     const handlePlayQueueAdd = usePlayQueueAdd();
 
     const handlePlay = useCallback(
@@ -65,12 +58,15 @@ const DiscoverAlbumsRoute = () => {
         [handlePlayQueueAdd, spotifySearchResult.data],
     );
 
+    // Calculate item count from Spotify results
+    const itemCount = spotifySearchResult.data?.length || 0;
+
     const providerValue = useMemo(() => {
-        // Always use Spotify search results for discover page
+        // Always use Spotify search results for discover page (similar to album-list-route with spotifyEnabled=true)
         const spotifyAlbums: Album[] = spotifySearchResult.data || [];
 
         return {
-            customFilters: undefined,
+            customFilters: undefined, // No custom filters for discover
             handlePlay,
             id: 'discoverAlbums',
             pageKey,
@@ -93,14 +89,13 @@ const DiscoverAlbumsRoute = () => {
                     itemCount={itemCount}
                     tableRef={tableRef}
                     title="Discover Albums"
-                    // Don't show Spotify toggle for discover page - it's always enabled
-                    onToggleSpotify={undefined}
+                    // Don't show Spotify toggle for discover page - omit onToggleSpotify
                     spotifyEnabled={true}
                 />
                 {searchTerm ? (
                     <AlbumListContent
                         gridRef={gridRef}
-                        setItemCount={setItemCount}
+                        itemCount={itemCount}
                         tableRef={tableRef}
                     />
                 ) : (
