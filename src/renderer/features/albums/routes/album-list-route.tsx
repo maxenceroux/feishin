@@ -239,8 +239,6 @@ const AlbumListRoute = () => {
                     genreId={genreId}
                     gridRef={gridRef}
                     itemCount={itemCount}
-                    onToggleSpotify={toggleSpotify}
-                    spotifyEnabled={spotifyEnabled}
                     tableRef={tableRef}
                     title={title}
                 />

@@ -5,8 +5,8 @@ import { useSearchParams } from 'react-router-dom';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
-import { AlbumListContent } from '/@/renderer/features/albums/components/album-list-content';
 import { AlbumListHeader } from '/@/renderer/features/albums/components/album-list-header';
+import { DiscoverAlbumListContent } from '/@/renderer/features/discover/components/discover-album-list-content';
 import { useAlbumListCount } from '/@/renderer/features/albums/queries/album-list-count-query';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
@@ -96,7 +96,7 @@ const DiscoverAlbumsRoute = () => {
                     spotifyEnabled={true}
                 />
                 {searchTerm ? (
-                    <AlbumListContent
+                    <DiscoverAlbumListContent
                         gridRef={gridRef}
                         itemCount={itemCount}
                         tableRef={tableRef}
