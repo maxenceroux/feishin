@@ -85,7 +85,11 @@ export const AlbumListHeader = ({
                     <Flex align="center" direction="row" gap={8}>
                         <SearchInput defaultValue={filter.searchTerm} onChange={handleSearch} />
                         <Flex align="center" gap={6}>
-                            <Switch checked={spotifyEnabled} onChange={onToggleSpotify} size="sm" />
+                            <Switch
+                                checked={spotifyEnabled}
+                                onChange={() => onToggleSpotify?.()}
+                                size="sm"
+                            />
                             <span style={{ fontSize: '14px', userSelect: 'none' }}>
                                 Search Spotify
                             </span>
