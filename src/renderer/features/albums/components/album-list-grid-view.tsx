@@ -29,7 +29,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const queryClient = useQueryClient();
     const server = useCurrentServer();
     const handlePlayQueueAdd = usePlayQueueAdd();
-    const { customFilters, id, pageKey, spotifyAlbums } = useListContext();
+    const { customFilters, id, pageKey, spotifyAlbums, customCardRows } = useListContext();
     const { display, filter, grid } = useListStoreByKey<AlbumListQuery>({ key: pageKey });
     const { setGrid } = useListStoreActions();
 
@@ -40,6 +40,12 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const handleFavorite = useHandleFavorite({ gridRef, server });
 
     const cardRows = useMemo(() => {
+        // If custom card rows are provided (e.g., for Discover), use them
+        if (customCardRows) {
+            return customCardRows;
+        }
+
+        // Otherwise, use the original dynamic logic based on sort
         const rows: CardRow<Album>[] = [ALBUM_CARD_ROWS.name];
 
         switch (filter.sortBy) {
@@ -100,7 +106,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
         }
 
         return rows;
-    }, [filter.sortBy]);
+    }, [filter.sortBy, customCardRows]);
 
     const handleGridScroll = useCallback(
         (e: ListOnScrollProps) => {

@@ -65,6 +65,13 @@ const DiscoverAlbumsRoute = () => {
     const itemCount = spotifySearchResult.data?.length || 0;
     const isLoading = spotifySearchResult.isLoading;
 
+    // Define custom card rows for Discover Albums - always show artist name, album name, and release date
+    const customCardRows: CardRow<Album>[] = useMemo(() => [
+        ALBUM_CARD_ROWS.name,           // Album name
+        ALBUM_CARD_ROWS.albumArtists,   // Artist name
+        ALBUM_CARD_ROWS.releaseDate,    // Release date
+    ], []);
+
     const providerValue = useMemo(() => {
         // Always use Spotify search results for discover page (similar to album-list-route with spotifyEnabled=true)
         const spotifyAlbums: Album[] = spotifySearchResult.data || [];
@@ -77,12 +84,14 @@ const DiscoverAlbumsRoute = () => {
             spotifyAlbums,
             spotifyEnabled: true, // Always enabled for discover
             spotifySearchQuery: searchTerm,
+            customCardRows, // Pass custom card rows for enhanced display
         };
     }, [
         handlePlay,
         pageKey,
         spotifySearchResult.data,
         searchTerm,
+        customCardRows,
     ]);
 
     return (
@@ -97,10 +106,9 @@ const DiscoverAlbumsRoute = () => {
                     spotifyEnabled={true}
                 />
                 {searchTerm ? (
-                    <DiscoverAlbumListContent
+                    <AlbumListContent
                         gridRef={gridRef}
                         itemCount={itemCount}
-                        isLoading={isLoading}
                         tableRef={tableRef}
                     />
                 ) : (
