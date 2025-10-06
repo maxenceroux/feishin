@@ -33,8 +33,9 @@ const DiscoverAlbumsRoute = () => {
     const searchTerm = albumListFilter.searchTerm || '';
 
     // Use Spotify search hook with the search term from the search bar
+    // Always enabled for discover page
     const spotifySearchResult = useSpotifySearch({
-        enabled: !!searchTerm.trim(),
+        enabled: !!searchTerm.trim(), // Always enabled when there's a search term
         query: searchTerm,
         serverId: server?.id || '',
     });
@@ -65,7 +66,7 @@ const DiscoverAlbumsRoute = () => {
     );
 
     const providerValue = useMemo(() => {
-        // Use Spotify search results
+        // Always use Spotify search results for discover page
         const spotifyAlbums: Album[] = spotifySearchResult.data || [];
 
         return {
@@ -74,11 +75,14 @@ const DiscoverAlbumsRoute = () => {
             id: 'discoverAlbums',
             pageKey,
             spotifyAlbums,
+            spotifyEnabled: true, // Always enabled for discover
+            spotifySearchQuery: searchTerm,
         };
     }, [
         handlePlay,
         pageKey,
         spotifySearchResult.data,
+        searchTerm,
     ]);
 
     return (
@@ -89,7 +93,9 @@ const DiscoverAlbumsRoute = () => {
                     itemCount={itemCount}
                     tableRef={tableRef}
                     title="Discover Albums"
-                    titlePrefix="Spotify"
+                    // Don't show Spotify toggle for discover page - it's always enabled
+                    onToggleSpotify={undefined}
+                    spotifyEnabled={true}
                 />
                 {searchTerm ? (
                     <AlbumListContent

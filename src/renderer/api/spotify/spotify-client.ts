@@ -437,7 +437,7 @@ class SpotifyClient {
         } as Song;
     }
 
-    public async searchAlbums(query: string, limit = 5): Promise<SpotifyAlbum[]> {
+    public async searchAlbums(query: string, limit = 20): Promise<SpotifyAlbum[]> {
         if (!this.accessToken) {
             throw new Error('Spotify access token not set');
         }
@@ -453,7 +453,7 @@ class SpotifyClient {
         return response.data.albums.items;
     }
 
-    public async searchArtists(query: string, limit = 5): Promise<SpotifyArtistDetails[]> {
+    public async searchArtists(query: string, limit = 20): Promise<SpotifyArtistDetails[]> {
         if (!this.accessToken) {
             throw new Error('Spotify access token not set');
         }
@@ -469,7 +469,7 @@ class SpotifyClient {
         return response.data.artists.items;
     }
 
-    public async searchTracks(query: string, limit = 5): Promise<SpotifyTrack[]> {
+    public async searchTracks(query: string, limit = 20): Promise<SpotifyTrack[]> {
         if (!this.accessToken) {
             throw new Error('Spotify access token not set');
         }
