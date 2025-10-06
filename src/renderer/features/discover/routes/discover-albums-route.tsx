@@ -3,10 +3,11 @@ import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/li
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { ALBUM_CARD_ROWS } from '/@/renderer/components/card/card-rows';
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
 import { AlbumListHeader } from '/@/renderer/features/albums/components/album-list-header';
-import { DiscoverAlbumListContent } from '/@/renderer/features/discover/components/discover-album-list-content';
+import { AlbumListContent } from '/@/renderer/features/albums/components/album-list-content';
 import { useAlbumListCount } from '/@/renderer/features/albums/queries/album-list-count-query';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
@@ -17,7 +18,7 @@ import {
     AlbumListQuery,
     LibraryItem,
 } from '/@/shared/types/domain-types';
-import { Play } from '/@/shared/types/types';
+import { Play, CardRow } from '/@/shared/types/types';
 
 const DiscoverAlbumsRoute = () => {
     const gridRef = useRef<null | VirtualInfiniteGridRef>(null);
