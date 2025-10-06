@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 import { Badge } from '/@/shared/components/badge/badge';
+import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
 import { Group } from '/@/shared/components/group/group';
 import { Icon } from '/@/shared/components/icon/icon';
@@ -13,6 +14,9 @@ import { Spinner } from '/@/shared/components/spinner/spinner';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Table } from '/@/shared/components/table/table';
 import { Text } from '/@/shared/components/text/text';
+import { TextInput } from '/@/shared/components/text-input/text-input';
+
+import { SlskdSearchResults } from './slskd-search-results';
 
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -25,6 +29,9 @@ export const SlskdSearchList = () => {
     const { t } = useTranslation();
     const [sortField, setSortField] = useState<SearchSortField>('started');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+    const [selectedSearchId, setSelectedSearchId] = useState<string | null>(null);
+    const [newSearchQuery, setNewSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
 
     const handleSort = (field: SearchSortField) => {
         if (sortField === field) {
@@ -35,7 +42,28 @@ export const SlskdSearchList = () => {
         }
     };
 
-    const { data, error, isLoading } = useQuery({
+    const handleNewSearch = async () => {
+        if (!newSearchQuery.trim() || isSearching) return;
+        
+        setIsSearching(true);
+        try {
+            const searchId = await slskdApi.startSearch(newSearchQuery.trim());
+            console.log('Started search with ID:', searchId);
+            setSelectedSearchId(searchId);
+            // Refetch the searches list to show the new search
+            refetch();
+        } catch (error) {
+            console.error('Failed to start search:', error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleViewResults = (searchId: string) => {
+        setSelectedSearchId(searchId);
+    };
+
+    const { data, error, isLoading, refetch } = useQuery({
         queryFn: () => slskdApi.getRecentSearches(50),
         queryKey: ['slskd', 'searches'],
         refetchInterval: 30000, // Refetch every 30 seconds
@@ -87,6 +115,27 @@ export const SlskdSearchList = () => {
     const searches = data?.searches || [];
     console.log('SlskdSearchList searches array:', searches);
     console.log('SlskdSearchList searches length:', searches.length);
+
+    // If viewing search results, show the results component
+    if (selectedSearchId) {
+        const selectedSearch = searches.find(s => s.id === selectedSearchId);
+        const searchText = selectedSearch?.searchText || newSearchQuery;
+        
+        return (
+            <Stack gap="md" p="md" style={{ height: '100vh', overflow: 'hidden' }}>
+                <Group justify="space-between">
+                    <Button
+                        leftSection={<Icon icon="arrowLeftS" />}
+                        variant="subtle"
+                        onClick={() => setSelectedSearchId(null)}
+                    >
+                        Back to Searches
+                    </Button>
+                </Group>
+                <SlskdSearchResults searchId={selectedSearchId} searchText={searchText} />
+            </Stack>
+        );
+    }
 
     if (searches.length === 0) {
         return (
@@ -153,10 +202,40 @@ export const SlskdSearchList = () => {
         <Stack gap="md" p="md" style={{ height: '100vh', overflow: 'hidden' }}>
             <Group justify="space-between">
                 <Text fw={600} size="xl">
-                    Recent Searches
+                    Soulseek Search
                 </Text>
                 <Badge variant="light">{searches.length} searches</Badge>
             </Group>
+
+            {/* New Search Section */}
+            <Paper p="md" withBorder>
+                <Stack gap="sm">
+                    <Text fw={500} size="md">
+                        Start New Search
+                    </Text>
+                    <Group gap="sm">
+                        <TextInput
+                            placeholder="Enter search terms (artist, album, song...)"
+                            value={newSearchQuery}
+                            onChange={(e) => setNewSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleNewSearch();
+                                }
+                            }}
+                            style={{ flex: 1 }}
+                        />
+                        <Button
+                            leftSection={<Icon icon="search" />}
+                            loading={isSearching}
+                            onClick={handleNewSearch}
+                            disabled={!newSearchQuery.trim()}
+                        >
+                            Search
+                        </Button>
+                    </Group>
+                </Stack>
+            </Paper>
 
             <ScrollArea style={{ flex: 1 }}>
                 <Table>
@@ -167,6 +246,7 @@ export const SlskdSearchList = () => {
                             <SortableHeader field="results">Results</SortableHeader>
                             <SortableHeader field="files">Files</SortableHeader>
                             <SortableHeader field="started">Started</SortableHeader>
+                            <Table.Th>Actions</Table.Th>
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -190,6 +270,17 @@ export const SlskdSearchList = () => {
                                     <Text opacity={0.7} size="sm">
                                         {formatDate(search.startedAt)}
                                     </Text>
+                                </Table.Td>
+                                <Table.Td>
+                                    <Button
+                                        size="xs"
+                                        variant="light"
+                                        leftSection={<Icon icon="folderOpen" />}
+                                        onClick={() => handleViewResults(search.id)}
+                                        disabled={search.responseCount === 0}
+                                    >
+                                        View Results
+                                    </Button>
                                 </Table.Td>
                             </Table.Tr>
                         ))}

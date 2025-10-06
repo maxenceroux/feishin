@@ -4,6 +4,7 @@ import {
     SlskdApiResponse,
     SlskdDownloadListResponse,
     SlskdSearchListResponse,
+    SlskdSearchResultsResponse,
 } from './slskd-types';
 
 // slskd server configuration
@@ -109,6 +110,35 @@ export class SlskdApiClient {
         await this.makeDeleteRequest('transfers/downloads/all/completed');
     }
 
+    async getSearchResults(searchId: string): Promise<SlskdSearchResultsResponse> {
+        await this.ensureToken();
+        const response = await this.makeRequest<SlskdSearchResultsResponse>(
+            `searches/${searchId}/responses`,
+        );
+        console.log('slskd search results API response:', response);
+        
+        // Handle different response formats
+        if (Array.isArray(response.data)) {
+            return {
+                results: response.data as any[],
+                searchId,
+                searchText: '',
+            };
+        }
+        
+        return response.data as SlskdSearchResultsResponse;
+    }
+
+    async startSearch(query: string, options?: { limit?: number; timeout?: number }): Promise<string> {
+        await this.ensureToken();
+        const response = await this.makePostRequest<{ id: string }>('searches', {
+            searchText: query,
+            timeout: options?.timeout || 30000,
+            responseLimit: options?.limit || 100,
+        });
+        return response.data.id;
+    }
+
     async testConnection(): Promise<boolean> {
         try {
             await this.login();
@@ -154,6 +184,39 @@ export class SlskdApiClient {
         try {
             const response: AxiosResponse<T> = await axios.get(
                 `${this.baseUrl}/api/v0/${endpoint}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    timeout: 10000, // 10 second timeout
+                },
+            );
+
+            return {
+                data: response.data,
+                status: response.status,
+            };
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                throw new Error(
+                    `slskd API Error: ${axiosError.response?.status || 'Network Error'} - ${
+                        axiosError.message
+                    }`,
+                );
+            }
+            throw new Error(`slskd API Error: ${error}`);
+        }
+    }
+
+    private async makePostRequest<T>(endpoint: string, data: any): Promise<SlskdApiResponse<T>> {
+        if (!this.token) throw new Error('Not authenticated with slskd API');
+        console.log(`Making POST request to slskd endpoint: ${endpoint}`);
+        try {
+            const response: AxiosResponse<T> = await axios.post(
+                `${this.baseUrl}/api/v0/${endpoint}`,
+                data,
                 {
                     headers: {
                         Authorization: `Bearer ${this.token}`,
