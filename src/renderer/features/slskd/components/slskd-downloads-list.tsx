@@ -144,7 +144,7 @@ export const SlskdDownloadsList = () => {
                             <Table.Tr key={download.id}>
                                 <Table.Td>
                                     <Text fw={500} style={{ maxWidth: 250 }}>
-                                        {download.filename.split('/').pop() || download.filename}
+                                        {download.filename || download.filename}
                                     </Text>
                                 </Table.Td>
                                 <Table.Td>
@@ -174,7 +174,7 @@ export const SlskdDownloadsList = () => {
                                             />
                                         </div>
                                         <Text opacity={0.7} size="xs">
-                                            {download.percentComplete.toFixed(1)}%
+                                            {download.percentComplete}%
                                         </Text>
                                     </Stack>
                                 </Table.Td>
