@@ -23,7 +23,7 @@ const DiscoverAlbumsRoute = () => {
     const tableRef = useRef<AgGridReactType | null>(null);
     const server = useCurrentServer();
     const [searchParams] = useSearchParams();
-    const pageKey = LibraryItem.ALBUM;
+    const pageKey = 'album_discover'; // Use detail store for separate search state
 
     const albumListFilter = useListFilterByKey<AlbumListQuery>({
         key: pageKey,
