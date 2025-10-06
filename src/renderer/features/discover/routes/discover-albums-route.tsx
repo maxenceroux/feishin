@@ -7,10 +7,11 @@ import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
 import { AlbumListContent } from '/@/renderer/features/albums/components/album-list-content';
 import { AlbumListHeader } from '/@/renderer/features/albums/components/album-list-header';
+import { useAlbumListCount } from '/@/renderer/features/albums/queries/album-list-count-query';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
 import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
-import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
+import { useCurrentServer, useAlbumListFilter } from '/@/renderer/store';
 import {
     Album,
     AlbumListQuery,
@@ -25,7 +26,8 @@ const DiscoverAlbumsRoute = () => {
     const [searchParams] = useSearchParams();
     const pageKey = 'album_discover'; // Use detail store for separate search state
 
-    const albumListFilter = useListFilterByKey<AlbumListQuery>({
+    const albumListFilter = useAlbumListFilter({
+        id: 'discover',
         key: pageKey,
     });
 
