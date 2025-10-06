@@ -667,13 +667,40 @@ export const useListStoreByKey = <TFilter>(args: {
 }): ListItemProps<TFilter> => {
     const key = args.key as keyof ListState['item'];
     return useListStore(
-        (state) => ({
-            ...state.item[key],
-            filter: {
-                ...state.item[key].filter,
-                ...args.filter,
-            },
-        }),
+        (state) => {
+            // Check if key exists in main item store
+            if (state.item[key]) {
+                return {
+                    ...state.item[key],
+                    filter: {
+                        ...state.item[key].filter,
+                        ...args.filter,
+                    },
+                };
+            }
+            
+            // If key doesn't exist in main store, check detail store
+            if (state.detail[args.key]) {
+                // For detail store, fall back to album structure as default
+                const fallbackItem = state.item.album;
+                return {
+                    ...fallbackItem,
+                    filter: {
+                        ...state.detail[args.key].filter,
+                        ...args.filter,
+                    },
+                };
+            }
+            
+            // If neither exists, return album as fallback with empty filter
+            const fallbackItem = state.item.album;
+            return {
+                ...fallbackItem,
+                filter: {
+                    ...args.filter,
+                },
+            };
+        },
         shallow,
     );
 };
