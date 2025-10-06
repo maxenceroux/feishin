@@ -68,7 +68,7 @@ const DiscoverAlbumsRoute = () => {
         return {
             customFilters: undefined, // No custom filters for discover
             handlePlay,
-            id: 'discoverAlbums',
+            id: 'spotify:discover:albums', // Use spotify: prefix to indicate Spotify-only behavior
             pageKey,
             spotifyAlbums,
             spotifyEnabled: true, // Always enabled for discover
