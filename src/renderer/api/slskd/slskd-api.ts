@@ -106,7 +106,7 @@ export class SlskdApiClient {
 
     async removeCompletedDownloads(): Promise<void> {
         await this.ensureToken();
-        await this.makeDeleteRequest('transfers/downloads/completed');
+        await this.makeDeleteRequest('transfers/downloads/all/completed');
     }
 
     async testConnection(): Promise<boolean> {

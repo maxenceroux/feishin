@@ -18,7 +18,7 @@ const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
 };
 
-type SearchSortField = 'duration' | 'files' | 'results' | 'searchText' | 'started' | 'state';
+type SearchSortField = 'files' | 'results' | 'searchText' | 'started' | 'state';
 type SortDirection = 'asc' | 'desc';
 
 export const SlskdSearchList = () => {
@@ -109,8 +109,6 @@ export const SlskdSearchList = () => {
         const direction = sortDirection === 'asc' ? 1 : -1;
 
         switch (sortField) {
-            case 'duration':
-                return direction * ((a.elapsedTime || 0) - (b.elapsedTime || 0));
             case 'files':
                 return direction * (a.fileCount - b.fileCount);
             case 'results':
@@ -169,7 +167,6 @@ export const SlskdSearchList = () => {
                             <SortableHeader field="results">Results</SortableHeader>
                             <SortableHeader field="files">Files</SortableHeader>
                             <SortableHeader field="started">Started</SortableHeader>
-                            <SortableHeader field="duration">Duration</SortableHeader>
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
@@ -192,13 +189,6 @@ export const SlskdSearchList = () => {
                                 <Table.Td>
                                     <Text opacity={0.7} size="sm">
                                         {formatDate(search.startedAt)}
-                                    </Text>
-                                </Table.Td>
-                                <Table.Td>
-                                    <Text opacity={0.7} size="sm">
-                                        {search.elapsedTime
-                                            ? `${Math.round(search.elapsedTime / 1000)}s`
-                                            : '-'}
                                     </Text>
                                 </Table.Td>
                             </Table.Tr>
