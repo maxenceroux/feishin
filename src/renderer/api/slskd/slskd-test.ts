@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 
 // Test function to verify slskd API connectivity
@@ -25,7 +23,7 @@ export const testSlskdData = async () => {
         const downloads = await slskdApi.getRecentDownloads(10);
         console.log('Downloads:', downloads);
 
-        return { searches, downloads };
+        return { downloads, searches };
     } catch (error) {
         console.error('Failed to fetch slskd data:', error);
         throw error;

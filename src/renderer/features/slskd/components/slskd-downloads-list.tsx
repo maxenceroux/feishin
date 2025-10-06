@@ -55,6 +55,10 @@ export const SlskdDownloadsList = () => {
         retry: 3,
     });
 
+    console.log('SlskdDownloadsList component data:', data);
+    console.log('SlskdDownloadsList component error:', error);
+    console.log('SlskdDownloadsList component isLoading:', isLoading);
+
     if (isLoading) {
         return (
             <Center style={{ height: '50vh' }}>
@@ -94,6 +98,8 @@ export const SlskdDownloadsList = () => {
     }
 
     const downloads = data?.downloads || [];
+    console.log('SlskdDownloadsList downloads array:', downloads);
+    console.log('SlskdDownloadsList downloads length:', downloads.length);
 
     if (downloads.length === 0) {
         return (
@@ -102,6 +108,9 @@ export const SlskdDownloadsList = () => {
                     <Icon icon="download" size="4rem" />
                     <Text opacity={0.7} size="lg">
                         No recent downloads found
+                    </Text>
+                    <Text opacity={0.5} size="sm">
+                        Debug: Data structure - {JSON.stringify(data, null, 2)}
                     </Text>
                 </Stack>
             </Center>

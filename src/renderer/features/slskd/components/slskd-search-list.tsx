@@ -26,6 +26,10 @@ export const SlskdSearchList = () => {
         retry: 3,
     });
 
+    console.log('SlskdSearchList component data:', data);
+    console.log('SlskdSearchList component error:', error);
+    console.log('SlskdSearchList component isLoading:', isLoading);
+
     if (isLoading) {
         return (
             <Center style={{ height: '50vh' }}>
@@ -65,6 +69,8 @@ export const SlskdSearchList = () => {
     }
 
     const searches = data?.searches || [];
+    console.log('SlskdSearchList searches array:', searches);
+    console.log('SlskdSearchList searches length:', searches.length);
 
     if (searches.length === 0) {
         return (
@@ -73,6 +79,9 @@ export const SlskdSearchList = () => {
                     <Icon icon="search" size="4rem" />
                     <Text opacity={0.7} size="lg">
                         No recent searches found
+                    </Text>
+                    <Text opacity={0.5} size="sm">
+                        Debug: Data structure - {JSON.stringify(data, null, 2)}
                     </Text>
                 </Stack>
             </Center>

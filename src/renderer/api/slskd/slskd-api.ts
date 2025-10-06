@@ -14,9 +14,9 @@ const SLSKD_CONFIG = {
 };
 
 export class SlskdApiClient {
-    private token: string | null = null;
     private baseUrl: string;
     private password: string;
+    private token: null | string = null;
     private username: string;
 
     constructor(config = SLSKD_CONFIG) {
@@ -26,6 +26,60 @@ export class SlskdApiClient {
         this.token = null;
     }
 
+    async getRecentDownloads(limit = 50): Promise<SlskdDownloadListResponse> {
+        await this.ensureToken();
+        const response = await this.makeRequest<SlskdDownloadListResponse>(
+            `transfers/downloads?limit=${limit}`,
+        );
+        console.log('slskd downloads API response:', response);
+        console.log('slskd downloads response.data:', response.data);
+
+        // Handle case where API returns data directly vs wrapped in response
+        if (Array.isArray(response.data)) {
+            return {
+                count: response.data.length,
+                downloads: response.data,
+            };
+        }
+
+        // If response.data has downloads property, use it
+        if (response.data && typeof response.data === 'object' && 'downloads' in response.data) {
+            return response.data as SlskdDownloadListResponse;
+        }
+
+        // Otherwise return response.data as is, assuming it's the downloads array
+        return {
+            count: Array.isArray(response.data) ? (response.data as any[]).length : 0,
+            downloads: (response.data as any) || [],
+        };
+    }
+
+    async getRecentSearches(limit = 50): Promise<SlskdSearchListResponse> {
+        await this.ensureToken();
+        const response = await this.makeRequest<SlskdSearchListResponse>(`searches?limit=${limit}`);
+        console.log('slskd searches API response:', response);
+        console.log('slskd searches response.data:', response.data);
+
+        // Handle case where API returns data directly vs wrapped in response
+        if (Array.isArray(response.data)) {
+            return {
+                count: response.data.length,
+                searches: response.data,
+            };
+        }
+
+        // If response.data has searches property, use it
+        if (response.data && typeof response.data === 'object' && 'searches' in response.data) {
+            return response.data as SlskdSearchListResponse;
+        }
+
+        // Otherwise return response.data as is, assuming it's the searches array
+        return {
+            count: Array.isArray(response.data) ? (response.data as any[]).length : 0,
+            searches: (response.data as any) || [],
+        };
+    }
+
     async login(): Promise<void> {
         // POST to /session to get Bearer token
         const url = `${this.baseUrl}/api/v0/session`;
@@ -33,8 +87,8 @@ export class SlskdApiClient {
             const response = await axios.post(
                 url,
                 {
-                    username: this.username,
                     password: this.password,
+                    username: this.username,
                 },
                 {
                     headers: { 'Content-Type': 'application/json' },
@@ -50,27 +104,18 @@ export class SlskdApiClient {
         }
     }
 
-    async getRecentDownloads(limit = 50): Promise<SlskdDownloadListResponse> {
-        await this.ensureToken();
-        const response = await this.makeRequest<SlskdDownloadListResponse>(
-            `transfers/downloads?limit=${limit}`,
-        );
-        return response.data;
-    }
-
-    async getRecentSearches(limit = 50): Promise<SlskdSearchListResponse> {
-        await this.ensureToken();
-        const response = await this.makeRequest<SlskdSearchListResponse>(`searches?limit=${limit}`);
-        console.log(response);
-        return response.data;
-    }
-
     async testConnection(): Promise<boolean> {
         try {
             await this.login();
             return true;
         } catch {
             return false;
+        }
+    }
+
+    private async ensureToken() {
+        if (!this.token) {
+            await this.login();
         }
     }
 
@@ -103,12 +148,6 @@ export class SlskdApiClient {
                 );
             }
             throw new Error(`slskd API Error: ${error}`);
-        }
-    }
-
-    private async ensureToken() {
-        if (!this.token) {
-            await this.login();
         }
     }
 }
