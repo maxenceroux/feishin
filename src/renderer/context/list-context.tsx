@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 
 import { ListKey } from '/@/renderer/store';
-import { Album } from '/@/shared/types/domain-types';
+import { Album, AlbumArtist, Song } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
 
 interface ListContextProps {
@@ -10,6 +10,8 @@ interface ListContextProps {
     id?: string;
     pageKey: ListKey;
     spotifyAlbums?: Album[];
+    spotifyArtists?: AlbumArtist[];
+    spotifyTracks?: Song[];
     spotifyEnabled?: boolean;
     spotifySearchQuery?: string;
 }

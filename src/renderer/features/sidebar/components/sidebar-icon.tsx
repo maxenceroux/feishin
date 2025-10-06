@@ -74,6 +74,15 @@ export const SidebarIcon = ({ active, route, size }: SidebarIconProps) => {
         case generatePath(AppRoute.SEARCH, { itemType: LibraryItem.SONG }):
             if (active) return <RiSearchFill size={size} />;
             return <RiSearchLine size={size} />;
+        case AppRoute.DISCOVER_ALBUMS:
+            if (active) return <RiAlbumFill size={size} />;
+            return <RiAlbumLine size={size} />;
+        case AppRoute.DISCOVER_ARTISTS:
+            if (active) return <RiUserVoiceFill size={size} />;
+            return <RiUserVoiceLine size={size} />;
+        case AppRoute.DISCOVER_TRACKS:
+            if (active) return <RiMusic2Fill size={size} />;
+            return <RiMusic2Line size={size} />;
         default:
             return <RiHome6Line size={size} />;
     }

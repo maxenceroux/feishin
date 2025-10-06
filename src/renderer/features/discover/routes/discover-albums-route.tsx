@@ -1,6 +1,6 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
@@ -40,6 +40,11 @@ const DiscoverAlbumsRoute = () => {
     });
 
     const [itemCount, setItemCount] = useState(0);
+
+    // Update item count when Spotify results change
+    useEffect(() => {
+        setItemCount(spotifySearchResult.data?.length || 0);
+    }, [spotifySearchResult.data]);
 
     const handlePlayQueueAdd = usePlayQueueAdd();
 
@@ -93,11 +98,23 @@ const DiscoverAlbumsRoute = () => {
                     title="Discover Albums"
                     titlePrefix="Spotify"
                 />
-                <AlbumListContent
-                    gridRef={gridRef}
-                    setItemCount={setItemCount}
-                    tableRef={tableRef}
-                />
+                {searchTerm ? (
+                    <AlbumListContent
+                        gridRef={gridRef}
+                        setItemCount={setItemCount}
+                        tableRef={tableRef}
+                    />
+                ) : (
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        alignItems: 'center', 
+                        height: '200px',
+                        color: '#888'
+                    }}>
+                        Search for albums using the search bar above to discover Spotify content
+                    </div>
+                )}
             </ListContext.Provider>
         </AnimatedPage>
     );
