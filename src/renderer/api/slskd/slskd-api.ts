@@ -8,13 +8,13 @@ import {
 
 // slskd server configuration
 const SLSKD_CONFIG = {
-    baseUrl: 'http://100.98.104.55:5030',
+    baseUrl: 'http://192.168.1.31:5030',
     password: 'slskd',
     username: 'slskd',
 };
 
 export class SlskdApiClient {
-    private authHeader: string;
+    private token: string | null = null;
     private baseUrl: string;
     private password: string;
     private username: string;
@@ -23,10 +23,35 @@ export class SlskdApiClient {
         this.baseUrl = config.baseUrl;
         this.username = config.username;
         this.password = config.password;
-        this.authHeader = `Basic ${btoa(`${this.username}:${this.password}`)}`;
+        this.token = null;
+    }
+
+    async login(): Promise<void> {
+        // POST to /session to get Bearer token
+        const url = `${this.baseUrl}/api/v0/session`;
+        try {
+            const response = await axios.post(
+                url,
+                {
+                    username: this.username,
+                    password: this.password,
+                },
+                {
+                    headers: { 'Content-Type': 'application/json' },
+                    timeout: 10000,
+                },
+            );
+            this.token = response.data.token;
+        } catch (error) {
+            throw new Error(
+                'Failed to authenticate with slskd API: ' +
+                    (error instanceof Error ? error.message : error),
+            );
+        }
     }
 
     async getRecentDownloads(limit = 50): Promise<SlskdDownloadListResponse> {
+        await this.ensureToken();
         const response = await this.makeRequest<SlskdDownloadListResponse>(
             `transfers/downloads?limit=${limit}`,
         );
@@ -34,13 +59,15 @@ export class SlskdApiClient {
     }
 
     async getRecentSearches(limit = 50): Promise<SlskdSearchListResponse> {
+        await this.ensureToken();
         const response = await this.makeRequest<SlskdSearchListResponse>(`searches?limit=${limit}`);
+        console.log(response);
         return response.data;
     }
 
     async testConnection(): Promise<boolean> {
         try {
-            await this.makeRequest('session');
+            await this.login();
             return true;
         } catch {
             return false;
@@ -48,12 +75,14 @@ export class SlskdApiClient {
     }
 
     private async makeRequest<T>(endpoint: string): Promise<SlskdApiResponse<T>> {
+        if (!this.token) throw new Error('Not authenticated with slskd API');
+        console.log(`Making request to slskd endpoint: ${endpoint}`);
         try {
             const response: AxiosResponse<T> = await axios.get(
                 `${this.baseUrl}/api/v0/${endpoint}`,
                 {
                     headers: {
-                        Authorization: this.authHeader,
+                        Authorization: `Bearer ${this.token}`,
                         'Content-Type': 'application/json',
                     },
                     timeout: 10000, // 10 second timeout
@@ -74,6 +103,12 @@ export class SlskdApiClient {
                 );
             }
             throw new Error(`slskd API Error: ${error}`);
+        }
+    }
+
+    private async ensureToken() {
+        if (!this.token) {
+            await this.login();
         }
     }
 }
