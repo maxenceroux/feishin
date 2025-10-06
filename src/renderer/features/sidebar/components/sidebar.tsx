@@ -142,7 +142,7 @@ export const Sidebar = () => {
                         item: styles.accordionItem,
                         root: styles.accordionRoot,
                     }}
-                    defaultValue={['library', 'playlists', 'slskd']}
+                    defaultValue={['library', 'discover', 'slskd']}
                     multiple
                 >
                     <Accordion.Item value="library">
@@ -167,6 +167,42 @@ export const Sidebar = () => {
                                     </SidebarItem>
                                 );
                             })}
+                        </Accordion.Panel>
+                    </Accordion.Item>
+                    <Accordion.Item value="discover">
+                        <Accordion.Control>
+                            <Text fw={600} variant="secondary">
+                                Discover
+                            </Text>
+                        </Accordion.Control>
+                        <Accordion.Panel>
+                            <SidebarItem to={AppRoute.DISCOVER_ALBUMS}>
+                                <Group gap="sm">
+                                    <SidebarIcon
+                                        active={location.pathname === AppRoute.DISCOVER_ALBUMS}
+                                        route={AppRoute.DISCOVER_ALBUMS}
+                                    />
+                                    Albums
+                                </Group>
+                            </SidebarItem>
+                            <SidebarItem to={AppRoute.DISCOVER_TRACKS}>
+                                <Group gap="sm">
+                                    <SidebarIcon
+                                        active={location.pathname === AppRoute.DISCOVER_TRACKS}
+                                        route={AppRoute.DISCOVER_TRACKS}
+                                    />
+                                    Tracks
+                                </Group>
+                            </SidebarItem>
+                            <SidebarItem to={AppRoute.DISCOVER_ARTISTS}>
+                                <Group gap="sm">
+                                    <SidebarIcon
+                                        active={location.pathname === AppRoute.DISCOVER_ARTISTS}
+                                        route={AppRoute.DISCOVER_ARTISTS}
+                                    />
+                                    Artists
+                                </Group>
+                            </SidebarItem>
                         </Accordion.Panel>
                     </Accordion.Item>
                     <Accordion.Item value="slskd">

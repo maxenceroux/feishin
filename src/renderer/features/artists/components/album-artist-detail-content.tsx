@@ -1,7 +1,7 @@
 import { ColDef, RowDoubleClickedEvent } from '@ag-grid-community/core';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { generatePath, useParams } from 'react-router';
+import { generatePath, useParams, useNavigate } from 'react-router';
 import { createSearchParams, Link } from 'react-router-dom';
 
 import styles from './album-artist-detail-content.module.css';
@@ -29,6 +29,7 @@ import { useSpotifyRelatedArtists } from '/@/renderer/hooks/use-spotify-related-
 import { AppRoute } from '/@/renderer/router/routes';
 import { ArtistItem, useCurrentServer } from '/@/renderer/store';
 import { useGeneralSettings, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
+import { useListStoreActions } from '/@/renderer/store/list.store';
 import { sanitize } from '/@/renderer/utils/sanitize';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Button } from '/@/shared/components/button/button';
@@ -54,6 +55,8 @@ interface AlbumArtistDetailContentProps {
 
 export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailContentProps) => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+    const { setFilter } = useListStoreActions();
     const { artistItems, externalLinks, lastFM, musicBrainz } = useGeneralSettings();
     const { albumArtistId, artistId } = useParams() as {
         albumArtistId?: string;
@@ -348,6 +351,21 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         }
     };
 
+    const handleDiscoverSearch = () => {
+        const artistName = detailQuery?.data?.name;
+        if (!artistName) return;
+
+        // Set the search term in the discover artists filter
+        setFilter({
+            data: { searchTerm: artistName },
+            itemType: 'artist_discover' as any,
+            key: 'artist_discover',
+        });
+        
+        // Navigate to discover artists
+        navigate(AppRoute.DISCOVER_ARTISTS);
+    };
+
     const albumCount = detailQuery?.data?.albumCount;
     const artistContextItems =
         (albumCount ?? 1) > 0
@@ -428,6 +446,15 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
                     >
                         {String(t('page.albumArtistDetail.viewAllTracks')).toUpperCase()}
                     </Button>
+                    {!isSpotifyArtist && (
+                        <Button
+                            onClick={handleDiscoverSearch}
+                            size="compact-md"
+                            variant="subtle"
+                        >
+                            {String(t('page.albumArtistDetail.discover', { defaultValue: 'DISCOVER' })).toUpperCase()}
+                        </Button>
+                    )}
                 </Group>
                 {showGenres ? (
                     <section>

@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'react';
 
 import { ListKey } from '/@/renderer/store';
-import { Album } from '/@/shared/types/domain-types';
-import { Play } from '/@/shared/types/types';
+import { Album, AlbumArtist, Song } from '/@/shared/types/domain-types';
+import { CardRow, Play } from '/@/shared/types/types';
 
 interface ListContextProps {
     customFilters?: Record<string, unknown>;
@@ -10,8 +10,11 @@ interface ListContextProps {
     id?: string;
     pageKey: ListKey;
     spotifyAlbums?: Album[];
+    spotifyArtists?: AlbumArtist[];
+    spotifyTracks?: Song[];
     spotifyEnabled?: boolean;
     spotifySearchQuery?: string;
+    customCardRows?: CardRow<Album>[]; // Add support for custom card rows
 }
 
 export const ListContext = createContext<ListContextProps>({

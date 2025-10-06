@@ -9,6 +9,7 @@ import { queryKeys } from '/@/renderer/api/query-keys';
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
 import { AlbumListContent } from '/@/renderer/features/albums/components/album-list-content';
+import { AlbumListEmptyState } from '/@/renderer/features/albums/components/album-list-empty-state';
 import { AlbumListHeader } from '/@/renderer/features/albums/components/album-list-header';
 import { useAlbumListCount } from '/@/renderer/features/albums/queries/album-list-count-query';
 import { useGenreList } from '/@/renderer/features/genres';
@@ -228,6 +229,9 @@ const AlbumListRoute = () => {
     const artist = searchParams.get('artistName');
     const title = artist ? artist : genreId ? genreTitle : undefined;
 
+    // Check if we should show empty state (no results found and there's a search term)
+    const shouldShowEmptyState = (itemCount === 0) && searchTerm.trim() && !isSpotifyArtist;
+
     return (
         <AnimatedPage>
             <ListContext.Provider value={providerValue}>
@@ -235,12 +239,14 @@ const AlbumListRoute = () => {
                     genreId={genreId}
                     gridRef={gridRef}
                     itemCount={itemCount}
-                    onToggleSpotify={toggleSpotify}
-                    spotifyEnabled={spotifyEnabled}
                     tableRef={tableRef}
                     title={title}
                 />
-                <AlbumListContent gridRef={gridRef} itemCount={itemCount} tableRef={tableRef} />
+                {shouldShowEmptyState ? (
+                    <AlbumListEmptyState searchTerm={searchTerm} />
+                ) : (
+                    <AlbumListContent gridRef={gridRef} itemCount={itemCount} tableRef={tableRef} />
+                )}
             </ListContext.Provider>
         </AnimatedPage>
     );
