@@ -23,17 +23,18 @@ const AlbumListTableView = lazy(() =>
 interface DiscoverAlbumListContentProps {
     gridRef: MutableRefObject<null | VirtualInfiniteGridRef>;
     itemCount?: number;
+    isLoading?: boolean;
     tableRef: MutableRefObject<AgGridReactType | null>;
 }
 
-export const DiscoverAlbumListContent = ({ gridRef, itemCount, tableRef }: DiscoverAlbumListContentProps) => {
+export const DiscoverAlbumListContent = ({ gridRef, itemCount, isLoading, tableRef }: DiscoverAlbumListContentProps) => {
     const { pageKey } = useListContext();
     const { display } = useListStoreByKey({ key: pageKey });
 
     return (
         <Suspense fallback={<Spinner container />}>
             {display === ListDisplayType.CARD || display === ListDisplayType.GRID ? (
-                <DiscoverAlbumListGridView gridRef={gridRef} itemCount={itemCount} />
+                <DiscoverAlbumListGridView gridRef={gridRef} itemCount={itemCount} isLoading={isLoading} />
             ) : (
                 <AlbumListTableView itemCount={itemCount} tableRef={tableRef} />
             )}

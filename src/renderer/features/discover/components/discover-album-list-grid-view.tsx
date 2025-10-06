@@ -24,7 +24,7 @@ import {
 } from '/@/shared/types/domain-types';
 import { CardRow, ListDisplayType } from '/@/shared/types/types';
 
-export const DiscoverAlbumListGridView = ({ gridRef, itemCount }: any) => {
+export const DiscoverAlbumListGridView = ({ gridRef, itemCount, isLoading }: any) => {
     const queryClient = useQueryClient();
     const server = useCurrentServer();
     const handlePlayQueueAdd = usePlayQueueAdd();
@@ -37,6 +37,9 @@ export const DiscoverAlbumListGridView = ({ gridRef, itemCount }: any) => {
     const initialScrollOffset = Number(id ? scrollOffset : grid?.scrollOffset) || 0;
 
     const handleFavorite = useHandleFavorite({ gridRef, server });
+
+    // Get search term from filter for loading check
+    const searchTerm = filter?.searchTerm || '';
 
     // Custom card rows for Discover Albums - always show artist name, album name, and release date
     const cardRows = useMemo(() => {
@@ -133,7 +136,7 @@ export const DiscoverAlbumListGridView = ({ gridRef, itemCount }: any) => {
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}
                         key={`discover-album-list-${server?.id}-${display}-${spotifyAlbums?.length || 0}-${filter.searchTerm || 'no-search'}`}
-                        loading={itemCount === undefined || itemCount === null}
+                        loading={isLoading || !searchTerm.trim()}
                         minimumBatchSize={40}
                         onScroll={handleGridScroll}
                         ref={gridRef}

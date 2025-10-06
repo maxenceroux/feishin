@@ -63,6 +63,7 @@ const DiscoverAlbumsRoute = () => {
 
     // Calculate item count from Spotify results
     const itemCount = spotifySearchResult.data?.length || 0;
+    const isLoading = spotifySearchResult.isLoading;
 
     const providerValue = useMemo(() => {
         // Always use Spotify search results for discover page (similar to album-list-route with spotifyEnabled=true)
@@ -99,6 +100,7 @@ const DiscoverAlbumsRoute = () => {
                     <DiscoverAlbumListContent
                         gridRef={gridRef}
                         itemCount={itemCount}
+                        isLoading={isLoading}
                         tableRef={tableRef}
                     />
                 ) : (
