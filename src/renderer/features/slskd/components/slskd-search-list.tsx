@@ -97,52 +97,50 @@ export const SlskdSearchList = () => {
                 <Badge variant="light">{searches.length} searches</Badge>
             </Group>
 
-            <Paper p="md">
-                <Table>
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Search Text</Table.Th>
-                            <Table.Th>State</Table.Th>
-                            <Table.Th>Results</Table.Th>
-                            <Table.Th>Files</Table.Th>
-                            <Table.Th>Started</Table.Th>
-                            <Table.Th>Duration</Table.Th>
+            <Table>
+                <Table.Thead>
+                    <Table.Tr>
+                        <Table.Th>Search Text</Table.Th>
+                        <Table.Th>State</Table.Th>
+                        <Table.Th>Results</Table.Th>
+                        <Table.Th>Files</Table.Th>
+                        <Table.Th>Started</Table.Th>
+                        <Table.Th>Duration</Table.Th>
+                    </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                    {searches.map((search) => (
+                        <Table.Tr key={search.id}>
+                            <Table.Td>
+                                <Text fw={500} style={{ maxWidth: 200 }}>
+                                    {search.searchText}
+                                </Text>
+                            </Table.Td>
+                            <Table.Td>
+                                <Badge variant="subtle">{search.state}</Badge>
+                            </Table.Td>
+                            <Table.Td>
+                                <Text size="sm">{search.responseCount}</Text>
+                            </Table.Td>
+                            <Table.Td>
+                                <Text size="sm">{search.fileCount}</Text>
+                            </Table.Td>
+                            <Table.Td>
+                                <Text opacity={0.7} size="sm">
+                                    {formatDate(search.startedAt)}
+                                </Text>
+                            </Table.Td>
+                            <Table.Td>
+                                <Text opacity={0.7} size="sm">
+                                    {search.elapsedTime
+                                        ? `${Math.round(search.elapsedTime / 1000)}s`
+                                        : '-'}
+                                </Text>
+                            </Table.Td>
                         </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {searches.map((search) => (
-                            <Table.Tr key={search.id}>
-                                <Table.Td>
-                                    <Text fw={500} style={{ maxWidth: 200 }}>
-                                        {search.searchText}
-                                    </Text>
-                                </Table.Td>
-                                <Table.Td>
-                                    <Badge variant="subtle">{search.state}</Badge>
-                                </Table.Td>
-                                <Table.Td>
-                                    <Text size="sm">{search.responseCount}</Text>
-                                </Table.Td>
-                                <Table.Td>
-                                    <Text size="sm">{search.fileCount}</Text>
-                                </Table.Td>
-                                <Table.Td>
-                                    <Text opacity={0.7} size="sm">
-                                        {formatDate(search.startedAt)}
-                                    </Text>
-                                </Table.Td>
-                                <Table.Td>
-                                    <Text opacity={0.7} size="sm">
-                                        {search.elapsedTime
-                                            ? `${Math.round(search.elapsedTime / 1000)}s`
-                                            : '-'}
-                                    </Text>
-                                </Table.Td>
-                            </Table.Tr>
-                        ))}
-                    </Table.Tbody>
-                </Table>
-            </Paper>
+                    ))}
+                </Table.Tbody>
+            </Table>
         </Stack>
     );
 };

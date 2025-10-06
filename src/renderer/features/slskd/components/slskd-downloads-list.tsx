@@ -108,7 +108,6 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                 key={`dir-${directory.directory}`}
                 onClick={() => setIsExpanded(!isExpanded)}
                 style={{
-                    backgroundColor: 'var(--mantine-color-gray-0)',
                     cursor: 'pointer',
                 }}
             >
@@ -131,7 +130,7 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                     <Stack gap={2}>
                         <div
                             style={{
-                                backgroundColor: 'var(--mantine-color-gray-3)',
+                                backgroundColor: 'var(--theme-colors-border)',
                                 borderRadius: '2px',
                                 height: '4px',
                                 overflow: 'hidden',
@@ -140,7 +139,7 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                         >
                             <div
                                 style={{
-                                    backgroundColor: 'var(--mantine-color-blue-5)',
+                                    backgroundColor: 'var(--theme-colors-primary)',
                                     height: '100%',
                                     transition: 'width 0.3s',
                                     width: `${stats.overallProgress}%`,
@@ -172,10 +171,7 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
             {/* Individual file rows when expanded */}
             {isExpanded &&
                 directory.files.map((download) => (
-                    <Table.Tr
-                        key={download.id}
-                        style={{ backgroundColor: 'var(--mantine-color-gray-1)' }}
-                    >
+                    <Table.Tr key={download.id}>
                         <Table.Td>
                             <Group gap="xs" pl="2rem">
                                 <Icon icon="track" size="0.8rem" />
@@ -196,7 +192,7 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                             <Stack gap={2}>
                                 <div
                                     style={{
-                                        backgroundColor: 'var(--mantine-color-gray-3)',
+                                        backgroundColor: 'var(--theme-colors-border)',
                                         borderRadius: '2px',
                                         height: '4px',
                                         overflow: 'hidden',
@@ -205,7 +201,7 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                                 >
                                     <div
                                         style={{
-                                            backgroundColor: 'var(--mantine-color-blue-5)',
+                                            backgroundColor: 'var(--theme-colors-primary)',
                                             height: '100%',
                                             transition: 'width 0.3s',
                                             width: `${download.percentComplete}%`,
@@ -334,32 +330,30 @@ export const SlskdDownloadsList = () => {
                 <Badge variant="light">{totalDirectories} albums</Badge>
             </Group>
 
-            <Paper p="md">
-                <Table>
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Album / Track</Table.Th>
-                            <Table.Th>User</Table.Th>
-                            <Table.Th>State</Table.Th>
-                            <Table.Th>Progress</Table.Th>
-                            <Table.Th>Size</Table.Th>
-                            <Table.Th>Speed</Table.Th>
-                            <Table.Th>Info</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {downloads.map((group) =>
-                            group.directories?.map((directory) => (
-                                <ExpandableDirectoryRow
-                                    directory={directory}
-                                    key={`${group.username}-${directory.directory}`}
-                                    username={group.username}
-                                />
-                            )),
-                        )}
-                    </Table.Tbody>
-                </Table>
-            </Paper>
+            <Table>
+                <Table.Thead>
+                    <Table.Tr>
+                        <Table.Th>Album / Track</Table.Th>
+                        <Table.Th>User</Table.Th>
+                        <Table.Th>State</Table.Th>
+                        <Table.Th>Progress</Table.Th>
+                        <Table.Th>Size</Table.Th>
+                        <Table.Th>Speed</Table.Th>
+                        <Table.Th>Info</Table.Th>
+                    </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                    {downloads.map((group) =>
+                        group.directories?.map((directory) => (
+                            <ExpandableDirectoryRow
+                                directory={directory}
+                                key={`${group.username}-${directory.directory}`}
+                                username={group.username}
+                            />
+                        )),
+                    )}
+                </Table.Tbody>
+            </Table>
         </Stack>
     );
 };
