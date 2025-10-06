@@ -104,6 +104,11 @@ export class SlskdApiClient {
         }
     }
 
+    async removeCompletedDownloads(): Promise<void> {
+        await this.ensureToken();
+        await this.makeDeleteRequest('transfers/downloads/completed');
+    }
+
     async testConnection(): Promise<boolean> {
         try {
             await this.login();
@@ -116,6 +121,30 @@ export class SlskdApiClient {
     private async ensureToken() {
         if (!this.token) {
             await this.login();
+        }
+    }
+
+    private async makeDeleteRequest(endpoint: string): Promise<void> {
+        if (!this.token) throw new Error('Not authenticated with slskd API');
+        console.log(`Making DELETE request to slskd endpoint: ${endpoint}`);
+        try {
+            await axios.delete(`${this.baseUrl}/api/v0/${endpoint}`, {
+                headers: {
+                    Authorization: `Bearer ${this.token}`,
+                    'Content-Type': 'application/json',
+                },
+                timeout: 10000, // 10 second timeout
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                throw new Error(
+                    `slskd API Error: ${axiosError.response?.status || 'Network Error'} - ${
+                        axiosError.message
+                    }`,
+                );
+            }
+            throw new Error(`slskd API Error: ${error}`);
         }
     }
 

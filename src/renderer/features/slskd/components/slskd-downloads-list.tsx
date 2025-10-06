@@ -1,14 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 import { SlskdDownload } from '/@/renderer/api/slskd/slskd-types';
 import { Badge } from '/@/shared/components/badge/badge';
+import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
 import { Group } from '/@/shared/components/group/group';
 import { Icon } from '/@/shared/components/icon/icon';
 import { Paper } from '/@/shared/components/paper/paper';
+import { ScrollArea } from '/@/shared/components/scroll-area/scroll-area';
 import { Spinner } from '/@/shared/components/spinner/spinner';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Table } from '/@/shared/components/table/table';
@@ -53,21 +56,25 @@ const calculateDirectoryStats = (files: SlskdDownload[]) => {
     const totalTransferred = files.reduce((sum, file) => sum + file.bytesTransferred, 0);
     const overallProgress = totalSize > 0 ? (totalTransferred / totalSize) * 100 : 0;
 
-    // Determine aggregated state
+    // Improved state aggregation logic
     const states = files.map((f) => f.state);
-    const uniqueStates = [...new Set(states)];
     let aggregatedState = '';
 
-    if (uniqueStates.every((state) => state.includes('Completed'))) {
+    // Check for any errored items first
+    if (states.some((state) => state.includes('Error') || state.includes('Failed'))) {
+        aggregatedState = 'Error';
+    }
+    // Check if all are completed successfully (no error states)
+    else if (states.every((state) => state.includes('Completed') && !state.includes('Error'))) {
         aggregatedState = 'Completed';
-    } else if (
-        uniqueStates.some((state) => state.includes('InProgress') || state.includes('Queued'))
-    ) {
+    }
+    // Check for any in progress
+    else if (states.some((state) => state.includes('InProgress') || state.includes('Queued'))) {
         aggregatedState = 'In Progress';
-    } else if (uniqueStates.some((state) => state.includes('Failed') || state.includes('Error'))) {
-        aggregatedState = 'Failed';
-    } else {
-        aggregatedState = uniqueStates[0] || 'Unknown';
+    }
+    // Fallback
+    else {
+        aggregatedState = states[0] || 'Unknown';
     }
 
     // Calculate average speed
@@ -93,6 +100,9 @@ interface ExpandableDirectoryRowProps {
     directory: { directory: string; fileCount: number; files: SlskdDownload[] };
     username: string;
 }
+type SortDirection = 'asc' | 'desc';
+
+type SortField = 'album' | 'progress' | 'size' | 'speed' | 'state' | 'user';
 
 const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -246,13 +256,38 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
 
 export const SlskdDownloadsList = () => {
     const { t } = useTranslation();
+    const [sortField, setSortField] = useState<SortField>('album');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+    const [isRemoving, setIsRemoving] = useState(false);
 
-    const { data, error, isLoading } = useQuery({
+    const { data, error, isLoading, refetch } = useQuery({
         queryFn: () => slskdApi.getRecentDownloads(50),
         queryKey: ['slskd', 'downloads'],
         refetchInterval: 5000, // Refetch every 5 seconds for live updates
         retry: 3,
     });
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
+    const handleRemoveSucceeded = async () => {
+        setIsRemoving(true);
+        try {
+            await slskdApi.removeCompletedDownloads();
+            // Refetch data after successful removal
+            refetch();
+        } catch (error) {
+            console.error('Failed to remove completed downloads:', error);
+        } finally {
+            setIsRemoving(false);
+        }
+    };
 
     console.log('SlskdDownloadsList component data:', data);
     console.log('SlskdDownloadsList component error:', error);
@@ -321,39 +356,110 @@ export const SlskdDownloadsList = () => {
         return sum + (group.directories?.length || 0);
     }, 0);
 
+    // Flatten and sort data for sorting functionality
+    const allDirectories = downloads.flatMap(
+        (group) =>
+            group.directories?.map((directory) => ({
+                ...directory,
+                stats: calculateDirectoryStats(directory.files),
+                username: group.username,
+            })) || [],
+    );
+
+    // Sort directories based on current sort settings
+    const sortedDirectories = [...allDirectories].sort((a, b) => {
+        const direction = sortDirection === 'asc' ? 1 : -1;
+
+        switch (sortField) {
+            case 'album':
+                return (
+                    direction *
+                    (a.directory.split('\\').pop() || '').localeCompare(
+                        b.directory.split('\\').pop() || '',
+                    )
+                );
+            case 'progress':
+                return direction * (a.stats.overallProgress - b.stats.overallProgress);
+            case 'size':
+                return direction * (a.stats.totalSize - b.stats.totalSize);
+            case 'speed':
+                return direction * (a.stats.avgSpeed - b.stats.avgSpeed);
+            case 'state':
+                return direction * a.stats.aggregatedState.localeCompare(b.stats.aggregatedState);
+            case 'user':
+                return direction * a.username.localeCompare(b.username);
+            default:
+                return 0;
+        }
+    });
+
+    const SortableHeader = ({
+        children,
+        field,
+    }: {
+        children: React.ReactNode;
+        field: SortField;
+    }) => (
+        <Table.Th
+            onClick={() => handleSort(field)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+            <Group gap="xs">
+                {children}
+                {sortField === field && (
+                    <Icon
+                        icon={sortDirection === 'asc' ? 'arrowUpS' : 'arrowDownS'}
+                        size="0.8rem"
+                    />
+                )}
+            </Group>
+        </Table.Th>
+    );
+
     return (
-        <Stack gap="md" p="md">
+        <Stack gap="md" p="md" style={{ height: '100vh', overflow: 'hidden' }}>
             <Group justify="space-between">
-                <Text fw={600} size="xl">
-                    Recent Downloads
-                </Text>
-                <Badge variant="light">{totalDirectories} albums</Badge>
+                <Group gap="md">
+                    <Text fw={600} size="xl">
+                        Recent Downloads
+                    </Text>
+                    <Badge variant="light">{totalDirectories} albums</Badge>
+                </Group>
+                <Button
+                    leftSection={<Icon icon="remove" />}
+                    loading={isRemoving}
+                    onClick={handleRemoveSucceeded}
+                    size="sm"
+                    variant="light"
+                >
+                    Remove All Succeeded
+                </Button>
             </Group>
 
-            <Table>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Album / Track</Table.Th>
-                        <Table.Th>User</Table.Th>
-                        <Table.Th>State</Table.Th>
-                        <Table.Th>Progress</Table.Th>
-                        <Table.Th>Size</Table.Th>
-                        <Table.Th>Speed</Table.Th>
-                        <Table.Th>Info</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {downloads.map((group) =>
-                        group.directories?.map((directory) => (
+            <ScrollArea style={{ flex: 1 }}>
+                <Table>
+                    <Table.Thead>
+                        <Table.Tr>
+                            <SortableHeader field="album">Album / Track</SortableHeader>
+                            <SortableHeader field="user">User</SortableHeader>
+                            <SortableHeader field="state">State</SortableHeader>
+                            <SortableHeader field="progress">Progress</SortableHeader>
+                            <SortableHeader field="size">Size</SortableHeader>
+                            <SortableHeader field="speed">Speed</SortableHeader>
+                            <Table.Th>Info</Table.Th>
+                        </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {sortedDirectories.map((directory) => (
                             <ExpandableDirectoryRow
                                 directory={directory}
-                                key={`${group.username}-${directory.directory}`}
-                                username={group.username}
+                                key={`${directory.username}-${directory.directory}`}
+                                username={directory.username}
                             />
-                        )),
-                    )}
-                </Table.Tbody>
-            </Table>
+                        ))}
+                    </Table.Tbody>
+                </Table>
+            </ScrollArea>
         </Stack>
     );
 };

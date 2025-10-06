@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
@@ -7,6 +8,7 @@ import { Center } from '/@/shared/components/center/center';
 import { Group } from '/@/shared/components/group/group';
 import { Icon } from '/@/shared/components/icon/icon';
 import { Paper } from '/@/shared/components/paper/paper';
+import { ScrollArea } from '/@/shared/components/scroll-area/scroll-area';
 import { Spinner } from '/@/shared/components/spinner/spinner';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Table } from '/@/shared/components/table/table';
@@ -16,8 +18,22 @@ const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
 };
 
+type SearchSortField = 'duration' | 'files' | 'results' | 'searchText' | 'started' | 'state';
+type SortDirection = 'asc' | 'desc';
+
 export const SlskdSearchList = () => {
     const { t } = useTranslation();
+    const [sortField, setSortField] = useState<SearchSortField>('started');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+    const handleSort = (field: SearchSortField) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
 
     const { data, error, isLoading } = useQuery({
         queryFn: () => slskdApi.getRecentSearches(50),
@@ -88,8 +104,55 @@ export const SlskdSearchList = () => {
         );
     }
 
+    // Sort searches based on current sort settings
+    const sortedSearches = [...searches].sort((a, b) => {
+        const direction = sortDirection === 'asc' ? 1 : -1;
+
+        switch (sortField) {
+            case 'duration':
+                return direction * ((a.elapsedTime || 0) - (b.elapsedTime || 0));
+            case 'files':
+                return direction * (a.fileCount - b.fileCount);
+            case 'results':
+                return direction * (a.responseCount - b.responseCount);
+            case 'searchText':
+                return direction * a.searchText.localeCompare(b.searchText);
+            case 'started':
+                return (
+                    direction * (new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
+                );
+            case 'state':
+                return direction * a.state.localeCompare(b.state);
+            default:
+                return 0;
+        }
+    });
+
+    const SortableHeader = ({
+        children,
+        field,
+    }: {
+        children: React.ReactNode;
+        field: SearchSortField;
+    }) => (
+        <Table.Th
+            onClick={() => handleSort(field)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+        >
+            <Group gap="xs">
+                {children}
+                {sortField === field && (
+                    <Icon
+                        icon={sortDirection === 'asc' ? 'arrowUpS' : 'arrowDownS'}
+                        size="0.8rem"
+                    />
+                )}
+            </Group>
+        </Table.Th>
+    );
+
     return (
-        <Stack gap="md" p="md">
+        <Stack gap="md" p="md" style={{ height: '100vh', overflow: 'hidden' }}>
             <Group justify="space-between">
                 <Text fw={600} size="xl">
                     Recent Searches
@@ -97,50 +160,52 @@ export const SlskdSearchList = () => {
                 <Badge variant="light">{searches.length} searches</Badge>
             </Group>
 
-            <Table>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Search Text</Table.Th>
-                        <Table.Th>State</Table.Th>
-                        <Table.Th>Results</Table.Th>
-                        <Table.Th>Files</Table.Th>
-                        <Table.Th>Started</Table.Th>
-                        <Table.Th>Duration</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {searches.map((search) => (
-                        <Table.Tr key={search.id}>
-                            <Table.Td>
-                                <Text fw={500} style={{ maxWidth: 200 }}>
-                                    {search.searchText}
-                                </Text>
-                            </Table.Td>
-                            <Table.Td>
-                                <Badge variant="subtle">{search.state}</Badge>
-                            </Table.Td>
-                            <Table.Td>
-                                <Text size="sm">{search.responseCount}</Text>
-                            </Table.Td>
-                            <Table.Td>
-                                <Text size="sm">{search.fileCount}</Text>
-                            </Table.Td>
-                            <Table.Td>
-                                <Text opacity={0.7} size="sm">
-                                    {formatDate(search.startedAt)}
-                                </Text>
-                            </Table.Td>
-                            <Table.Td>
-                                <Text opacity={0.7} size="sm">
-                                    {search.elapsedTime
-                                        ? `${Math.round(search.elapsedTime / 1000)}s`
-                                        : '-'}
-                                </Text>
-                            </Table.Td>
+            <ScrollArea style={{ flex: 1 }}>
+                <Table>
+                    <Table.Thead>
+                        <Table.Tr>
+                            <SortableHeader field="searchText">Search Text</SortableHeader>
+                            <SortableHeader field="state">State</SortableHeader>
+                            <SortableHeader field="results">Results</SortableHeader>
+                            <SortableHeader field="files">Files</SortableHeader>
+                            <SortableHeader field="started">Started</SortableHeader>
+                            <SortableHeader field="duration">Duration</SortableHeader>
                         </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {sortedSearches.map((search) => (
+                            <Table.Tr key={search.id}>
+                                <Table.Td>
+                                    <Text fw={500} style={{ maxWidth: 200 }}>
+                                        {search.searchText}
+                                    </Text>
+                                </Table.Td>
+                                <Table.Td>
+                                    <Badge variant="subtle">{search.state}</Badge>
+                                </Table.Td>
+                                <Table.Td>
+                                    <Text size="sm">{search.responseCount}</Text>
+                                </Table.Td>
+                                <Table.Td>
+                                    <Text size="sm">{search.fileCount}</Text>
+                                </Table.Td>
+                                <Table.Td>
+                                    <Text opacity={0.7} size="sm">
+                                        {formatDate(search.startedAt)}
+                                    </Text>
+                                </Table.Td>
+                                <Table.Td>
+                                    <Text opacity={0.7} size="sm">
+                                        {search.elapsedTime
+                                            ? `${Math.round(search.elapsedTime / 1000)}s`
+                                            : '-'}
+                                    </Text>
+                                </Table.Td>
+                            </Table.Tr>
+                        ))}
+                    </Table.Tbody>
+                </Table>
+            </ScrollArea>
         </Stack>
     );
 };
