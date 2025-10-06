@@ -8,23 +8,38 @@ export interface SlskdApiResponse<T> {
 
 export interface SlskdDownload {
     averageSpeed?: number;
+    bytesRemaining?: number;
     bytesTransferred: number;
     direction: 'Download' | 'Upload';
     elapsedTime?: number;
     endedAt?: string;
+    enqueuedAt?: string;
+    exception?: string;
     filename: string;
     id: string;
     percentComplete: number;
     remainingTime?: number;
+    requestedAt?: string;
     size: number;
     startedAt?: string;
-    state: 'Cancelled' | 'Completed' | 'Failed' | 'InProgress' | 'Queued';
+    startOffset?: number;
+    state: string; // More flexible to handle various states like "Completed, Errored"
+    stateDescription?: string;
+    username: string;
+}
+
+export interface SlskdDownloadGroup {
+    directories?: Array<{
+        directory: string;
+        fileCount: number;
+        files: SlskdDownload[];
+    }>;
     username: string;
 }
 
 export interface SlskdDownloadListResponse {
     count: number;
-    downloads: SlskdDownload[];
+    downloads: SlskdDownloadGroup[];
 }
 
 export interface SlskdSearchListResponse {
