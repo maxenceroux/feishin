@@ -69,6 +69,18 @@ const SlskdDownloadsRoute = lazy(
     () => import('/@/renderer/features/slskd/routes/slskd-downloads-route'),
 );
 
+const DiscoverAlbumsRoute = lazy(
+    () => import('/@/renderer/features/discover/routes/discover-albums-route'),
+);
+
+const DiscoverArtistsRoute = lazy(
+    () => import('/@/renderer/features/discover/routes/discover-artists-route'),
+);
+
+const DiscoverTracksRoute = lazy(
+    () => import('/@/renderer/features/discover/routes/discover-tracks-route'),
+);
+
 const RouteErrorBoundary = lazy(
     () => import('/@/renderer/features/action-required/components/route-error-boundary'),
 );
@@ -176,6 +188,21 @@ export const AppRouter = () => {
                                     element={<PlaylistDetailSongListRoute />}
                                     errorElement={<RouteErrorBoundary />}
                                     path={AppRoute.PLAYLISTS_DETAIL_SONGS}
+                                />
+                                <Route
+                                    element={<DiscoverAlbumsRoute />}
+                                    errorElement={<RouteErrorBoundary />}
+                                    path={AppRoute.DISCOVER_ALBUMS}
+                                />
+                                <Route
+                                    element={<DiscoverArtistsRoute />}
+                                    errorElement={<RouteErrorBoundary />}
+                                    path={AppRoute.DISCOVER_ARTISTS}
+                                />
+                                <Route
+                                    element={<DiscoverTracksRoute />}
+                                    errorElement={<RouteErrorBoundary />}
+                                    path={AppRoute.DISCOVER_TRACKS}
                                 />
                                 <Route
                                     element={<SlskdSearchRoute />}

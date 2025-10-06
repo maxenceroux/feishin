@@ -93,6 +93,24 @@ export interface SpotifySearchResponse {
         previous: null | string;
         total: number;
     };
+    artists: {
+        href: string;
+        items: SpotifyArtistDetails[];
+        limit: number;
+        next: null | string;
+        offset: number;
+        previous: null | string;
+        total: number;
+    };
+    tracks: {
+        href: string;
+        items: SpotifyTrack[];
+        limit: number;
+        next: null | string;
+        offset: number;
+        previous: null | string;
+        total: number;
+    };
 }
 
 export interface SpotifyTrack {
@@ -433,6 +451,38 @@ class SpotifyClient {
         });
 
         return response.data.albums.items;
+    }
+
+    public async searchArtists(query: string, limit = 5): Promise<SpotifyArtistDetails[]> {
+        if (!this.accessToken) {
+            throw new Error('Spotify access token not set');
+        }
+
+        const response = await this.client.get<SpotifySearchResponse>('/search', {
+            params: {
+                limit,
+                q: query,
+                type: 'artist',
+            },
+        });
+
+        return response.data.artists.items;
+    }
+
+    public async searchTracks(query: string, limit = 5): Promise<SpotifyTrack[]> {
+        if (!this.accessToken) {
+            throw new Error('Spotify access token not set');
+        }
+
+        const response = await this.client.get<SpotifySearchResponse>('/search', {
+            params: {
+                limit,
+                q: query,
+                type: 'track',
+            },
+        });
+
+        return response.data.tracks.items;
     }
 
     public async setAccessToken(token: string): Promise<void> {
