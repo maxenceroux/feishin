@@ -62,12 +62,13 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                 style={{
                     cursor: 'pointer',
                     backgroundColor: 'var(--mantine-color-gray-0)',
+                    borderLeft: '3px solid var(--mantine-color-blue-5)',
                 }}
             >
                 <Table.Td>
                     <Group gap="xs">
                         <Icon icon={isExpanded ? 'arrowDownS' : 'arrowRightS'} size="1rem" />
-                        <Icon icon="user" />
+                        <Icon icon="user" color="var(--mantine-color-blue-6)" />
                         <Text fw={600}>{user.username}</Text>
                         {user.countryCode && (
                             <Badge size="xs" variant="outline">
@@ -77,12 +78,18 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                     </Group>
                 </Table.Td>
                 <Table.Td>
-                    <Text size="sm">{files.length} files</Text>
+                    <Group gap="xs">
+                        <Icon icon="folder" size="0.875rem" />
+                        <Text size="sm">{files.length} files</Text>
+                    </Group>
                 </Table.Td>
                 <Table.Td>
-                    <Text size="sm">
-                        {user.averageSpeed ? `${Math.round(user.averageSpeed / 1024)} KB/s` : '-'}
-                    </Text>
+                    <Group gap="xs">
+                        <Icon icon="speed" size="0.875rem" />
+                        <Text size="sm">
+                            {user.averageSpeed ? `${Math.round(user.averageSpeed / 1024)} KB/s` : '-'}
+                        </Text>
+                    </Group>
                 </Table.Td>
                 <Table.Td>
                     <Text size="sm">{user.clientVersion || '-'}</Text>
@@ -95,16 +102,26 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                         </Badge>
                     </Group>
                 </Table.Td>
-                <Table.Td></Table.Td>
+                <Table.Td>
+                    <Text size="xs" opacity={0.7}>
+                        Click to {isExpanded ? 'collapse' : 'expand'}
+                    </Text>
+                </Table.Td>
             </Table.Tr>
 
             {/* Expanded files */}
             {isExpanded &&
                 files.map((file, index) => (
-                    <Table.Tr key={`${user.username}-${file.filename}-${index}`} style={{ backgroundColor: 'var(--mantine-color-gray-0)' }}>
-                        <Table.Td style={{ paddingLeft: '2rem' }}>
+                    <Table.Tr 
+                        key={`${user.username}-${file.filename}-${index}`} 
+                        style={{ 
+                            backgroundColor: 'var(--mantine-color-gray-0)',
+                            borderLeft: '3px solid var(--mantine-color-blue-2)',
+                        }}
+                    >
+                        <Table.Td style={{ paddingLeft: '2.5rem' }}>
                             <Group gap="xs">
-                                <Icon icon="music" size="0.875rem" />
+                                <Icon icon="music" size="0.875rem" color="var(--mantine-color-green-6)" />
                                 <Stack gap={1}>
                                     <Text size="sm" fw={500} style={{ maxWidth: 300 }}>
                                         {file.filename.split('/').pop() || file.filename}
@@ -120,13 +137,22 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                             </Group>
                         </Table.Td>
                         <Table.Td>
-                            <Text size="sm">{formatFileSize(file.size)}</Text>
+                            <Group gap="xs">
+                                <Icon icon="fileText" size="0.875rem" />
+                                <Text size="sm">{formatFileSize(file.size)}</Text>
+                            </Group>
                         </Table.Td>
                         <Table.Td>
-                            <Text size="sm">{formatBitrate(file.bitRate)}</Text>
+                            <Group gap="xs">
+                                <Icon icon="headphone" size="0.875rem" />
+                                <Text size="sm">{formatBitrate(file.bitRate)}</Text>
+                            </Group>
                         </Table.Td>
                         <Table.Td>
-                            <Text size="sm">{formatDuration(file.length)}</Text>
+                            <Group gap="xs">
+                                <Icon icon="time" size="0.875rem" />
+                                <Text size="sm">{formatDuration(file.length)}</Text>
+                            </Group>
                         </Table.Td>
                         <Table.Td>
                             <Group gap="xs">
@@ -146,6 +172,8 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                             <Button
                                 size="xs"
                                 variant="light"
+                                color="green"
+                                leftSection={<Icon icon="download" size="0.75rem" />}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleDownload(file);
@@ -173,10 +201,15 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
     const handleDownload = async (file: SlskdSearchResultFile, username: string) => {
         try {
             console.log('Starting download:', { file, username });
-            // TODO: Implement download functionality
-            // This would typically call an API endpoint to start the download
+            await slskdApi.downloadFile(username, file.filename, file.token);
+            
+            // Show success feedback
+            console.log(`Download started: ${file.filename} from ${username}`);
+            // TODO: Add toast notification or other UI feedback
         } catch (error) {
             console.error('Failed to start download:', error);
+            // TODO: Add proper error handling UI
+            alert('Failed to start download. Please check your connection and try again.');
         }
     };
 

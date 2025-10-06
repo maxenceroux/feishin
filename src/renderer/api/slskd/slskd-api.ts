@@ -112,21 +112,24 @@ export class SlskdApiClient {
 
     async getSearchResults(searchId: string): Promise<SlskdSearchResultsResponse> {
         await this.ensureToken();
-        const response = await this.makeRequest<SlskdSearchResultsResponse>(
-            `searches/${searchId}/responses`,
-        );
+        const response = await this.makeRequest<any>(`searches/${searchId}/responses`);
         console.log('slskd search results API response:', response);
         
-        // Handle different response formats
+        // Handle different response formats from slskd API
+        let results = [];
         if (Array.isArray(response.data)) {
-            return {
-                results: response.data as any[],
-                searchId,
-                searchText: '',
-            };
+            results = response.data;
+        } else if (response.data && response.data.responses) {
+            results = response.data.responses;
+        } else if (response.data && response.data.results) {
+            results = response.data.results;
         }
         
-        return response.data as SlskdSearchResultsResponse;
+        return {
+            results,
+            searchId,
+            searchText: '', // Will be filled by the component
+        };
     }
 
     async startSearch(query: string, options?: { limit?: number; timeout?: number }): Promise<string> {
@@ -137,6 +140,22 @@ export class SlskdApiClient {
             responseLimit: options?.limit || 100,
         });
         return response.data.id;
+    }
+
+    async downloadFile(username: string, filename: string, token?: number): Promise<void> {
+        await this.ensureToken();
+        const payload = {
+            username,
+            files: [
+                {
+                    filename,
+                    ...(token && { token }),
+                },
+            ],
+        };
+        
+        await this.makePostRequest('transfers/downloads', payload);
+        console.log('Download started:', { username, filename });
     }
 
     async testConnection(): Promise<boolean> {
