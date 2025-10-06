@@ -291,7 +291,11 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                         handlePlayQueueAdd={handlePlayQueueAdd}
                         height={height}
                         initialScrollOffset={initialScrollOffset}
-                        itemCount={(itemCount || 0) + (spotifyAlbums?.length || 0)}
+                        itemCount={
+                            id?.startsWith('spotify:') 
+                                ? (spotifyAlbums?.length || 0)  // For Spotify-only routes, use only Spotify count
+                                : (itemCount || 0) + (spotifyAlbums?.length || 0)  // For regular routes, add both
+                        }
                         itemGap={grid?.itemGap ?? 10}
                         itemSize={grid?.itemSize || 200}
                         itemType={LibraryItem.ALBUM}
