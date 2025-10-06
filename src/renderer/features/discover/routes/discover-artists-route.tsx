@@ -23,7 +23,7 @@ const DiscoverArtistsRoute = () => {
     const tableRef = useRef<AgGridReactType | null>(null);
     const server = useCurrentServer();
     const [searchParams] = useSearchParams();
-    const pageKey = 'discoverArtists';
+    const pageKey = LibraryItem.ALBUM_ARTIST;
 
     const artistListFilter = useListFilterByKey<AlbumArtistListQuery>({
         key: pageKey,
@@ -70,21 +70,14 @@ const DiscoverArtistsRoute = () => {
 
         return {
             customFilters: undefined,
-            customFiltersByKey: undefined,
-            display: artistListFilter.display,
-            filter: artistListFilter,
             handlePlay,
             id: 'discoverArtists',
-            itemCount,
             pageKey,
-            searchQuery: artistListFilter.searchTerm,
-            setFilter: () => {}, // Disabled for discover
             spotifyArtists,
         };
     }, [
-        artistListFilter,
         handlePlay,
-        itemCount,
+        pageKey,
         spotifySearchResult.data,
     ]);
 
