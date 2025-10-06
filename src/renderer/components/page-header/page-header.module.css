@@ -22,6 +22,10 @@
     input {
         -webkit-app-region: no-drag;
     }
+
+    label {
+        -webkit-app-region: no-drag;
+    }
 }
 
 .header.pad-right {

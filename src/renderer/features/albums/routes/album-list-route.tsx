@@ -18,7 +18,9 @@ import { useSpotifyArtistAlbums } from '/@/renderer/hooks/use-spotify-artist-alb
 import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
+import { getSpotifyToggleState, setSpotifyToggleState } from '/@/renderer/utils';
 import {
+    Album,
     AlbumListQuery,
     GenreListSort,
     LibraryItem,
@@ -35,8 +37,8 @@ const AlbumListRoute = () => {
     const pageKey = albumArtistId ? `albumArtistAlbum` : 'album';
     const handlePlayQueueAdd = usePlayQueueAdd();
 
-    // State for Spotify integration toggle
-    const [spotifyEnabled, setSpotifyEnabled] = useState(false);
+    // State for Spotify integration toggle - initialize from stored preference
+    const [spotifyEnabled, setSpotifyEnabled] = useState(() => getSpotifyToggleState());
 
     // Check if this is a Spotify artist discography
     const isSpotifyArtist = albumArtistId?.startsWith('spotify:');
@@ -53,7 +55,12 @@ const AlbumListRoute = () => {
     });
 
     const toggleSpotify = useCallback(() => {
-        setSpotifyEnabled((prev) => !prev);
+        setSpotifyEnabled((prev) => {
+            const newValue = !prev;
+            // Persist the new state
+            setSpotifyToggleState(newValue);
+            return newValue;
+        });
         // Invalidate cache to force refresh when toggle state changes
         queryClient.invalidateQueries(queryKeys.albums.list(server?.id || ''));
         // Reset grid cache as well

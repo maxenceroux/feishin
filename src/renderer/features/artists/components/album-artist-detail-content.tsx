@@ -100,7 +100,6 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     const spotifyRelatedArtists = useSpotifyRelatedArtists({
         artistId: routeId,
         enabled: isSpotifyArtist,
-        serverId: server?.id || '',
     });
 
     const artistDiscographyLink = `${generatePath(
@@ -259,12 +258,14 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
                 uniqueId: 'compilationAlbums',
             },
             {
-                data: isSpotifyArtist 
-                    ? (spotifyRelatedArtists.data || [])
-                    : (detailQuery?.data?.similarArtists || []),
-                isHidden: isSpotifyArtist 
-                    ? (!spotifyRelatedArtists.data || spotifyRelatedArtists.data.length === 0 || !enabledItem.similarArtists)
-                    : (!detailQuery?.data?.similarArtists || !enabledItem.similarArtists),
+                data: isSpotifyArtist
+                    ? spotifyRelatedArtists.data || []
+                    : detailQuery?.data?.similarArtists || [],
+                isHidden: isSpotifyArtist
+                    ? !spotifyRelatedArtists.data ||
+                      spotifyRelatedArtists.data.length === 0 ||
+                      !enabledItem.similarArtists
+                    : !detailQuery?.data?.similarArtists || !enabledItem.similarArtists,
                 itemType: LibraryItem.ALBUM_ARTIST,
                 order: itemOrder.similarArtists,
                 title: (
