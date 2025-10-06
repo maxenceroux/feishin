@@ -86,9 +86,20 @@ const calculateDirectoryStats = (files: SlskdDownload[]) => {
             ? activeSpeeds.reduce((sum, speed) => sum + speed, 0) / activeSpeeds.length
             : 0;
 
+    // Find the earliest start time for the directory
+    const startTimes = files
+        .map((f) => f.startedAt || f.requestedAt || f.enqueuedAt)
+        .filter((time): time is string => time !== undefined)
+        .map((time) => new Date(time).getTime())
+        .filter((time) => !isNaN(time));
+
+    const earliestStartTime =
+        startTimes.length > 0 ? new Date(Math.min(...startTimes)).toISOString() : undefined;
+
     return {
         aggregatedState,
         avgSpeed,
+        earliestStartTime,
         fileCount: files.length,
         overallProgress,
         totalSize,
@@ -102,7 +113,7 @@ interface ExpandableDirectoryRowProps {
 }
 type SortDirection = 'asc' | 'desc';
 
-type SortField = 'album' | 'progress' | 'size' | 'speed' | 'state' | 'user';
+type SortField = 'album' | 'progress' | 'size' | 'speed' | 'startTime' | 'state' | 'user';
 
 const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -173,6 +184,11 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                 </Table.Td>
                 <Table.Td>
                     <Text opacity={0.7} size="sm">
+                        {formatDate(stats.earliestStartTime)}
+                    </Text>
+                </Table.Td>
+                <Table.Td>
+                    <Text opacity={0.7} size="sm">
                         {stats.fileCount} files
                     </Text>
                 </Table.Td>
@@ -235,17 +251,23 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                             </Text>
                         </Table.Td>
                         <Table.Td>
+                            <Text opacity={0.7} size="sm">
+                                {formatDate(
+                                    download.startedAt ||
+                                        download.requestedAt ||
+                                        download.enqueuedAt,
+                                )}
+                            </Text>
+                        </Table.Td>
+                        <Table.Td>
                             <Stack gap={2}>
                                 <Text opacity={0.7} size="xs">
                                     {download.state.includes('InProgress') && download.remainingTime
                                         ? `ETA: ${formatTime(download.remainingTime)}`
-                                        : formatDate(download.startedAt)}
+                                        : download.elapsedTime
+                                          ? `Elapsed: ${formatTime(download.elapsedTime)}`
+                                          : '-'}
                                 </Text>
-                                {download.elapsedTime && (
-                                    <Text opacity={0.7} size="xs">
-                                        Elapsed: {formatTime(download.elapsedTime)}
-                                    </Text>
-                                )}
                             </Stack>
                         </Table.Td>
                     </Table.Tr>
@@ -384,6 +406,15 @@ export const SlskdDownloadsList = () => {
                 return direction * (a.stats.totalSize - b.stats.totalSize);
             case 'speed':
                 return direction * (a.stats.avgSpeed - b.stats.avgSpeed);
+            case 'startTime': {
+                const timeA = a.stats.earliestStartTime
+                    ? new Date(a.stats.earliestStartTime).getTime()
+                    : 0;
+                const timeB = b.stats.earliestStartTime
+                    ? new Date(b.stats.earliestStartTime).getTime()
+                    : 0;
+                return direction * (timeA - timeB);
+            }
             case 'state':
                 return direction * a.stats.aggregatedState.localeCompare(b.stats.aggregatedState);
             case 'user':
@@ -446,6 +477,7 @@ export const SlskdDownloadsList = () => {
                             <SortableHeader field="progress">Progress</SortableHeader>
                             <SortableHeader field="size">Size</SortableHeader>
                             <SortableHeader field="speed">Speed</SortableHeader>
+                            <SortableHeader field="startTime">Started</SortableHeader>
                             <Table.Th>Info</Table.Th>
                         </Table.Tr>
                     </Table.Thead>
