@@ -118,9 +118,15 @@ export interface SlskdSearchResultUser {
 }
 
 export interface SlskdSearchResult {
+    fileCount: number;
     files: SlskdSearchResultFile[];
+    hasFreeUploadSlot?: boolean;
+    lockedFileCount?: number;
     lockedFiles?: SlskdSearchResultFile[];
-    user: SlskdSearchResultUser;
+    queueLength?: number;
+    token?: number;
+    uploadSpeed?: number;
+    username: string;
 }
 
 export interface SlskdSearchResultsResponse {

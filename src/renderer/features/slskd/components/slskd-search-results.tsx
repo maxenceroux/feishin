@@ -47,17 +47,17 @@ interface ExpandableUserRowProps {
 
 const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const { user, files } = result;
+    const { username, files, uploadSpeed, hasFreeUploadSlot, queueLength } = result;
 
     const handleDownload = (file: SlskdSearchResultFile) => {
-        onDownload(file, user.username);
+        onDownload(file, username);
     };
 
     return (
         <>
             {/* User row */}
             <Table.Tr
-                key={`user-${user.username}`}
+                key={`user-${username}`}
                 onClick={() => setIsExpanded(!isExpanded)}
                 style={{
                     cursor: 'pointer',
@@ -69,12 +69,8 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                     <Group gap="xs">
                         <Icon icon={isExpanded ? 'arrowDownS' : 'arrowRightS'} size="1rem" />
                         <Icon icon="user" color="var(--mantine-color-blue-6)" />
-                        <Text fw={600}>{user.username}</Text>
-                        {user.countryCode && (
-                            <Badge size="xs" variant="outline">
-                                {user.countryCode}
-                            </Badge>
-                        )}
+                        <Text fw={600}>{username}</Text>
+                        {/* Note: Country code not available in current API response */}
                     </Group>
                 </Table.Td>
                 <Table.Td>
@@ -87,19 +83,21 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                     <Group gap="xs">
                         <Icon icon="speed" size="0.875rem" />
                         <Text size="sm">
-                            {user.averageSpeed ? `${Math.round(user.averageSpeed / 1024)} KB/s` : '-'}
+                            {uploadSpeed ? `${Math.round(uploadSpeed / 1024)} KB/s` : '-'}
                         </Text>
                     </Group>
                 </Table.Td>
                 <Table.Td>
-                    <Text size="sm">{user.clientVersion || '-'}</Text>
+                    <Text size="sm">-</Text> {/* Client version not available in current API */}
                 </Table.Td>
                 <Table.Td>
                     <Group gap="xs">
-                        {user.isPrivileged && <Badge size="xs" color="gold">Privileged</Badge>}
-                        <Badge size="xs" variant="light">
-                            {user.freeUploadSlots || 0} slots
-                        </Badge>
+                        {hasFreeUploadSlot && <Badge size="xs" color="green">Free slot</Badge>}
+                        {queueLength !== undefined && (
+                            <Badge size="xs" variant="light">
+                                Queue: {queueLength}
+                            </Badge>
+                        )}
                     </Group>
                 </Table.Td>
                 <Table.Td>
@@ -113,7 +111,7 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
             {isExpanded &&
                 files.map((file, index) => (
                     <Table.Tr 
-                        key={`${user.username}-${file.filename}-${index}`} 
+                        key={`${username}-${file.filename}-${index}`} 
                         style={{ 
                             backgroundColor: 'var(--mantine-color-gray-0)',
                             borderLeft: '3px solid var(--mantine-color-blue-2)',
@@ -304,7 +302,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                     <Table.Tbody>
                         {results.map((result) => (
                             <ExpandableUserRow
-                                key={result.user.username}
+                                key={result.username}
                                 result={result}
                                 onDownload={handleDownload}
                             />
