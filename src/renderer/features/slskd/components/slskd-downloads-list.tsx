@@ -110,7 +110,7 @@ const calculateDirectoryStats = (files: SlskdDownload[]) => {
 interface ExpandableDirectoryRowProps {
     directory: { directory: string; fileCount: number; files: SlskdDownload[] };
     username: string;
-    onRemoveDownload: (downloadId: string) => Promise<void>;
+    onRemoveDownload: (username: string, downloadId: string) => Promise<void>;
     onRemoveDirectory: (username: string, directory: string) => Promise<void>;
 }
 type SortDirection = 'asc' | 'desc';
@@ -121,7 +121,7 @@ const ExpandableDirectoryRow = ({ directory, username, onRemoveDownload, onRemov
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handleRemoveDownload = async (downloadId: string) => {
-        await onRemoveDownload(downloadId);
+        await onRemoveDownload(username, downloadId);
     };
 
     const handleRemoveDirectory = async () => {
@@ -347,9 +347,9 @@ export const SlskdDownloadsList = () => {
         }
     };
 
-    const handleRemoveDownload = async (downloadId: string) => {
+    const handleRemoveDownload = async (username: string, downloadId: string) => {
         try {
-            await slskdApi.removeDownload(downloadId);
+            await slskdApi.removeDownload(username, downloadId);
             await refetch(); // Refresh the data after removal
         } catch (error) {
             console.error('Failed to remove download:', error);
