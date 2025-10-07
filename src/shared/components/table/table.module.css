@@ -5,3 +5,16 @@
 .th {
     padding: var(--theme-spacing-xs) var(--theme-spacing-sm);
 }
+
+/* Mobile responsive table cells */
+@media (width <= 768px) {
+    .td {
+        padding: var(--theme-spacing-xs) var(--theme-spacing-xs);
+        font-size: var(--theme-text-sm);
+    }
+    
+    .th {
+        padding: var(--theme-spacing-xs) var(--theme-spacing-xs);
+        font-size: var(--theme-text-sm);
+    }
+}

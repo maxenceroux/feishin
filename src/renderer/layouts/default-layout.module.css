@@ -20,7 +20,7 @@
 }
 
 /* Mobile responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .layout {
         grid-template-rows: 0 calc(100vh - 70px) 70px;
     }

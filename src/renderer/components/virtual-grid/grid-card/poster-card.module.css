@@ -72,7 +72,7 @@
 }
 
 /* Mobile and touch device optimizations */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .image-container {
         /* Always show controls on mobile for better touch accessibility */
         .card-controls {
@@ -91,8 +91,8 @@
         /* Make badge larger and more touch-friendly */
         min-width: 28px;
         height: 28px;
-        font-size: 12px;
         padding: 6px 10px;
+        font-size: 12px;
     }
 }
 

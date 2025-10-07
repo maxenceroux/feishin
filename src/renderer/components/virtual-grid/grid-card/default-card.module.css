@@ -42,7 +42,7 @@
 }
 
 /* Mobile and touch device optimizations */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .inner-container {
         padding: 0.75rem;
         

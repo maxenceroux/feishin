@@ -9,3 +9,12 @@
 .dummy-header {
     position: absolute;
 }
+
+/* Mobile responsive table improvements */
+@media (width <= 768px) {
+    .table-wrapper {
+        /* Ensure tables are scrollable on mobile */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}

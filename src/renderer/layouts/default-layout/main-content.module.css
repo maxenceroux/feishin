@@ -29,7 +29,7 @@
 }
 
 /* Mobile responsive layout */
-@media (max-width: 1024px) {
+@media (width <= 1024px) {
     /* On tablets and mobile, sidebars become overlays */
     .main-content-container {
         grid-template-areas: 'content';
@@ -46,15 +46,15 @@
 }
 
 /* Mobile overlay styles for sidebars */
-@media (max-width: 1024px) {
+@media (width <= 1024px) {
     .mobile-sidebar-overlay {
         position: fixed;
         top: 0;
-        left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
+        left: 0;
         z-index: 100;
+        background: rgb(0 0 0 / 50%);
         backdrop-filter: blur(4px);
     }
     
@@ -62,12 +62,12 @@
         position: fixed;
         top: 0;
         left: -100%;
+        z-index: 101;
         width: 280px;
         height: 100vh;
         background: var(--theme-colors-background-alternate);
-        z-index: 101;
-        transition: left 0.3s ease-in-out;
         border-right: 1px solid var(--theme-colors-border);
+        transition: left 0.3s ease-in-out;
     }
     
     .mobile-sidebar.open {
@@ -78,12 +78,12 @@
         position: fixed;
         top: 0;
         right: -100%;
+        z-index: 101;
         width: 320px;
         height: 100vh;
         background: var(--theme-colors-background-alternate);
-        z-index: 101;
-        transition: right 0.3s ease-in-out;
         border-left: 1px solid var(--theme-colors-border);
+        transition: right 0.3s ease-in-out;
     }
     
     .mobile-right-sidebar.open {
@@ -93,16 +93,16 @@
     .mobile-nav-header {
         position: sticky;
         top: 0;
-        left: 0;
         right: 0;
-        height: 56px;
-        background: var(--theme-colors-background);
-        border-bottom: 1px solid var(--theme-colors-border);
+        left: 0;
         z-index: 50;
-        padding: 0 1rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        height: 56px;
+        padding: 0 1rem;
+        background: var(--theme-colors-background);
+        border-bottom: 1px solid var(--theme-colors-border);
     }
 
     .mobile-nav-button {
@@ -111,12 +111,12 @@
         justify-content: center;
         width: 40px;
         height: 40px;
-        border: none;
-        background: transparent;
         color: var(--theme-colors-text);
+        cursor: pointer;
+        background: transparent;
+        border: none;
         border-radius: 6px;
         transition: background-color 0.2s ease;
-        cursor: pointer;
     }
 
     .mobile-nav-button:hover {

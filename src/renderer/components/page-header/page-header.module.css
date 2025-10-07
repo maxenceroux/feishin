@@ -42,7 +42,7 @@
 }
 
 /* Mobile responsive adjustments */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .container {
         height: 56px;
     }

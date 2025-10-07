@@ -137,6 +137,52 @@
     }
 }
 
+/* Mobile and touch device optimizations */
+@media (width <= 768px) {
+    .root {
+        /* Ensure minimum touch target size on mobile */
+        min-height: 44px;
+        
+        /* Add more padding for easier touch targets */
+        &[data-size='xs'] {
+            min-height: 36px;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        &[data-size='sm'] {
+            min-height: 40px;
+            padding: 0.625rem 1rem;
+        }
+        
+        &[data-size='md'] {
+            min-height: 44px;
+            padding: 0.75rem 1.25rem;
+        }
+        
+        &[data-size='lg'] {
+            min-height: 48px;
+            padding: 1rem 1.5rem;
+        }
+    }
+}
+
+/* Touch device specific styles */
+@media (hover: none) and (pointer: coarse) {
+    .root {
+        /* Remove hover effects on touch devices */
+        &:hover {
+            background-color: inherit;
+            border-color: inherit;
+        }
+        
+        /* Enhance active/pressed states for touch feedback */
+        &:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease-in-out;
+        }
+    }
+}
+
 .loader {
     display: none;
 }

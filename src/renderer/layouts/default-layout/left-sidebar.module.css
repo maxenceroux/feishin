@@ -6,7 +6,7 @@
 }
 
 /* Mobile responsive behavior */
-@media (max-width: 1024px) {
+@media (width <= 1024px) {
     .container {
         /* Hide sidebar by default on mobile, will be shown as overlay */
         display: none;
