@@ -158,6 +158,19 @@ export class SlskdApiClient {
         console.log('Download started:', { username, filename });
     }
 
+    async removeDownload(downloadId: string): Promise<void> {
+        await this.ensureToken();
+        await this.makeDeleteRequest(`transfers/downloads/${downloadId}`);
+        console.log('Download removed:', downloadId);
+    }
+
+    async removeDirectory(username: string, directory: string): Promise<void> {
+        await this.ensureToken();
+        // Remove all downloads in the directory
+        await this.makeDeleteRequest(`transfers/downloads/username/${username}/directory/${encodeURIComponent(directory)}`);
+        console.log('Directory removed:', { username, directory });
+    }
+
     async testConnection(): Promise<boolean> {
         try {
             await this.login();

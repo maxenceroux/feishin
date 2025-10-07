@@ -274,7 +274,7 @@ export const SlskdSearchList = () => {
                                 <Table.Td>
                                     <Button
                                         size="xs"
-                                        variant="light"
+                                        variant="filled"
                                         leftSection={<Icon icon="folderOpen" />}
                                         onClick={() => handleViewResults(search.id)}
                                         disabled={search.responseCount === 0}

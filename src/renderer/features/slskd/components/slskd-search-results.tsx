@@ -53,6 +53,17 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
         onDownload(file, username);
     };
 
+    const handleDownloadFolder = async () => {
+        try {
+            // Download all files in the folder
+            for (const file of files) {
+                await onDownload(file, username);
+            }
+        } catch (error) {
+            console.error('Failed to download folder:', error);
+        }
+    };
+
     return (
         <>
             {/* User row */}
@@ -92,9 +103,21 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                     </Group>
                 </Table.Td>
                 <Table.Td>
-                    <Text size="xs" opacity={0.7}>
-                        Click to {isExpanded ? 'collapse' : 'expand'}
-                    </Text>
+                    <Group gap="xs">
+                        <Button
+                            size="xs"
+                            variant="filled"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadFolder();
+                            }}
+                        >
+                            Download Folder
+                        </Button>
+                        <Text size="xs" opacity={0.7}>
+                            Click to {isExpanded ? 'collapse' : 'expand'}
+                        </Text>
+                    </Group>
                 </Table.Td>
             </Table.Tr>
 
@@ -110,7 +133,7 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                         <Table.Td style={{ paddingLeft: '2.5rem' }}>
                             <Stack gap={1}>
                                 <Text size="sm" fw={500} style={{ maxWidth: 300 }}>
-                                    {file.filename.split('/').pop() || file.filename}
+                                    {file.filename.split('/').pop()?.split('\\').pop() || file.filename}
                                 </Text>
                                 {(file.artist || file.album) && (
                                     <Text size="xs" opacity={0.7}>
@@ -147,8 +170,7 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                         <Table.Td>
                             <Button
                                 size="xs"
-                                variant="light"
-                                color="green"
+                                variant="filled"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleDownload(file);

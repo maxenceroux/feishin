@@ -110,13 +110,23 @@ const calculateDirectoryStats = (files: SlskdDownload[]) => {
 interface ExpandableDirectoryRowProps {
     directory: { directory: string; fileCount: number; files: SlskdDownload[] };
     username: string;
+    onRemoveDownload: (downloadId: string) => Promise<void>;
+    onRemoveDirectory: (username: string, directory: string) => Promise<void>;
 }
 type SortDirection = 'asc' | 'desc';
 
 type SortField = 'album' | 'progress' | 'size' | 'speed' | 'startTime' | 'state' | 'user';
 
-const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowProps) => {
+const ExpandableDirectoryRow = ({ directory, username, onRemoveDownload, onRemoveDirectory }: ExpandableDirectoryRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const handleRemoveDownload = async (downloadId: string) => {
+        await onRemoveDownload(downloadId);
+    };
+
+    const handleRemoveDirectory = async () => {
+        await onRemoveDirectory(username, directory.directory);
+    };
     const stats = calculateDirectoryStats(directory.files);
 
     // Extract album name from directory path
@@ -188,9 +198,22 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                     </Text>
                 </Table.Td>
                 <Table.Td>
-                    <Text opacity={0.7} size="sm">
-                        {stats.fileCount} files
-                    </Text>
+                    <Group gap="xs">
+                        <Button
+                            size="xs"
+                            variant="filled"
+                            color="red"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveDirectory();
+                            }}
+                        >
+                            Remove Folder
+                        </Button>
+                        <Text opacity={0.7} size="sm">
+                            {stats.fileCount} files
+                        </Text>
+                    </Group>
                 </Table.Td>
             </Table.Tr>
 
@@ -260,15 +283,28 @@ const ExpandableDirectoryRow = ({ directory, username }: ExpandableDirectoryRowP
                             </Text>
                         </Table.Td>
                         <Table.Td>
-                            <Stack gap={2}>
-                                <Text opacity={0.7} size="xs">
-                                    {download.state.includes('InProgress') && download.remainingTime
-                                        ? `ETA: ${formatTime(download.remainingTime)}`
-                                        : download.elapsedTime
-                                          ? `Elapsed: ${formatTime(download.elapsedTime)}`
-                                          : '-'}
-                                </Text>
-                            </Stack>
+                            <Group gap="xs">
+                                <Button
+                                    size="xs"
+                                    variant="filled"
+                                    color="red"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveDownload(download.id);
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Stack gap={2}>
+                                    <Text opacity={0.7} size="xs">
+                                        {download.state.includes('InProgress') && download.remainingTime
+                                            ? `ETA: ${formatTime(download.remainingTime)}`
+                                            : download.elapsedTime
+                                              ? `Elapsed: ${formatTime(download.elapsedTime)}`
+                                              : '-'}
+                                    </Text>
+                                </Stack>
+                            </Group>
                         </Table.Td>
                     </Table.Tr>
                 ))}
@@ -308,6 +344,24 @@ export const SlskdDownloadsList = () => {
             console.error('Failed to remove completed downloads:', error);
         } finally {
             setIsRemoving(false);
+        }
+    };
+
+    const handleRemoveDownload = async (downloadId: string) => {
+        try {
+            await slskdApi.removeDownload(downloadId);
+            await refetch(); // Refresh the data after removal
+        } catch (error) {
+            console.error('Failed to remove download:', error);
+        }
+    };
+
+    const handleRemoveDirectory = async (username: string, directory: string) => {
+        try {
+            await slskdApi.removeDirectory(username, directory);
+            await refetch(); // Refresh the data after removal
+        } catch (error) {
+            console.error('Failed to remove directory:', error);
         }
     };
 
@@ -461,7 +515,7 @@ export const SlskdDownloadsList = () => {
                     loading={isRemoving}
                     onClick={handleRemoveSucceeded}
                     size="sm"
-                    variant="light"
+                    variant="filled"
                 >
                     Remove All Succeeded
                 </Button>
@@ -487,6 +541,8 @@ export const SlskdDownloadsList = () => {
                                 directory={directory}
                                 key={`${directory.username}-${directory.directory}`}
                                 username={directory.username}
+                                onRemoveDownload={handleRemoveDownload}
+                                onRemoveDirectory={handleRemoveDirectory}
                             />
                         ))}
                     </Table.Tbody>
