@@ -89,3 +89,48 @@ export const slskdDownloadSchema = z.object({
 
 export type SlskdDownloadType = z.infer<typeof slskdDownloadSchema>;
 export type SlskdSearchRequestType = z.infer<typeof slskdSearchRequestSchema>;
+
+// Search results types for the expanded tree view
+export interface SlskdSearchResultFile {
+    album?: string;
+    artist?: string;
+    bitRate?: number;
+    code: number;
+    filename: string;
+    length?: number;
+    sampleRate?: number;
+    size: number;
+    token: number;
+    track?: number;
+}
+
+export interface SlskdSearchResultUser {
+    averageSpeed?: number;
+    clientVersion?: string;
+    countryCode?: string;
+    downloadCount?: number;
+    fileCount: number;
+    freeUploadSlots?: number;
+    isPrivileged?: boolean;
+    queueLength?: number;
+    uploadCount?: number;
+    username: string;
+}
+
+export interface SlskdSearchResult {
+    fileCount: number;
+    files: SlskdSearchResultFile[];
+    hasFreeUploadSlot?: boolean;
+    lockedFileCount?: number;
+    lockedFiles?: SlskdSearchResultFile[];
+    queueLength?: number;
+    token?: number;
+    uploadSpeed?: number;
+    username: string;
+}
+
+export interface SlskdSearchResultsResponse {
+    results: SlskdSearchResult[];
+    searchId: string;
+    searchText: string;
+}
