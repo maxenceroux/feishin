@@ -94,7 +94,11 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                 </Table.Td>
                 <Table.Td>
                     <Group gap="xs">
-                        {hasFreeUploadSlot && <Badge size="xs" color="green">Free slot</Badge>}
+                        {hasFreeUploadSlot && (
+                            <Badge size="xs" color="green">
+                                Free slot
+                            </Badge>
+                        )}
                         {queueLength !== undefined && (
                             <Badge size="xs" variant="light">
                                 Queue: {queueLength}
@@ -124,16 +128,17 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
             {/* Expanded files */}
             {isExpanded &&
                 files.map((file, index) => (
-                    <Table.Tr 
-                        key={`${username}-${file.filename}-${index}`} 
-                        style={{ 
+                    <Table.Tr
+                        key={`${username}-${file.filename}-${index}`}
+                        style={{
                             paddingLeft: '1rem',
                         }}
                     >
                         <Table.Td style={{ paddingLeft: '2.5rem' }}>
                             <Stack gap={1}>
                                 <Text size="sm" fw={500} style={{ maxWidth: 300 }}>
-                                    {file.filename.split('/').pop()?.split('\\').pop() || file.filename}
+                                    {file.filename.split('/').pop()?.split('\\').pop() ||
+                                        file.filename}
                                 </Text>
                                 {(file.artist || file.album) && (
                                     <Text size="xs" opacity={0.7}>
@@ -199,7 +204,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
         try {
             console.log('Starting download:', { file, username });
             await slskdApi.downloadFile(username, file.filename, file.token);
-            
+
             // Show success feedback
             console.log(`Download started: ${file.filename} from ${username}`);
             // TODO: Add toast notification or other UI feedback
@@ -239,7 +244,8 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                             </Text>
                         </Group>
                         <Text size="sm">
-                            Failed to load search results. Please check your connection and try again.
+                            Failed to load search results. Please check your connection and try
+                            again.
                         </Text>
                         <Text opacity={0.7} size="xs">
                             {error instanceof Error ? error.message : 'Unknown error'}
@@ -298,19 +304,19 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                             </Table.Th>
                             <Table.Th>
                                 <Group gap="xs">
-                                    <Icon icon="fileText" size="0.8rem" />
+                                    <Icon icon="folder" size="0.8rem" />
                                     Size / Files
                                 </Group>
                             </Table.Th>
                             <Table.Th>
                                 <Group gap="xs">
-                                    <Icon icon="speed" size="0.8rem" />
+                                    <Icon icon="info" size="0.8rem" />
                                     Speed / Bitrate
                                 </Group>
                             </Table.Th>
                             <Table.Th>
                                 <Group gap="xs">
-                                    <Icon icon="time" size="0.8rem" />
+                                    <Icon icon="info" size="0.8rem" />
                                     Client / Duration
                                 </Group>
                             </Table.Th>

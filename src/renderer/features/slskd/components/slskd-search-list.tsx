@@ -44,7 +44,7 @@ export const SlskdSearchList = () => {
 
     const handleNewSearch = async () => {
         if (!newSearchQuery.trim() || isSearching) return;
-        
+
         setIsSearching(true);
         try {
             const searchId = await slskdApi.startSearch(newSearchQuery.trim());
@@ -118,9 +118,9 @@ export const SlskdSearchList = () => {
 
     // If viewing search results, show the results component
     if (selectedSearchId) {
-        const selectedSearch = searches.find(s => s.id === selectedSearchId);
+        const selectedSearch = searches.find((s) => s.id === selectedSearchId);
         const searchText = selectedSearch?.searchText || newSearchQuery;
-        
+
         return (
             <Stack gap="md" p="md" style={{ height: '100vh', overflow: 'hidden' }}>
                 <Group justify="space-between">
@@ -275,7 +275,7 @@ export const SlskdSearchList = () => {
                                     <Button
                                         size="xs"
                                         variant="filled"
-                                        leftSection={<Icon icon="folderOpen" />}
+                                        leftSection={<Icon icon="folder" />}
                                         onClick={() => handleViewResults(search.id)}
                                         disabled={search.responseCount === 0}
                                     >
