@@ -61,31 +61,22 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                 onClick={() => setIsExpanded(!isExpanded)}
                 style={{
                     cursor: 'pointer',
-                    backgroundColor: 'var(--mantine-color-gray-0)',
-                    borderLeft: '3px solid var(--mantine-color-blue-5)',
                 }}
             >
                 <Table.Td>
                     <Group gap="xs">
                         <Icon icon={isExpanded ? 'arrowDownS' : 'arrowRightS'} size="1rem" />
-                        <Icon icon="user" color="var(--mantine-color-blue-6)" />
                         <Text fw={600}>{username}</Text>
                         {/* Note: Country code not available in current API response */}
                     </Group>
                 </Table.Td>
                 <Table.Td>
-                    <Group gap="xs">
-                        <Icon icon="folder" size="0.875rem" />
-                        <Text size="sm">{files.length} files</Text>
-                    </Group>
+                    <Text size="sm">{files.length} files</Text>
                 </Table.Td>
                 <Table.Td>
-                    <Group gap="xs">
-                        <Icon icon="speed" size="0.875rem" />
-                        <Text size="sm">
-                            {uploadSpeed ? `${Math.round(uploadSpeed / 1024)} KB/s` : '-'}
-                        </Text>
-                    </Group>
+                    <Text size="sm">
+                        {uploadSpeed ? `${Math.round(uploadSpeed / 1024)} KB/s` : '-'}
+                    </Text>
                 </Table.Td>
                 <Table.Td>
                     <Text size="sm">-</Text> {/* Client version not available in current API */}
@@ -113,44 +104,31 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                     <Table.Tr 
                         key={`${username}-${file.filename}-${index}`} 
                         style={{ 
-                            backgroundColor: 'var(--mantine-color-gray-0)',
-                            borderLeft: '3px solid var(--mantine-color-blue-2)',
+                            paddingLeft: '1rem',
                         }}
                     >
                         <Table.Td style={{ paddingLeft: '2.5rem' }}>
-                            <Group gap="xs">
-                                <Icon icon="music" size="0.875rem" color="var(--mantine-color-green-6)" />
-                                <Stack gap={1}>
-                                    <Text size="sm" fw={500} style={{ maxWidth: 300 }}>
-                                        {file.filename.split('/').pop() || file.filename}
+                            <Stack gap={1}>
+                                <Text size="sm" fw={500} style={{ maxWidth: 300 }}>
+                                    {file.filename.split('/').pop() || file.filename}
+                                </Text>
+                                {(file.artist || file.album) && (
+                                    <Text size="xs" opacity={0.7}>
+                                        {file.artist && file.album
+                                            ? `${file.artist} - ${file.album}`
+                                            : file.artist || file.album}
                                     </Text>
-                                    {(file.artist || file.album) && (
-                                        <Text size="xs" opacity={0.7}>
-                                            {file.artist && file.album
-                                                ? `${file.artist} - ${file.album}`
-                                                : file.artist || file.album}
-                                        </Text>
-                                    )}
-                                </Stack>
-                            </Group>
+                                )}
+                            </Stack>
                         </Table.Td>
                         <Table.Td>
-                            <Group gap="xs">
-                                <Icon icon="fileText" size="0.875rem" />
-                                <Text size="sm">{formatFileSize(file.size)}</Text>
-                            </Group>
+                            <Text size="sm">{formatFileSize(file.size)}</Text>
                         </Table.Td>
                         <Table.Td>
-                            <Group gap="xs">
-                                <Icon icon="headphone" size="0.875rem" />
-                                <Text size="sm">{formatBitrate(file.bitRate)}</Text>
-                            </Group>
+                            <Text size="sm">{formatBitrate(file.bitRate)}</Text>
                         </Table.Td>
                         <Table.Td>
-                            <Group gap="xs">
-                                <Icon icon="time" size="0.875rem" />
-                                <Text size="sm">{formatDuration(file.length)}</Text>
-                            </Group>
+                            <Text size="sm">{formatDuration(file.length)}</Text>
                         </Table.Td>
                         <Table.Td>
                             <Group gap="xs">
@@ -171,7 +149,6 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                                 size="xs"
                                 variant="light"
                                 color="green"
-                                leftSection={<Icon icon="download" size="0.75rem" />}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleDownload(file);
@@ -287,16 +264,46 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                 </Group>
             </Group>
 
-            <ScrollArea style={{ flex: 1 }}>
+            <ScrollArea style={{ flex: 1 }} type="both">
                 <Table>
                     <Table.Thead>
                         <Table.Tr>
-                            <Table.Th>User / File</Table.Th>
-                            <Table.Th>Size / Files</Table.Th>
-                            <Table.Th>Speed / Bitrate</Table.Th>
-                            <Table.Th>Client / Duration</Table.Th>
-                            <Table.Th>Info</Table.Th>
-                            <Table.Th>Actions</Table.Th>
+                            <Table.Th>
+                                <Group gap="xs">
+                                    <Icon icon="user" size="0.8rem" />
+                                    User / File
+                                </Group>
+                            </Table.Th>
+                            <Table.Th>
+                                <Group gap="xs">
+                                    <Icon icon="fileText" size="0.8rem" />
+                                    Size / Files
+                                </Group>
+                            </Table.Th>
+                            <Table.Th>
+                                <Group gap="xs">
+                                    <Icon icon="speed" size="0.8rem" />
+                                    Speed / Bitrate
+                                </Group>
+                            </Table.Th>
+                            <Table.Th>
+                                <Group gap="xs">
+                                    <Icon icon="time" size="0.8rem" />
+                                    Client / Duration
+                                </Group>
+                            </Table.Th>
+                            <Table.Th>
+                                <Group gap="xs">
+                                    <Icon icon="info" size="0.8rem" />
+                                    Info
+                                </Group>
+                            </Table.Th>
+                            <Table.Th>
+                                <Group gap="xs">
+                                    <Icon icon="download" size="0.8rem" />
+                                    Actions
+                                </Group>
+                            </Table.Th>
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
