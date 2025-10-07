@@ -71,6 +71,46 @@
     }
 }
 
+/* Mobile and touch device optimizations */
+@media (max-width: 768px) {
+    .image-container {
+        /* Always show controls on mobile for better touch accessibility */
+        .card-controls {
+            opacity: 1;
+        }
+        
+        /* Remove hover effects on touch devices */
+        &:hover {
+            &::before {
+                opacity: 0;
+            }
+        }
+    }
+    
+    .spotify-badge {
+        /* Make badge larger and more touch-friendly */
+        min-width: 28px;
+        height: 28px;
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+
+/* Touch device specific styles */
+@media (hover: none) and (pointer: coarse) {
+    .image-container {
+        .card-controls {
+            opacity: 1;
+        }
+        
+        &:hover {
+            &::before {
+                opacity: 0;
+            }
+        }
+    }
+}
+
 .image-container.is-favorite {
     &::after {
         position: absolute;

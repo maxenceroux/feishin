@@ -41,6 +41,21 @@
     -webkit-app-region: drag;
 }
 
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        height: 56px;
+    }
+    
+    .header {
+        margin-right: 0.5rem;
+    }
+    
+    .header.pad-right {
+        margin-right: 0.5rem;
+    }
+}
+
 .background-image {
     position: absolute;
     top: 0;

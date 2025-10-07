@@ -69,11 +69,13 @@ const queueDrawerVariants: Variants = {
 interface RightSidebarProps {
     isResizing: boolean;
     startResizing: (direction: 'left' | 'right') => void;
+    isMobile?: boolean;
+    onClose?: () => void;
 }
 
 export const RightSidebar = forwardRef(
     (
-        { isResizing: isResizingRight, startResizing }: RightSidebarProps,
+        { isResizing: isResizingRight, startResizing, isMobile = false, onClose }: RightSidebarProps,
         ref: Ref<HTMLDivElement>,
     ) => {
         const { windowBarStyle } = useWindowSettings();
@@ -97,15 +99,59 @@ export const RightSidebar = forwardRef(
                                 key="queue-sidebar"
                                 variants={queueSidebarVariants}
                             >
-                                <ResizeHandle
-                                    isResizing={isResizingRight}
-                                    onMouseDown={(e) => {
-                                        e.preventDefault();
-                                        startResizing('right');
-                                    }}
-                                    placement="left"
-                                    ref={ref}
-                                />
+                                {/* Mobile close button */}
+                                {isMobile && onClose && (
+                                    <div style={{ 
+                                        position: 'sticky', 
+                                        top: 0, 
+                                        padding: '1rem', 
+                                        background: 'var(--theme-colors-background-alternate)',
+                                        borderBottom: '1px solid var(--theme-colors-border)',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        zIndex: 10
+                                    }}>
+                                        <span style={{ 
+                                            fontWeight: 600, 
+                                            color: 'var(--theme-colors-text)' 
+                                        }}>
+                                            Queue
+                                        </span>
+                                        <button
+                                            onClick={onClose}
+                                            style={{
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: 'var(--theme-colors-text)',
+                                                cursor: 'pointer',
+                                                padding: '4px',
+                                                borderRadius: '4px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                            type="button"
+                                        >
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )}
+                                
+                                {/* Resize handle only for desktop */}
+                                {!isMobile && (
+                                    <ResizeHandle
+                                        isResizing={isResizingRight}
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                            startResizing('right');
+                                        }}
+                                        placement="left"
+                                        ref={ref}
+                                    />
+                                )}
                                 <SidebarPlayQueue />
                             </motion.aside>
                         ) : (

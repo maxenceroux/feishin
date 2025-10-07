@@ -18,3 +18,18 @@
 .macos {
     grid-template-rows: 30px calc(100vh - 120px) 90px;
 }
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .layout {
+        grid-template-rows: 0 calc(100vh - 70px) 70px;
+    }
+    
+    .windows {
+        grid-template-rows: 30px calc(100vh - 100px) 70px;
+    }
+    
+    .macos {
+        grid-template-rows: 30px calc(100vh - 100px) 70px;
+    }
+}

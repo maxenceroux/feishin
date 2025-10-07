@@ -41,6 +41,46 @@
     }
 }
 
+/* Mobile and touch device optimizations */
+@media (max-width: 768px) {
+    .inner-container {
+        padding: 0.75rem;
+        
+        .card-controls {
+            opacity: 1;
+        }
+        
+        &:hover * {
+            &::before {
+                opacity: 0;
+            }
+        }
+    }
+    
+    .container {
+        height: calc(100% - 1rem);
+    }
+}
+
+/* Touch device specific styles */
+@media (hover: none) and (pointer: coarse) {
+    .inner-container {
+        .card-controls {
+            opacity: 1;
+        }
+        
+        &:hover .card-controls {
+            opacity: 1;
+        }
+        
+        &:hover * {
+            &::before {
+                opacity: 0;
+            }
+        }
+    }
+}
+
 .image-container {
     position: relative;
     display: flex;

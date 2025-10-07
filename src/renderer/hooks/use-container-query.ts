@@ -5,17 +5,36 @@ interface UseContainerQueryProps {
     md?: number;
     sm?: number;
     xl?: number;
+    xs?: number;
 }
 
 export const useContainerQuery = (props?: UseContainerQueryProps) => {
-    const { lg, md, sm, xl } = props || {};
+    const { lg, md, sm, xl, xs } = props || {};
     const { height, ref, width } = useElementSize();
 
-    const isXs = width >= 0;
-    const isSm = width >= (sm || 600);
-    const isMd = width >= (md || 768);
-    const isLg = width >= (lg || 1200);
-    const isXl = width >= (xl || 1500);
+    // Mobile-first breakpoints
+    const isXs = width >= (xs || 0);
+    const isSm = width >= (sm || 480);    // Small phones
+    const isMd = width >= (md || 768);    // Tablets
+    const isLg = width >= (lg || 1024);   // Laptops
+    const isXl = width >= (xl || 1280);   // Large screens
 
-    return { height, isLg, isMd, isSm, isXl, isXs, ref, width };
+    // Convenience flags for mobile/desktop
+    const isMobile = width > 0 && width < 768;
+    const isTablet = width >= 768 && width < 1024;
+    const isDesktop = width >= 1024;
+
+    return { 
+        height, 
+        isLg, 
+        isMd, 
+        isSm, 
+        isXl, 
+        isXs, 
+        ref, 
+        width,
+        isMobile,
+        isTablet,
+        isDesktop
+    };
 };

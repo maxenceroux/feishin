@@ -4,3 +4,11 @@
     background: var(--theme-colors-background-alternate);
     border-right: 1px solid alpha(var(--theme-colors-border), 0.3);
 }
+
+/* Mobile responsive behavior */
+@media (max-width: 1024px) {
+    .container {
+        /* Hide sidebar by default on mobile, will be shown as overlay */
+        display: none;
+    }
+}
