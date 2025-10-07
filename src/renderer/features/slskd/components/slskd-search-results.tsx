@@ -203,7 +203,15 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
     const handleDownload = async (file: SlskdSearchResultFile, username: string) => {
         try {
             console.log('Starting download:', { file, username });
-            await slskdApi.downloadFile(username, file.filename, file.token);
+            // Prepare files array for API (match Python client)
+            const files = [
+                {
+                    filename: file.filename,
+                    size: file.size,
+                    ...(file.token && { token: file.token }),
+                },
+            ];
+            await slskdApi.downloadFile(username, files);
 
             // Show success feedback
             console.log(`Download started: ${file.filename} from ${username}`);

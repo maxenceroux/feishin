@@ -117,7 +117,12 @@ type SortDirection = 'asc' | 'desc';
 
 type SortField = 'album' | 'progress' | 'size' | 'speed' | 'startTime' | 'state' | 'user';
 
-const ExpandableDirectoryRow = ({ directory, username, onRemoveDownload, onRemoveDirectory }: ExpandableDirectoryRowProps) => {
+const ExpandableDirectoryRow = ({
+    directory,
+    username,
+    onRemoveDownload,
+    onRemoveDirectory,
+}: ExpandableDirectoryRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const handleRemoveDownload = async (downloadId: string) => {
@@ -297,7 +302,8 @@ const ExpandableDirectoryRow = ({ directory, username, onRemoveDownload, onRemov
                                 </Button>
                                 <Stack gap={2}>
                                     <Text opacity={0.7} size="xs">
-                                        {download.state.includes('InProgress') && download.remainingTime
+                                        {download.state.includes('InProgress') &&
+                                        download.remainingTime
                                             ? `ETA: ${formatTime(download.remainingTime)}`
                                             : download.elapsedTime
                                               ? `Elapsed: ${formatTime(download.elapsedTime)}`
@@ -314,8 +320,9 @@ const ExpandableDirectoryRow = ({ directory, username, onRemoveDownload, onRemov
 
 export const SlskdDownloadsList = () => {
     const { t } = useTranslation();
-    const [sortField, setSortField] = useState<SortField>('album');
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+    // Default sort by started descending
+    const [sortField, setSortField] = useState<SortField>('startTime');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [isRemoving, setIsRemoving] = useState(false);
 
     const { data, error, isLoading, refetch } = useQuery({

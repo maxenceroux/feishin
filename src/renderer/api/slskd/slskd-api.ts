@@ -114,9 +114,9 @@ export class SlskdApiClient {
         await this.ensureToken();
         const response = await this.makeRequest<any>(`searches/${searchId}/responses`);
         console.log('slskd search results API response:', response);
-        
+
         // Handle different response formats from slskd API
-        let results = [];
+        let results: any[] = [];
         if (Array.isArray(response.data)) {
             results = response.data;
         } else if (response.data && response.data.responses) {
@@ -124,7 +124,7 @@ export class SlskdApiClient {
         } else if (response.data && response.data.results) {
             results = response.data.results;
         }
-        
+
         return {
             results,
             searchId,
@@ -132,7 +132,10 @@ export class SlskdApiClient {
         };
     }
 
-    async startSearch(query: string, options?: { limit?: number; timeout?: number }): Promise<string> {
+    async startSearch(
+        query: string,
+        options?: { limit?: number; timeout?: number },
+    ): Promise<string> {
         await this.ensureToken();
         const response = await this.makePostRequest<{ id: string }>('searches', {
             searchText: query,
@@ -142,37 +145,54 @@ export class SlskdApiClient {
         return response.data.id;
     }
 
-    async downloadFile(username: string, filename: string, token?: number): Promise<void> {
+    async downloadFile(
+        username: string,
+        files: Array<{ filename: string; size?: number; token?: number }>,
+    ): Promise<void> {
         await this.ensureToken();
-        const files = [
-            {
-                filename,
-                ...(token && { token }),
-            },
-        ];
-        
-        await this.makePostRequest('transfers/downloads', {
-            username,
-            files,
-        });
-        console.log('Download enqueued:', { username, filename });
+        await this.makePostRequest(`transfers/downloads/${encodeURIComponent(username)}`, files);
+        console.log('Download enqueued:', { username, files });
     }
 
-    async removeDownload(username: string, downloadId: string, remove: boolean = true): Promise<void> {
+    async removeDownload(
+        username: string,
+        downloadId: string,
+        remove: boolean = true,
+    ): Promise<void> {
         await this.ensureToken();
         const endpoint = `transfers/downloads/${encodeURIComponent(username)}/${downloadId}`;
         const params = new URLSearchParams({ remove: remove.toString() });
-        
+
         await this.makeDeleteRequestWithParams(endpoint, params);
         console.log('Download removed:', { username, downloadId, remove });
     }
 
     async removeDirectory(username: string, directory: string): Promise<void> {
         await this.ensureToken();
-        // Note: This might need to be implemented by getting all downloads for the directory
-        // and removing them individually, as the API doesn't seem to have a direct directory removal
         console.log('Directory removal requested:', { username, directory });
-        // For now, we'll need to implement this by listing downloads and removing them individually
+        // Get all downloads for the user
+        const downloadsResp = await this.getRecentDownloads(200); // Increase limit if needed
+        let removedCount = 0;
+        for (const group of downloadsResp.downloads) {
+            if (group.username !== username) continue;
+            console.log('Processing downloads for user:', username);
+            if (!group.directories) continue;
+            for (const dir of group.directories) {
+                if (dir.directory !== directory) continue;
+                for (const file of dir.files) {
+                    try {
+                        await this.removeDownload(username, file.id);
+                        removedCount++;
+                        console.log('Removed download:', file.id, 'from directory:', directory);
+                    } catch (err) {
+                        console.warn('Failed to remove download:', file.id, err);
+                    }
+                }
+            }
+        }
+        console.log(
+            `Finished removing ${removedCount} downloads for directory '${directory}' and user '${username}'.`,
+        );
     }
 
     async testConnection(): Promise<boolean> {
@@ -214,9 +234,14 @@ export class SlskdApiClient {
         }
     }
 
-    private async makeDeleteRequestWithParams(endpoint: string, params: URLSearchParams): Promise<void> {
+    private async makeDeleteRequestWithParams(
+        endpoint: string,
+        params: URLSearchParams,
+    ): Promise<void> {
         if (!this.token) throw new Error('Not authenticated with slskd API');
-        console.log(`Making DELETE request to slskd endpoint: ${endpoint} with params: ${params.toString()}`);
+        console.log(
+            `Making DELETE request to slskd endpoint: ${endpoint} with params: ${params.toString()}`,
+        );
         try {
             await axios.delete(`${this.baseUrl}/api/v0/${endpoint}?${params.toString()}`, {
                 headers: {
