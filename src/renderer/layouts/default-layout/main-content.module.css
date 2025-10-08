@@ -32,7 +32,7 @@
 @media (width <= 1024px) {
     /* On tablets and mobile, sidebars become overlays */
     .main-content-container {
-        grid-template-areas: 'content';
+        grid-template-areas: 'main-content';
         grid-template-columns: 1fr;
     }
     
@@ -40,7 +40,7 @@
     .main-content-container.sidebar-expanded,
     .main-content-container.right-expanded,
     .main-content-container.sidebar-collapsed.right-expanded {
-        grid-template-areas: 'content';
+        grid-template-areas: 'main-content';
         grid-template-columns: 1fr;
     }
 }
@@ -103,6 +103,21 @@
         padding: 0 1rem;
         background: var(--theme-colors-background);
         border-bottom: 1px solid var(--theme-colors-border);
+    }
+    
+    /* Adjust outlet positioning on mobile */
+    .main-content-container > :last-child {
+        padding-top: 56px; /* Account for mobile nav header */
+        min-height: 0;
+        flex: 1;
+    }
+}
+
+/* Desktop outlet positioning - takes the middle grid column */
+@media (width > 1024px) {
+    .main-content-container > :last-child {
+        /* Outlet takes the middle column automatically in the grid */
+        overflow: hidden;
     }
 
     .mobile-nav-button {
