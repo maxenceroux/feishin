@@ -509,7 +509,17 @@ export const SlskdDownloadsList = () => {
     );
 
     return (
-        <Stack gap="md" p="md" style={{ height: '100vh', overflow: 'hidden' }}>
+        <Stack
+            gap="md"
+            p="md"
+            style={{
+                height: '100vh',
+                minHeight: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+            }}
+        >
             <Group justify="space-between">
                 <Group gap="md">
                     <Text fw={600} size="xl">
@@ -528,7 +538,7 @@ export const SlskdDownloadsList = () => {
                 </Button>
             </Group>
 
-            <ScrollArea style={{ flex: 1 }}>
+            <ScrollArea style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto' }}>
                 <Table>
                     <Table.Thead>
                         <Table.Tr>
