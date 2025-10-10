@@ -93,7 +93,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     const spotifyDetailQuery = useSpotifyArtistDetail({
         artistId: routeId,
-        enabled: isSpotifyArtist,
+        enabled: isSpotifyArtist && !!server?.id,
         serverId: server?.id || '',
     });
 
