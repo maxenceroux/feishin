@@ -93,7 +93,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     const spotifyDetailQuery = useSpotifyArtistDetail({
         artistId: routeId,
-        enabled: isSpotifyArtist && !!server?.id,
+        enabled: isSpotifyArtist,
         serverId: server?.id || '',
     });
 
@@ -103,13 +103,13 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     // Hook for Spotify related artists (only for Spotify artists)
     const spotifyRelatedArtists = useSpotifyRelatedArtists({
         artistId: routeId,
-        enabled: isSpotifyArtist && !!server?.id,
+        enabled: isSpotifyArtist,
     });
 
     // Hook for Spotify artist albums (only for Spotify artists)
     const spotifyArtistAlbums = useSpotifyArtistAlbums({
         artistId: routeId,
-        enabled: isSpotifyArtist && enabledItem.recentAlbums && !!server?.id,
+        enabled: isSpotifyArtist && enabledItem.recentAlbums,
         options: {
             include_groups: 'album,single',
             limit: 15,
