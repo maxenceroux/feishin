@@ -103,7 +103,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     // Hook for Spotify related artists (only for Spotify artists)
     const spotifyRelatedArtists = useSpotifyRelatedArtists({
         artistId: routeId,
-        enabled: isSpotifyArtist,
+        enabled: isSpotifyArtist && !!server?.id,
     });
 
     // Hook for Spotify artist albums (only for Spotify artists)
