@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 import { SlskdSearchResult, SlskdSearchResultFile } from '/@/renderer/api/slskd/slskd-types';
+import { RefreshButton } from '/@/renderer/features/shared/components/refresh-button';
 import { Badge } from '/@/shared/components/badge/badge';
 import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
@@ -193,12 +194,16 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
 export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsProps) => {
     const { t } = useTranslation();
 
-    const { data, error, isLoading } = useQuery({
+    const { data, error, isLoading, refetch } = useQuery({
         queryFn: () => slskdApi.getSearchResults(searchId),
         queryKey: ['slskd', 'search-results', searchId],
         refetchInterval: 5000, // Refetch every 5 seconds while search is active
         retry: 3,
     });
+
+    const handleRefresh = () => {
+        refetch();
+    };
 
     const handleDownload = async (file: SlskdSearchResultFile, username: string) => {
         try {
@@ -297,10 +302,11 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                 <Group gap="sm">
                     <Badge variant="light">{results.length} users</Badge>
                     <Badge variant="light">{totalFiles} files</Badge>
+                    <RefreshButton onClick={handleRefresh} />
                 </Group>
             </Group>
 
-            <ScrollArea style={{ flex: 1 }} type="both">
+            <ScrollArea style={{ flex: 1 }}>
                 <Table>
                     <Table.Thead>
                         <Table.Tr>
