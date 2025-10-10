@@ -11,11 +11,7 @@ import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
 import { useSpotifyArtistSearch } from '/@/renderer/hooks/use-spotify-search';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
-import {
-    AlbumArtist,
-    AlbumArtistListQuery,
-    LibraryItem,
-} from '/@/shared/types/domain-types';
+import { AlbumArtist, AlbumArtistListQuery, LibraryItem } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
 
 const DiscoverArtistsRoute = () => {
@@ -75,11 +71,7 @@ const DiscoverArtistsRoute = () => {
             pageKey,
             spotifyArtists,
         };
-    }, [
-        handlePlay,
-        pageKey,
-        spotifySearchResult.data,
-    ]);
+    }, [handlePlay, pageKey, spotifySearchResult.data]);
 
     return (
         <AnimatedPage key={`discover-artists`}>
@@ -98,14 +90,16 @@ const DiscoverArtistsRoute = () => {
                         tableRef={tableRef}
                     />
                 ) : (
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center', 
-                        height: '200px',
-                        color: '#888'
-                    }}>
-                        Search for artists using the search bar above to discover Spotify content
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '200px',
+                            color: '#888',
+                        }}
+                    >
+                        Search for artists using the search bar above to discover extra content
                     </div>
                 )}
             </ListContext.Provider>
