@@ -25,6 +25,7 @@ import { LibraryBackgroundOverlay } from '/@/renderer/features/shared/components
 import { useContainerQuery } from '/@/renderer/hooks';
 import { useGenreRoute } from '/@/renderer/hooks/use-genre-route';
 import { useSpotifyArtistDetail } from '/@/renderer/hooks/use-spotify-artist-detail';
+import { useSpotifyArtistAlbums } from '/@/renderer/hooks/use-spotify-artist-albums';
 import { useSpotifyRelatedArtists } from '/@/renderer/hooks/use-spotify-related-artists';
 import { AppRoute } from '/@/renderer/router/routes';
 import { ArtistItem, useCurrentServer } from '/@/renderer/store';
@@ -105,6 +106,17 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         enabled: isSpotifyArtist,
     });
 
+    // Hook for Spotify artist albums (only for Spotify artists)
+    const spotifyArtistAlbums = useSpotifyArtistAlbums({
+        artistId: routeId,
+        enabled: isSpotifyArtist && enabledItem.recentAlbums,
+        options: {
+            include_groups: 'album,single',
+            limit: 15,
+        },
+        serverId: server?.id || '',
+    });
+
     const artistDiscographyLink = `${generatePath(
         AppRoute.LIBRARY_ALBUM_ARTISTS_DETAIL_DISCOGRAPHY,
         {
@@ -124,7 +136,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     const recentAlbumsQuery = useAlbumList({
         options: {
-            enabled: enabledItem.recentAlbums,
+            enabled: enabledItem.recentAlbums && !isSpotifyArtist,
         },
         query: {
             artistIds: [routeId],
@@ -139,7 +151,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     const compilationAlbumsQuery = useAlbumList({
         options: {
-            enabled: enabledItem.compilations && server?.type !== ServerType.SUBSONIC,
+            enabled: enabledItem.compilations && server?.type !== ServerType.SUBSONIC && !isSpotifyArtist,
         },
         query: {
             artistIds: [routeId],
@@ -154,7 +166,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     const topSongsQuery = useTopSongsList({
         options: {
-            enabled: !!detailQuery?.data?.name && enabledItem.topSongs,
+            enabled: !isSpotifyArtist && !!detailQuery?.data?.name && enabledItem.topSongs,
         },
         query: {
             artist: detailQuery?.data?.name || '',
@@ -220,10 +232,16 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     const carousels = useMemo(() => {
         return [
             {
-                data: recentAlbumsQuery?.data?.items,
-                isHidden: !recentAlbumsQuery?.data?.items?.length || !enabledItem.recentAlbums,
+                data: isSpotifyArtist 
+                    ? spotifyArtistAlbums?.data || []
+                    : recentAlbumsQuery?.data?.items,
+                isHidden: isSpotifyArtist
+                    ? (!spotifyArtistAlbums?.data?.length || !enabledItem.recentAlbums)
+                    : (!recentAlbumsQuery?.data?.items?.length || !enabledItem.recentAlbums),
                 itemType: LibraryItem.ALBUM,
-                loading: recentAlbumsQuery?.isLoading || recentAlbumsQuery.isFetching,
+                loading: isSpotifyArtist
+                    ? (spotifyArtistAlbums?.isLoading || spotifyArtistAlbums?.isFetching)
+                    : (recentAlbumsQuery?.isLoading || recentAlbumsQuery.isFetching),
                 order: itemOrder.recentAlbums,
                 title: (
                     <Group align="flex-end">
@@ -247,6 +265,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
             {
                 data: compilationAlbumsQuery?.data?.items,
                 isHidden:
+                    isSpotifyArtist ||
                     !compilationAlbumsQuery?.data?.items?.length ||
                     !enabledItem.compilations ||
                     server?.type === ServerType.SUBSONIC,
@@ -298,6 +317,9 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         recentAlbumsQuery.isFetching,
         recentAlbumsQuery?.isLoading,
         server?.type,
+        spotifyArtistAlbums?.data,
+        spotifyArtistAlbums?.isFetching,
+        spotifyArtistAlbums?.isLoading,
         spotifyRelatedArtists.data,
         t,
     ]);
@@ -386,12 +408,13 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         return sanitize(bio);
     }, [detailQuery?.data?.biography, enabledItem.biography]);
 
-    const showTopSongs = topSongsQuery?.data?.items?.length && enabledItem.topSongs;
+    const showTopSongs = !isSpotifyArtist && topSongsQuery?.data?.items?.length && enabledItem.topSongs;
     const showGenres = detailQuery?.data?.genres ? detailQuery?.data?.genres.length !== 0 : false;
     const mbzId = detailQuery?.data?.mbz;
 
     const isLoading =
         detailQuery?.isLoading ||
+        (isSpotifyArtist && enabledItem.recentAlbums && spotifyArtistAlbums?.isLoading) ||
         (server?.type === ServerType.NAVIDROME && enabledItem.topSongs && topSongsQuery?.isLoading);
 
     if (isLoading) return <div className={styles.contentContainer} ref={cq.ref} />;
