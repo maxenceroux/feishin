@@ -109,7 +109,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     // Hook for Spotify artist albums (only for Spotify artists)
     const spotifyArtistAlbums = useSpotifyArtistAlbums({
         artistId: routeId,
-        enabled: isSpotifyArtist && enabledItem.recentAlbums,
+        enabled: isSpotifyArtist && enabledItem.recentAlbums && !!server?.id,
         options: {
             include_groups: 'album,single',
             limit: 15,
