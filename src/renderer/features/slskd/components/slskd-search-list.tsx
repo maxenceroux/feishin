@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
+import { RefreshButton } from '/@/renderer/features/shared/components/refresh-button';
 import { Badge } from '/@/shared/components/badge/badge';
 import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
@@ -61,6 +62,10 @@ export const SlskdSearchList = () => {
 
     const handleViewResults = (searchId: string) => {
         setSelectedSearchId(searchId);
+    };
+
+    const handleRefresh = () => {
+        refetch();
     };
 
     const { data, error, isLoading, refetch } = useQuery({
@@ -204,7 +209,10 @@ export const SlskdSearchList = () => {
                 <Text fw={600} size="xl">
                     Soulseek Search
                 </Text>
-                <Badge variant="light">{searches.length} searches</Badge>
+                <Group gap="sm">
+                    <Badge variant="light">{searches.length} searches</Badge>
+                    <RefreshButton onClick={handleRefresh} />
+                </Group>
             </Group>
 
             {/* New Search Section */}

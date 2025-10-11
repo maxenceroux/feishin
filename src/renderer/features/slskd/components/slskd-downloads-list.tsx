@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 import { SlskdDownload } from '/@/renderer/api/slskd/slskd-types';
+import { RefreshButton } from '/@/renderer/features/shared/components/refresh-button';
 import { Badge } from '/@/shared/components/badge/badge';
 import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
@@ -354,6 +355,10 @@ export const SlskdDownloadsList = () => {
         }
     };
 
+    const handleRefresh = () => {
+        refetch();
+    };
+
     const handleRemoveDownload = async (username: string, downloadId: string) => {
         try {
             await slskdApi.removeDownload(username, downloadId);
@@ -527,15 +532,18 @@ export const SlskdDownloadsList = () => {
                     </Text>
                     <Badge variant="light">{totalDirectories} albums</Badge>
                 </Group>
-                <Button
-                    leftSection={<Icon icon="remove" />}
-                    loading={isRemoving}
-                    onClick={handleRemoveSucceeded}
-                    size="sm"
-                    variant="filled"
-                >
-                    Remove All Succeeded
-                </Button>
+                <Group gap="sm">
+                    <RefreshButton onClick={handleRefresh} />
+                    <Button
+                        leftSection={<Icon icon="remove" />}
+                        loading={isRemoving}
+                        onClick={handleRemoveSucceeded}
+                        size="sm"
+                        variant="filled"
+                    >
+                        Remove All Succeeded
+                    </Button>
+                </Group>
             </Group>
 
             <ScrollArea style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto' }}>
