@@ -229,15 +229,6 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         },
     };
 
-    console.log('Debug - isSpotifyArtist:', isSpotifyArtist);
-    console.log('Debug - enabledItem.recentAlbums:', enabledItem.recentAlbums);
-    console.log('Debug - spotifyArtistAlbums:', {
-        data: spotifyArtistAlbums?.data,
-        isLoading: spotifyArtistAlbums?.isLoading,
-        isFetching: spotifyArtistAlbums?.isFetching,
-        error: spotifyArtistAlbums?.error
-    });
-
     const carousels = useMemo(() => {
         return [
             {
@@ -245,7 +236,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
                     ? spotifyArtistAlbums?.data || []
                     : recentAlbumsQuery?.data?.items,
                 isHidden: isSpotifyArtist
-                    ? false // Temporarily always show for debugging
+                    ? (!enabledItem.recentAlbums || (!spotifyArtistAlbums?.data?.length && !spotifyArtistAlbums?.isLoading))
                     : (!recentAlbumsQuery?.data?.items?.length || !enabledItem.recentAlbums),
                 itemType: LibraryItem.ALBUM,
                 loading: isSpotifyArtist
