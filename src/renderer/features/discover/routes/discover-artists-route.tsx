@@ -37,7 +37,7 @@ const DiscoverArtistsErrorFallback = ({ error, resetErrorBoundary }: FallbackPro
                     <Icon fill="error" icon="error" size="lg" />
                     <Text size="lg">{t('error.genericError')}</Text>
                 </Group>
-                <Text>Discover Artists: {error?.message}</Text>
+                <Text>{error?.message}</Text>
                 <Button onClick={resetErrorBoundary} variant="filled">
                     {t('common.reload')}
                 </Button>
