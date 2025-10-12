@@ -35,6 +35,12 @@ const AdvancedTab = lazy(() =>
     })),
 );
 
+const SlskdTab = lazy(() =>
+    import('/@/renderer/features/settings/components/slskd/slskd-tab').then((module) => ({
+        default: module.SlskdTab,
+    })),
+);
+
 export const SettingsContent = () => {
     const { t } = useTranslation();
     const currentTab = useSettingsStore((state) => state.tab);
@@ -67,6 +73,7 @@ export const SettingsContent = () => {
                     <Tabs.Tab value="advanced">
                         {t('page.setting.advanced', { postProcess: 'sentenceCase' })}
                     </Tabs.Tab>
+                    <Tabs.Tab value="slskd">slskd Server</Tabs.Tab>
                 </Tabs.List>
                 <Tabs.Panel value="general">
                     <GeneralTab />
@@ -84,6 +91,9 @@ export const SettingsContent = () => {
                 )}
                 <Tabs.Panel value="advanced">
                     <AdvancedTab />
+                </Tabs.Panel>
+                <Tabs.Panel value="slskd">
+                    <SlskdTab />
                 </Tabs.Panel>
             </Tabs>
         </div>
