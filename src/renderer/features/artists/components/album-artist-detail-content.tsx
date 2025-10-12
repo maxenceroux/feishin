@@ -230,17 +230,15 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     };
 
     const carousels = useMemo(() => {
-        // For Spotify artists, get the most recent 5 albums from Spotify data
+        // For Spotify artists, get the most recent albums from Spotify data
         // Sort by release date to ensure newest first (Spotify API should return them sorted, but we ensure it)
         const recentSpotifyAlbums =
             isSpotifyArtist && spotifyArtistAlbums.data
-                ? spotifyArtistAlbums.data
-                      .sort((a, b) => {
-                          const dateA = new Date(a.releaseDate || '');
-                          const dateB = new Date(b.releaseDate || '');
-                          return dateB.getTime() - dateA.getTime();
-                      })
-                      .slice(0, 5)
+                ? spotifyArtistAlbums.data.sort((a, b) => {
+                      const dateA = new Date(a.releaseDate || '');
+                      const dateB = new Date(b.releaseDate || '');
+                      return dateB.getTime() - dateA.getTime();
+                  })
                 : [];
 
         return [
