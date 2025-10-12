@@ -388,7 +388,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         // Set the search term in the discover artists filter
         setFilter({
             data: { searchTerm: artistName },
-            itemType: 'artist_discover' as any,
+            itemType: LibraryItem.ALBUM_ARTIST,
             key: 'artist_discover',
         });
 

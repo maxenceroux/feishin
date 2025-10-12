@@ -712,24 +712,54 @@ export const useListFilterByKey = <TFilter>(args: {
     const key = args.key as keyof ListState['item'];
     return useListStore(
         (state) => {
+            // Check if key exists in main item store
+            if (state.item[key]) {
+                return {
+                    ...state.item[key].filter,
+                    ...(args.filter && {
+                        ...args.filter,
+                        _custom: {
+                            ...state.item[key].filter._custom,
+                            ...args.filter?._custom,
+                            jellyfin: {
+                                ...state.item[key].filter._custom?.jellyfin,
+                                ...args.filter?._custom?.jellyfin,
+                            },
+                            navidrome: {
+                                ...state.item[key].filter._custom?.navidrome,
+                                ...args.filter?._custom?.navidrome,
+                            },
+                        },
+                    }),
+                };
+            }
+            
+            // If key doesn't exist in main store, check detail store
+            if (state.detail[args.key]) {
+                return {
+                    ...state.detail[args.key].filter,
+                    ...(args.filter && {
+                        ...args.filter,
+                        _custom: {
+                            ...state.detail[args.key].filter._custom,
+                            ...args.filter?._custom,
+                            jellyfin: {
+                                ...state.detail[args.key].filter._custom?.jellyfin,
+                                ...args.filter?._custom?.jellyfin,
+                            },
+                            navidrome: {
+                                ...state.detail[args.key].filter._custom?.navidrome,
+                                ...args.filter?._custom?.navidrome,
+                            },
+                        },
+                    }),
+                };
+            }
+            
+            // If neither exists, return empty filter with provided args
             return {
-                ...state.item[key].filter,
-                ...(args.filter && {
-                    ...args.filter,
-                    _custom: {
-                        ...state.item[key].filter._custom,
-                        ...args.filter?._custom,
-                        jellyfin: {
-                            ...state.item[key].filter._custom?.jellyfin,
-                            ...args.filter?._custom?.jellyfin,
-                        },
-                        navidrome: {
-                            ...state.item[key].filter._custom?.navidrome,
-                            ...args.filter?._custom?.navidrome,
-                        },
-                    },
-                }),
-            };
+                ...(args.filter || {}),
+            } as TFilter;
         },
 
         shallow,

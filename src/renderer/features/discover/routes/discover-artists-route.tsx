@@ -1,7 +1,7 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
 
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
@@ -18,11 +18,41 @@ import {
 } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
 
+// Error fallback component for the route
+const DiscoverArtistsErrorFallback = ({ error, resetErrorBoundary }: { error: Error, resetErrorBoundary: () => void }) => {
+    return (
+        <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '400px',
+            color: '#888',
+            gap: '16px'
+        }}>
+            <h3>Something went wrong in Discover Artists</h3>
+            <p>Error: {error.message}</p>
+            <button 
+                onClick={resetErrorBoundary}
+                style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#007acc',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                }}
+            >
+                Try again
+            </button>
+        </div>
+    );
+};
+
 const DiscoverArtistsRoute = () => {
     const gridRef = useRef<null | VirtualInfiniteGridRef>(null);
     const tableRef = useRef<AgGridReactType | null>(null);
     const server = useCurrentServer();
-    const [searchParams] = useSearchParams();
     const pageKey = 'artist_discover';
 
     const artistListFilter = useListFilterByKey<AlbumArtistListQuery>({
@@ -30,7 +60,7 @@ const DiscoverArtistsRoute = () => {
     });
 
     // Get search term from the filter state (from the search bar)
-    const searchTerm = artistListFilter.searchTerm || '';
+    const searchTerm = artistListFilter?.searchTerm || '';
 
     // Use Spotify search hook with the search term from the search bar
     const spotifySearchResult = useSpotifyArtistSearch({
@@ -49,7 +79,7 @@ const DiscoverArtistsRoute = () => {
     const handlePlayQueueAdd = usePlayQueueAdd();
 
     const handlePlay = useCallback(
-        async (playType?: Play) => {
+        async (args: { initialSongId?: string; playType: Play }) => {
             const spotifyArtists = spotifySearchResult.data || [];
             const artistIds = spotifyArtists.map((a) => a.id);
 
@@ -58,7 +88,7 @@ const DiscoverArtistsRoute = () => {
                     id: artistIds,
                     type: LibraryItem.ALBUM_ARTIST,
                 },
-                playType,
+                playType: args.playType,
             });
         },
         [handlePlayQueueAdd, spotifySearchResult.data],
@@ -82,34 +112,39 @@ const DiscoverArtistsRoute = () => {
     ]);
 
     return (
-        <AnimatedPage key={`discover-artists`}>
-            <ListContext.Provider value={providerValue}>
-                <AlbumArtistListHeader
-                    gridRef={gridRef}
-                    itemCount={itemCount}
-                    tableRef={tableRef}
-                    title="Discover Artists"
-                    titlePrefix="Spotify"
-                />
-                {searchTerm ? (
-                    <AlbumArtistListContent
+        <ErrorBoundary
+            FallbackComponent={DiscoverArtistsErrorFallback}
+            onError={(error, errorInfo) => {
+                console.error('DiscoverArtistsRoute error:', error, errorInfo);
+            }}
+        >
+            <AnimatedPage key={`discover-artists`}>
+                <ListContext.Provider value={providerValue}>
+                    <AlbumArtistListHeader
                         gridRef={gridRef}
-                        setItemCount={setItemCount}
+                        itemCount={itemCount}
                         tableRef={tableRef}
                     />
-                ) : (
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center', 
-                        height: '200px',
-                        color: '#888'
-                    }}>
-                        Search for artists using the search bar above to discover Spotify content
-                    </div>
-                )}
-            </ListContext.Provider>
-        </AnimatedPage>
+                    {searchTerm ? (
+                        <AlbumArtistListContent
+                            gridRef={gridRef}
+                            itemCount={itemCount}
+                            tableRef={tableRef}
+                        />
+                    ) : (
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            alignItems: 'center', 
+                            height: '200px',
+                            color: '#888'
+                        }}>
+                            Search for artists using the search bar above to discover Spotify content
+                        </div>
+                    )}
+                </ListContext.Provider>
+            </AnimatedPage>
+        </ErrorBoundary>
     );
 };
 
