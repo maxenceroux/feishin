@@ -34,20 +34,18 @@ export const SlskdServerForm = ({
             username: initialData?.username || '',
         },
         validate: {
-            name: (value) => (!value ? t('form.required', { postProcess: 'sentenceCase' }) : null),
+            name: (value) => (!value ? 'Name is required' : null),
             baseUrl: (value) => {
-                if (!value) return t('form.required', { postProcess: 'sentenceCase' });
+                if (!value) return 'URL is required';
                 try {
                     new URL(value);
                     return null;
                 } catch {
-                    return t('form.invalidUrl', { postProcess: 'sentenceCase' });
+                    return 'Invalid URL format';
                 }
             },
-            username: (value) =>
-                !value ? t('form.required', { postProcess: 'sentenceCase' }) : null,
-            password: (value) =>
-                !value ? t('form.required', { postProcess: 'sentenceCase' }) : null,
+            username: (value) => (!value ? 'Username is required' : null),
+            password: (value) => (!value ? 'Password is required' : null),
         },
     });
 
@@ -67,19 +65,18 @@ export const SlskdServerForm = ({
             const result = await onTestConnection(testServer);
             if (result) {
                 toast.success({
-                    message: t('form.testConnection.success', { postProcess: 'sentenceCase' }),
+                    message: 'Connection successful!',
                 });
             } else {
                 toast.error({
-                    message: t('form.testConnection.failed', { postProcess: 'sentenceCase' }),
+                    message: 'Connection failed. Please check your settings.',
                 });
             }
         } catch (error) {
             toast.error({
-                message: t('form.testConnection.error', {
-                    postProcess: 'sentenceCase',
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                }),
+                message: `Connection error: ${
+                    error instanceof Error ? error.message : 'Unknown error'
+                }`,
             });
         } finally {
             setIsTestingConnection(false);
@@ -102,57 +99,36 @@ export const SlskdServerForm = ({
                 }}
             >
                 <TextInput
-                    label={t('form.addServer.input', {
-                        context: 'name',
-                        postProcess: 'sentenceCase',
-                    })}
-                    placeholder={t('form.addServer.placeholder', {
-                        context: 'name',
-                        postProcess: 'sentenceCase',
-                    })}
+                    label="Server Name"
+                    placeholder="My slskd Server"
                     required
                     {...form.getInputProps('name')}
                 />
 
                 <TextInput
-                    label={t('form.addServer.input', {
-                        context: 'url',
-                        postProcess: 'sentenceCase',
-                    })}
+                    label="Server URL"
                     placeholder="http://localhost:5030"
                     required
                     {...form.getInputProps('baseUrl')}
                 />
 
                 <TextInput
-                    label={t('form.addServer.input', {
-                        context: 'username',
-                        postProcess: 'sentenceCase',
-                    })}
-                    placeholder={t('form.addServer.placeholder', {
-                        context: 'username',
-                        postProcess: 'sentenceCase',
-                    })}
+                    label="Username"
+                    placeholder="Enter username"
                     required
                     {...form.getInputProps('username')}
                 />
 
                 <PasswordInput
-                    label={t('form.addServer.input', {
-                        context: 'password',
-                        postProcess: 'sentenceCase',
-                    })}
-                    placeholder={t('form.addServer.placeholder', {
-                        context: 'password',
-                        postProcess: 'sentenceCase',
-                    })}
+                    label="Password"
+                    placeholder="Enter password"
                     required
                     {...form.getInputProps('password')}
                 />
 
                 <Group justify="flex-end" gap="sm">
                     <Button onClick={onCancel} variant="default">
-                        {t('common.cancel', { postProcess: 'sentenceCase' })}
+                        Cancel
                     </Button>
                     <Button
                         disabled={!form.isValid()}
@@ -160,12 +136,10 @@ export const SlskdServerForm = ({
                         onClick={handleTestConnection}
                         variant="outline"
                     >
-                        {t('form.testConnection.title', { postProcess: 'sentenceCase' })}
+                        Test Connection
                     </Button>
                     <Button disabled={!form.isValid()} type="submit">
-                        {initialData
-                            ? t('common.update', { postProcess: 'sentenceCase' })
-                            : t('common.add', { postProcess: 'sentenceCase' })}
+                        {initialData ? 'Update' : 'Add'}
                     </Button>
                 </Group>
             </Stack>

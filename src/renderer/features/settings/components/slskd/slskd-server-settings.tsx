@@ -70,19 +70,16 @@ export const SlskdServerSettings = () => {
                 <Stack gap="md">
                     <Group justify="space-between">
                         <Text size="lg" fw={500}>
-                            {t('setting.slskdServers', { postProcess: 'sentenceCase' })}
+                            slskd Servers
                         </Text>
                         <Button onClick={() => setShowAddForm(true)} size="sm">
-                            {t('form.addServer.title', { postProcess: 'sentenceCase' })}
+                            Add Server
                         </Button>
                     </Group>
 
                     {slskdSettings.servers.length === 0 && !showAddForm && (
                         <Text c="dimmed" size="sm">
-                            {t('setting.slskdServers', {
-                                context: 'noServersConfigured',
-                                postProcess: 'sentenceCase',
-                            })}
+                            No slskd servers configured
                         </Text>
                     )}
 
@@ -106,11 +103,7 @@ export const SlskdServerSettings = () => {
                                     {server.baseUrl}
                                 </Text>
                                 <Text size="sm" c="dimmed">
-                                    {t('form.addServer.input', {
-                                        context: 'username',
-                                        postProcess: 'sentenceCase',
-                                    })}
-                                    : {server.username}
+                                    Username: {server.username}
                                 </Text>
                             </Stack>
                             <Group gap="xs">
@@ -120,12 +113,12 @@ export const SlskdServerSettings = () => {
                                         size="xs"
                                         variant="light"
                                     >
-                                        {t('common.select', { postProcess: 'sentenceCase' })}
+                                        Select
                                     </Button>
                                 )}
                                 {slskdSettings.selectedServerId === server.id && (
                                     <Text size="xs" c="blue" fw={500}>
-                                        {t('common.active', { postProcess: 'sentenceCase' })}
+                                        Active
                                     </Text>
                                 )}
                                 <Button
@@ -133,7 +126,7 @@ export const SlskdServerSettings = () => {
                                     size="xs"
                                     variant="default"
                                 >
-                                    {t('common.edit', { postProcess: 'sentenceCase' })}
+                                    Edit
                                 </Button>
                                 <Button
                                     onClick={() => handleRemoveServer(server.id)}
@@ -141,7 +134,7 @@ export const SlskdServerSettings = () => {
                                     variant="outline"
                                     color="red"
                                 >
-                                    {t('common.remove', { postProcess: 'sentenceCase' })}
+                                    Remove
                                 </Button>
                             </Group>
                         </Group>
@@ -165,11 +158,8 @@ export const SlskdServerSettings = () => {
                     )}
                 </Stack>
             ),
-            description: t('setting.slskdServers', {
-                context: 'description',
-                postProcess: 'sentenceCase',
-            }),
-            title: t('setting.slskdServers', { postProcess: 'sentenceCase' }),
+            description: 'Configure slskd servers for music discovery and downloads',
+            title: 'slskd Servers',
         },
     ];
 
