@@ -112,7 +112,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         enabled: isSpotifyArtist && enabledItem.recentAlbums,
         options: {
             include_groups: 'album,single',
-            limit: 50, // Fetch more to sort and limit to 5 recent ones
+            limit: 5, // Get only the 5 most recent releases
         },
         serverId: server?.id || '',
     });
@@ -136,7 +136,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     const recentAlbumsQuery = useAlbumList({
         options: {
-            enabled: enabledItem.recentAlbums,
+            enabled: enabledItem.recentAlbums && !isSpotifyArtist,
         },
         query: {
             artistIds: [routeId],
@@ -231,10 +231,15 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     const carousels = useMemo(() => {
         // For Spotify artists, get the most recent 5 albums from Spotify data
+        // Sort by release date to ensure newest first (Spotify API should return them sorted, but we ensure it)
         const recentSpotifyAlbums =
             isSpotifyArtist && spotifyArtistAlbums.data
                 ? spotifyArtistAlbums.data
-                      .sort((a, b) => (b.releaseDate || '').localeCompare(a.releaseDate || ''))
+                      .sort((a, b) => {
+                          const dateA = new Date(a.releaseDate || '');
+                          const dateB = new Date(b.releaseDate || '');
+                          return dateB.getTime() - dateA.getTime();
+                      })
                       .slice(0, 5)
                 : [];
 
