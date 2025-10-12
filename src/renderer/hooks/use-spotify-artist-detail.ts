@@ -23,8 +23,14 @@ export const useSpotifyArtistDetail = ({
             }
 
             try {
-                // Fetch the token from the backend
-                const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token');
+                // Fetch the token from the backend with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
+                const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token', {
+                    signal: controller.signal,
+                });
+                clearTimeout(timeoutId);
 
                 if (!tokenRes.ok) {
                     throw new Error(`Failed to fetch Spotify token: ${tokenRes.status}`);
@@ -47,11 +53,23 @@ export const useSpotifyArtistDetail = ({
                 return artist;
             } catch (error) {
                 console.error('Spotify artist detail error:', error);
+                if (error instanceof Error) {
+                    if (error.name === 'AbortError') {
+                        throw new Error('Spotify backend request timed out - backend may not be available');
+                    }
+                    throw new Error(`Spotify backend error: ${error.message}`);
+                }
                 throw error;
             }
         },
         queryKey: ['spotify', 'artist', 'detail', artistId],
-        retry: 2, // Retry twice on failure
+        retry: (failureCount, error) => {
+            // Don't retry timeout errors or network errors
+            if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('backend'))) {
+                return false;
+            }
+            return failureCount < 2;
+        },
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
         staleTime: 1000 * 60 * 5, // 5 minutes
     });

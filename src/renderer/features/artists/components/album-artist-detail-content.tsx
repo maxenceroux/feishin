@@ -236,7 +236,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
                     ? spotifyArtistAlbums?.data || []
                     : recentAlbumsQuery?.data?.items,
                 isHidden: isSpotifyArtist
-                    ? (!enabledItem.recentAlbums || (!spotifyArtistAlbums?.data?.length && !spotifyArtistAlbums?.isLoading))
+                    ? (!enabledItem.recentAlbums || (!spotifyArtistAlbums?.data?.length && !spotifyArtistAlbums?.isLoading && !spotifyArtistAlbums?.error))
                     : (!recentAlbumsQuery?.data?.items?.length || !enabledItem.recentAlbums),
                 itemType: LibraryItem.ALBUM,
                 loading: isSpotifyArtist
