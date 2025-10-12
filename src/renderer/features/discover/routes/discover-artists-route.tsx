@@ -2,22 +2,49 @@ import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/li
 
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import type { FallbackProps } from 'react-error-boundary';
+import { useTranslation } from 'react-i18next';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
-import { ErrorFallback } from '/@/renderer/features/action-required';
 import { AlbumArtistListContent } from '/@/renderer/features/artists/components/album-artist-list-content';
 import { AlbumArtistListHeader } from '/@/renderer/features/artists/components/album-artist-list-header';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
 import { useSpotifyArtistSearch } from '/@/renderer/hooks/use-spotify-search';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
+import { Button } from '/@/shared/components/button/button';
+import { Center } from '/@/shared/components/center/center';
+import { Group } from '/@/shared/components/group/group';
+import { Icon } from '/@/shared/components/icon/icon';
+import { Stack } from '/@/shared/components/stack/stack';
+import { Text } from '/@/shared/components/text/text';
 import {
     AlbumArtist,
     AlbumArtistListQuery,
     LibraryItem,
 } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
+
+// Error fallback component for the DiscoverArtistsRoute
+const DiscoverArtistsErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
+    const { t } = useTranslation();
+    
+    return (
+        <Center style={{ height: '400px' }}>
+            <Stack style={{ maxWidth: '50%' }}>
+                <Group gap="xs">
+                    <Icon fill="error" icon="error" size="lg" />
+                    <Text size="lg">{t('error.genericError')}</Text>
+                </Group>
+                <Text>Discover Artists: {error?.message}</Text>
+                <Button onClick={resetErrorBoundary} variant="filled">
+                    {t('common.reload')}
+                </Button>
+            </Stack>
+        </Center>
+    );
+};
 
 const DiscoverArtistsRoute = () => {
     const gridRef = useRef<null | VirtualInfiniteGridRef>(null);
@@ -83,7 +110,7 @@ const DiscoverArtistsRoute = () => {
 
     return (
         <ErrorBoundary
-            FallbackComponent={ErrorFallback}
+            FallbackComponent={DiscoverArtistsErrorFallback}
             onError={(error, errorInfo) => {
                 console.error('DiscoverArtistsRoute error:', error, errorInfo);
             }}
