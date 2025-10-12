@@ -5,6 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
+import { ErrorFallback } from '/@/renderer/features/action-required';
 import { AlbumArtistListContent } from '/@/renderer/features/artists/components/album-artist-list-content';
 import { AlbumArtistListHeader } from '/@/renderer/features/artists/components/album-artist-list-header';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
@@ -17,37 +18,6 @@ import {
     LibraryItem,
 } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
-
-// Error fallback component for the route
-const DiscoverArtistsErrorFallback = ({ error, resetErrorBoundary }: { error: Error, resetErrorBoundary: () => void }) => {
-    return (
-        <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            height: '400px',
-            color: '#888',
-            gap: '16px'
-        }}>
-            <h3>Something went wrong in Discover Artists</h3>
-            <p>Error: {error.message}</p>
-            <button 
-                onClick={resetErrorBoundary}
-                style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#007acc',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                }}
-            >
-                Try again
-            </button>
-        </div>
-    );
-};
 
 const DiscoverArtistsRoute = () => {
     const gridRef = useRef<null | VirtualInfiniteGridRef>(null);
@@ -113,7 +83,7 @@ const DiscoverArtistsRoute = () => {
 
     return (
         <ErrorBoundary
-            FallbackComponent={DiscoverArtistsErrorFallback}
+            FallbackComponent={ErrorFallback}
             onError={(error, errorInfo) => {
                 console.error('DiscoverArtistsRoute error:', error, errorInfo);
             }}
