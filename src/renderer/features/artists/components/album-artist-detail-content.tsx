@@ -1,7 +1,7 @@
 import { ColDef, RowDoubleClickedEvent } from '@ag-grid-community/core';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { generatePath, useParams, useNavigate } from 'react-router';
+import { generatePath, useNavigate, useParams } from 'react-router';
 import { createSearchParams, Link } from 'react-router-dom';
 
 import styles from './album-artist-detail-content.module.css';
@@ -24,12 +24,13 @@ import { PlayButton, useCreateFavorite, useDeleteFavorite } from '/@/renderer/fe
 import { LibraryBackgroundOverlay } from '/@/renderer/features/shared/components/library-background-overlay';
 import { useContainerQuery } from '/@/renderer/hooks';
 import { useGenreRoute } from '/@/renderer/hooks/use-genre-route';
+import { useSpotifyArtistAlbums } from '/@/renderer/hooks/use-spotify-artist-albums';
 import { useSpotifyArtistDetail } from '/@/renderer/hooks/use-spotify-artist-detail';
 import { useSpotifyRelatedArtists } from '/@/renderer/hooks/use-spotify-related-artists';
 import { AppRoute } from '/@/renderer/router/routes';
 import { ArtistItem, useCurrentServer } from '/@/renderer/store';
-import { useGeneralSettings, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
 import { useListStoreActions } from '/@/renderer/store/list.store';
+import { useGeneralSettings, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
 import { sanitize } from '/@/renderer/utils/sanitize';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Button } from '/@/shared/components/button/button';
@@ -103,6 +104,17 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     const spotifyRelatedArtists = useSpotifyRelatedArtists({
         artistId: routeId,
         enabled: isSpotifyArtist,
+    });
+
+    // Hook for Spotify artist albums (recent releases) - only for Spotify artists
+    const spotifyArtistAlbums = useSpotifyArtistAlbums({
+        artistId: routeId,
+        enabled: isSpotifyArtist && enabledItem.recentAlbums,
+        options: {
+            include_groups: 'album,single',
+            limit: 50, // Fetch more to sort and limit to 5 recent ones
+        },
+        serverId: server?.id || '',
     });
 
     const artistDiscographyLink = `${generatePath(
@@ -218,12 +230,24 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
     };
 
     const carousels = useMemo(() => {
+        // For Spotify artists, get the most recent 5 albums from Spotify data
+        const recentSpotifyAlbums =
+            isSpotifyArtist && spotifyArtistAlbums.data
+                ? spotifyArtistAlbums.data
+                      .sort((a, b) => (b.releaseDate || '').localeCompare(a.releaseDate || ''))
+                      .slice(0, 5)
+                : [];
+
         return [
             {
-                data: recentAlbumsQuery?.data?.items,
-                isHidden: !recentAlbumsQuery?.data?.items?.length || !enabledItem.recentAlbums,
+                data: isSpotifyArtist ? recentSpotifyAlbums : recentAlbumsQuery?.data?.items,
+                isHidden: isSpotifyArtist
+                    ? !recentSpotifyAlbums.length || !enabledItem.recentAlbums
+                    : !recentAlbumsQuery?.data?.items?.length || !enabledItem.recentAlbums,
                 itemType: LibraryItem.ALBUM,
-                loading: recentAlbumsQuery?.isLoading || recentAlbumsQuery.isFetching,
+                loading: isSpotifyArtist
+                    ? spotifyArtistAlbums?.isLoading || spotifyArtistAlbums.isFetching
+                    : recentAlbumsQuery?.isLoading || recentAlbumsQuery.isFetching,
                 order: itemOrder.recentAlbums,
                 title: (
                     <Group align="flex-end">
@@ -298,6 +322,9 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         recentAlbumsQuery.isFetching,
         recentAlbumsQuery?.isLoading,
         server?.type,
+        spotifyArtistAlbums.data,
+        spotifyArtistAlbums.isFetching,
+        spotifyArtistAlbums?.isLoading,
         spotifyRelatedArtists.data,
         t,
     ]);
@@ -361,7 +388,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
             itemType: 'artist_discover' as any,
             key: 'artist_discover',
         });
-        
+
         // Navigate to discover artists
         navigate(AppRoute.DISCOVER_ARTISTS);
     };
@@ -447,12 +474,10 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
                         {String(t('page.albumArtistDetail.viewAllTracks')).toUpperCase()}
                     </Button>
                     {!isSpotifyArtist && (
-                        <Button
-                            onClick={handleDiscoverSearch}
-                            size="compact-md"
-                            variant="subtle"
-                        >
-                            {String(t('page.albumArtistDetail.discover', { defaultValue: 'DISCOVER' })).toUpperCase()}
+                        <Button onClick={handleDiscoverSearch} size="compact-md" variant="subtle">
+                            {String(
+                                t('page.albumArtistDetail.discover', { defaultValue: 'DISCOVER' }),
+                            ).toUpperCase()}
                         </Button>
                     )}
                 </Group>
