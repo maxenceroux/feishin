@@ -1,6 +1,5 @@
 import { useForm } from '@mantine/form';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { SlskdServerItem } from '/@/renderer/store/settings.store';
 import { Button } from '/@/shared/components/button/button';
@@ -23,7 +22,6 @@ export const SlskdServerForm = ({
     onSubmit,
     onTestConnection,
 }: SlskdServerFormProps) => {
-    const { t } = useTranslation();
     const [isTestingConnection, setIsTestingConnection] = useState(false);
 
     const form = useForm({

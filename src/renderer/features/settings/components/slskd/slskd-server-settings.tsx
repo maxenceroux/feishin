@@ -1,6 +1,5 @@
 import { nanoid } from 'nanoid';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { SlskdApiClient } from '/@/renderer/api/slskd/slskd-api';
 import {
@@ -20,7 +19,6 @@ import { Text } from '/@/shared/components/text/text';
 import { SlskdServerForm } from './slskd-server-form';
 
 export const SlskdServerSettings = () => {
-    const { t } = useTranslation();
     const slskdSettings = useSlskdSettings();
     const { addSlskdServer, updateSlskdServer, removeSlskdServer, setSelectedSlskdServer } =
         useSettingsStoreActions();
