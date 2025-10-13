@@ -91,9 +91,9 @@ export const SlskdServerForm = ({
                 gap="sm"
                 p="md"
                 style={{
-                    border: '1px solid var(--mantine-color-gray-3)',
+                    border: '1px solid var(--theme-colors-border)',
                     borderRadius: 'var(--mantine-radius-sm)',
-                    backgroundColor: 'var(--mantine-color-gray-0)',
+                    backgroundColor: 'var(--theme-colors-surface)',
                 }}
             >
                 <TextInput

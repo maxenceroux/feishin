@@ -87,11 +87,11 @@ export const SlskdServerSettings = () => {
                             justify="space-between"
                             p="sm"
                             style={{
-                                border: '1px solid var(--mantine-color-gray-3)',
+                                border: '1px solid var(--theme-colors-border)',
                                 borderRadius: 'var(--mantine-radius-sm)',
                                 backgroundColor:
                                     slskdSettings.selectedServerId === server.id
-                                        ? 'var(--mantine-color-blue-0)'
+                                        ? 'var(--theme-colors-surface)'
                                         : undefined,
                             }}
                         >
