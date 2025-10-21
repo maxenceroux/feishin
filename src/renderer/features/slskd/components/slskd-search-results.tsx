@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 import { SlskdSearchResult, SlskdSearchResultFile } from '/@/renderer/api/slskd/slskd-types';
 import { RefreshButton } from '/@/renderer/features/shared/components/refresh-button';
+import { AppRoute } from '/@/renderer/router/routes';
 import { Badge } from '/@/shared/components/badge/badge';
 import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
@@ -48,6 +50,7 @@ interface ExpandableUserRowProps {
 
 const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
+    const navigate = useNavigate();
     const { username, files, uploadSpeed, hasFreeUploadSlot, queueLength } = result;
 
     const handleDownload = (file: SlskdSearchResultFile) => {
@@ -65,6 +68,11 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
         }
     };
 
+    const handleUsernameClick = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        navigate(AppRoute.SLSKD_USER_BROWSE.replace(':username', encodeURIComponent(username)));
+    };
+
     return (
         <>
             {/* User row */}
@@ -78,7 +86,18 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                 <Table.Td>
                     <Group gap="xs">
                         <Icon icon={isExpanded ? 'arrowDownS' : 'arrowRightS'} size="1rem" />
-                        <Text fw={600}>{username}</Text>
+                        <Text 
+                            fw={600}
+                            style={{ 
+                                color: 'var(--mantine-color-blue-6)',
+                                cursor: 'pointer',
+                                textDecoration: 'underline'
+                            }}
+                            onClick={handleUsernameClick}
+                            title={`Browse ${username}'s albums`}
+                        >
+                            {username}
+                        </Text>
                         {/* Note: Country code not available in current API response */}
                     </Group>
                 </Table.Td>

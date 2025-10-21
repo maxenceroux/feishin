@@ -134,3 +134,13 @@ export interface SlskdSearchResultsResponse {
     searchId: string;
     searchText: string;
 }
+
+export interface SlskdBrowseDirectory {
+    directory: string;
+    files: SlskdSearchResultFile[];
+}
+
+export interface SlskdBrowseResponse {
+    directories: SlskdBrowseDirectory[];
+    username: string;
+}

@@ -69,6 +69,10 @@ const SlskdDownloadsRoute = lazy(
     () => import('/@/renderer/features/slskd/routes/slskd-downloads-route'),
 );
 
+const SlskdUserBrowseRoute = lazy(
+    () => import('/@/renderer/features/slskd/routes/slskd-user-browse-route'),
+);
+
 const DiscoverAlbumsRoute = lazy(
     () => import('/@/renderer/features/discover/routes/discover-albums-route'),
 );
@@ -213,6 +217,11 @@ export const AppRouter = () => {
                                     element={<SlskdDownloadsRoute />}
                                     errorElement={<RouteErrorBoundary />}
                                     path={AppRoute.SLSKD_DOWNLOADS}
+                                />
+                                <Route
+                                    element={<SlskdUserBrowseRoute />}
+                                    errorElement={<RouteErrorBoundary />}
+                                    path={AppRoute.SLSKD_USER_BROWSE}
                                 />
                                 <Route
                                     errorElement={<RouteErrorBoundary />}
