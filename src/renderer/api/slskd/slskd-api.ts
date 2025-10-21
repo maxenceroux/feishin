@@ -7,11 +7,36 @@ import {
     SlskdSearchResultsResponse,
 } from './slskd-types';
 
-// slskd server configuration
-const SLSKD_CONFIG = {
+// Default slskd server configuration for backward compatibility
+const DEFAULT_SLSKD_CONFIG = {
     baseUrl: 'http://192.168.1.31:5030',
     password: 'slskd',
     username: 'slskd',
+};
+
+// Get current slskd server configuration from settings
+const getSlskdConfig = () => {
+    try {
+        const settings = JSON.parse(localStorage.getItem('store_settings') || '{}');
+        const slskdSettings = settings?.state?.slskd;
+
+        if (slskdSettings?.selectedServerId && slskdSettings?.servers) {
+            const selectedServer = slskdSettings.servers.find(
+                (server: any) => server.id === slskdSettings.selectedServerId,
+            );
+            if (selectedServer) {
+                return {
+                    baseUrl: selectedServer.baseUrl,
+                    password: selectedServer.password,
+                    username: selectedServer.username,
+                };
+            }
+        }
+    } catch (error) {
+        console.warn('Failed to load slskd settings from localStorage:', error);
+    }
+
+    return DEFAULT_SLSKD_CONFIG;
 };
 
 export class SlskdApiClient {
@@ -20,7 +45,7 @@ export class SlskdApiClient {
     private token: null | string = null;
     private username: string;
 
-    constructor(config = SLSKD_CONFIG) {
+    constructor(config = getSlskdConfig()) {
         this.baseUrl = config.baseUrl;
         this.username = config.username;
         this.password = config.password;
@@ -331,3 +356,8 @@ export class SlskdApiClient {
 
 // Default instance
 export const slskdApi = new SlskdApiClient();
+
+// Function to get a fresh API client with current settings
+export const getSlskdApiClient = () => {
+    return new SlskdApiClient(getSlskdConfig());
+};

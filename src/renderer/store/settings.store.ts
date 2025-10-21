@@ -192,8 +192,13 @@ export interface SettingsSlice extends SettingsState {
         setSettings: (data: Partial<SettingsState>) => void;
         setSidebarItems: (items: SidebarItemType[]) => void;
         setTable: (type: TableType, data: DataTableProps) => void;
+        addSlskdServer: (server: SlskdServerItem) => void;
+        removeSlskdServer: (id: string) => void;
+        setSelectedSlskdServer: (id: string | null) => void;
+        setSlskdServers: (servers: SlskdServerItem[]) => void;
         setTranscodingConfig: (config: TranscodingConfig) => void;
         toggleContextMenuItem: (item: ContextMenuItemType) => void;
+        updateSlskdServer: (id: string, server: SlskdServerItem) => void;
         toggleSidebarCollapseShare: () => void;
     };
 }
@@ -308,7 +313,11 @@ export interface SettingsState {
         port: number;
         username: string;
     };
-    tab: 'general' | 'hotkeys' | 'playback' | 'window' | string;
+    slskd: {
+        selectedServerId: string | null;
+        servers: SlskdServerItem[];
+    };
+    tab: 'advanced' | 'general' | 'hotkeys' | 'playback' | 'slskd' | 'window' | string;
     tables: {
         albumDetail: DataTableProps;
         fullScreen: DataTableProps;
@@ -329,6 +338,14 @@ export interface SettingsState {
 }
 
 export type SideQueueType = 'sideDrawerQueue' | 'sideQueue';
+
+export type SlskdServerItem = {
+    baseUrl: string;
+    id: string;
+    name: string;
+    password: string;
+    username: string;
+};
 
 export type TranscodingConfig = {
     bitrate?: number;
@@ -507,6 +524,10 @@ const initialState: SettingsState = {
         password: randomString(8),
         port: 4333,
         username: 'feishin',
+    },
+    slskd: {
+        selectedServerId: null,
+        servers: [],
     },
     tab: 'general',
     tables: {
@@ -725,6 +746,29 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                             state.tables[type] = data;
                         });
                     },
+                    addSlskdServer: (server) => {
+                        set((state) => {
+                            state.slskd.servers.push(server);
+                        });
+                    },
+                    removeSlskdServer: (id) => {
+                        set((state) => {
+                            state.slskd.servers = state.slskd.servers.filter((s) => s.id !== id);
+                            if (state.slskd.selectedServerId === id) {
+                                state.slskd.selectedServerId = null;
+                            }
+                        });
+                    },
+                    setSelectedSlskdServer: (id) => {
+                        set((state) => {
+                            state.slskd.selectedServerId = id;
+                        });
+                    },
+                    setSlskdServers: (servers) => {
+                        set((state) => {
+                            state.slskd.servers = servers;
+                        });
+                    },
                     setTranscodingConfig: (config) => {
                         set((state) => {
                             state.playback.transcode = config;
@@ -734,6 +778,14 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                         set((state) => {
                             state.general.disabledContextMenu[item] =
                                 !state.general.disabledContextMenu[item];
+                        });
+                    },
+                    updateSlskdServer: (id, server) => {
+                        set((state) => {
+                            const index = state.slskd.servers.findIndex((s) => s.id === id);
+                            if (index !== -1) {
+                                state.slskd.servers[index] = server;
+                            }
                         });
                     },
                     toggleSidebarCollapseShare: () => {
@@ -810,3 +862,5 @@ export const useFontSettings = () => useSettingsStore((state) => state.font, sha
 export const useDiscordSettings = () => useSettingsStore((state) => state.discord, shallow);
 
 export const useCssSettings = () => useSettingsStore((state) => state.css, shallow);
+
+export const useSlskdSettings = () => useSettingsStore((state) => state.slskd, shallow);
