@@ -32,4 +32,5 @@ export enum AppRoute {
     SETTINGS = '/settings',
     SLSKD_DOWNLOADS = '/slskd/downloads',
     SLSKD_SEARCH = '/slskd/search',
+    SLSKD_USER_BROWSE = '/slskd/user/:username/browse',
 }

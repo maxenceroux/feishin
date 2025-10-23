@@ -229,6 +229,36 @@ export class SlskdApiClient {
         }
     }
 
+    async browse(username: string): Promise<any[]> {
+        await this.ensureToken();
+        const response = await this.makeRequest<any>(`users/${encodeURIComponent(username)}/browse`);
+        console.log('slskd browse API response:', response);
+        
+        // Handle different response formats from slskd API
+        let directories: any[] = [];
+        if (Array.isArray(response.data)) {
+            directories = response.data;
+        } else if (response.data && response.data.directories) {
+            directories = response.data.directories;
+        } else if (response.data && response.data.files) {
+            // If files are returned directly, group them by directory
+            const filesByDirectory: { [key: string]: any[] } = {};
+            response.data.files.forEach((file: any) => {
+                const dir = file.filename.substring(0, file.filename.lastIndexOf('\\') || file.filename.lastIndexOf('/') || 0);
+                if (!filesByDirectory[dir]) {
+                    filesByDirectory[dir] = [];
+                }
+                filesByDirectory[dir].push(file);
+            });
+            directories = Object.keys(filesByDirectory).map(dir => ({
+                directory: dir,
+                files: filesByDirectory[dir]
+            }));
+        }
+
+        return directories;
+    }
+
     private async ensureToken() {
         if (!this.token) {
             await this.login();
