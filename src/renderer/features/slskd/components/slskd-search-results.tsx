@@ -233,7 +233,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
             <Center style={{ height: '50vh' }}>
                 <Stack gap="md">
                     <Spinner size={24} />
-                    <Text>{t('common.loading', { postProcess: 'titleCase' })}</Text>
+                    <Text>{t('soulseek.loading', { postProcess: 'titleCase' })}</Text>
                     <Text size="sm" opacity={0.7}>
                         Loading search results for "{searchText}"
                     </Text>

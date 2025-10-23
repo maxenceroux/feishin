@@ -386,7 +386,7 @@ export const SlskdDownloadsList = () => {
             <Center style={{ height: '50vh' }}>
                 <Stack gap="md">
                     <Spinner size={24} />
-                    <Text>{t('common.loading', { postProcess: 'titleCase' })}</Text>
+                    <Text>{t('soulseek.loading', { postProcess: 'titleCase' })}</Text>
                 </Stack>
             </Center>
         );
