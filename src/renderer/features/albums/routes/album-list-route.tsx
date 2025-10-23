@@ -19,7 +19,7 @@ import { useSpotifyArtistAlbums } from '/@/renderer/hooks/use-spotify-artist-alb
 import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
-import { getSpotifyToggleState, setSpotifyToggleState } from '/@/renderer/utils';
+import { getSpotifyToggleState } from '/@/renderer/utils';
 import {
     Album,
     AlbumListQuery,
@@ -39,7 +39,7 @@ const AlbumListRoute = () => {
     const handlePlayQueueAdd = usePlayQueueAdd();
 
     // State for Spotify integration toggle - initialize from stored preference
-    const [spotifyEnabled, setSpotifyEnabled] = useState(() => getSpotifyToggleState());
+    const [spotifyEnabled] = useState(() => getSpotifyToggleState());
 
     // Check if this is a Spotify artist discography
     const isSpotifyArtist = albumArtistId?.startsWith('spotify:');
@@ -54,21 +54,6 @@ const AlbumListRoute = () => {
         },
         serverId: server?.id || '',
     });
-
-    const toggleSpotify = useCallback(() => {
-        setSpotifyEnabled((prev) => {
-            const newValue = !prev;
-            // Persist the new state
-            setSpotifyToggleState(newValue);
-            return newValue;
-        });
-        // Invalidate cache to force refresh when toggle state changes
-        queryClient.invalidateQueries(queryKeys.albums.list(server?.id || ''));
-        // Reset grid cache as well
-        if (gridRef.current) {
-            gridRef.current.resetLoadMoreItemsCache();
-        }
-    }, [server?.id]);
 
     const customFilters = useMemo(() => {
         const value = {
@@ -230,7 +215,7 @@ const AlbumListRoute = () => {
     const title = artist ? artist : genreId ? genreTitle : undefined;
 
     // Check if we should show empty state (no results found and there's a search term)
-    const shouldShowEmptyState = (itemCount === 0) && searchTerm.trim() && !isSpotifyArtist;
+    const shouldShowEmptyState = itemCount === 0 && searchTerm.trim() && !isSpotifyArtist;
 
     return (
         <AnimatedPage>

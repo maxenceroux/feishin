@@ -1,35 +1,40 @@
-<img src="assets/icons/icon.png" alt="logo" title="feishin" align="right" height="60px" width="60px" />
 
-# Feishin
+<img src="assets/icons/icon.png" alt="logo" title="NoisePort" align="right" height="60px" width="60px" />
 
-  <p align="center">
-    <a href="https://github.com/jeffvli/feishin/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/jeffvli/feishin?style=flat-square&color=brightgreen"
-      alt="License">
-    </a>
-      <a href="https://github.com/jeffvli/feishin/releases">
-      <img src="https://img.shields.io/github/v/release/jeffvli/feishin?style=flat-square&color=blue"
-      alt="Release">
-    </a>
-    <a href="https://github.com/jeffvli/feishin/releases">
-      <img src="https://img.shields.io/github/downloads/jeffvli/feishin/total?style=flat-square&color=orange"
-      alt="Downloads">
-    </a>
-  </p>
-  <p align="center">
-    <a href="https://discord.gg/FVKpcMDy5f">
-      <img src="https://img.shields.io/discord/922656312888811530?color=black&label=discord&logo=discord&logoColor=white"
-      alt="Discord">
-    </a>
-    <a href="https://matrix.to/#/#sonixd:matrix.org">
-      <img src="https://img.shields.io/matrix/sonixd:matrix.org?color=black&label=matrix&logo=matrix&logoColor=white"
-      alt="Matrix">
-    </a>
-  </p>
+# NoisePort
+
+<p align="center">
+  <a href="https://github.com/jeffvli/feishin/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/jeffvli/feishin?style=flat-square&color=brightgreen" alt="License">
+  </a>
+  <a href="https://github.com/jeffvli/feishin/releases">
+    <img src="https://img.shields.io/github/v/release/jeffvli/feishin?style=flat-square&color=blue" alt="Release">
+  </a>
+  <a href="https://github.com/jeffvli/feishin/releases">
+    <img src="https://img.shields.io/github/downloads/jeffvli/feishin/total?style=flat-square&color=orange" alt="Downloads">
+  </a>
+</p>
+<p align="center">
+  <a href="https://discord.gg/FVKpcMDy5f">
+    <img src="https://img.shields.io/discord/922656312888811530?color=black&label=discord&logo=discord&logoColor=white" alt="Discord">
+  </a>
+  <a href="https://matrix.to/#/#sonixd:matrix.org">
+    <img src="https://img.shields.io/matrix/sonixd:matrix.org?color=black&label=matrix&logo=matrix&logoColor=white" alt="Matrix">
+  </a>
+</p>
 
 ---
 
-Rewrite of [Sonixd](https://github.com/jeffvli/sonixd).
+NoisePort is a fork of [Feishin](https://github.com/jeffvli/feishin), focused on music discovery and peer-to-peer access.
+
+## Key Modifications
+
+- **Discover Mode**: Search and explore albums directly from Spotify.
+- **Soulseek Integration**: Search for tracks and albums on Soulseek, and download them within the app.
+- All original Feishin features, plus enhancements for discovery and peer-to-peer music sharing.
+
+---
+
 
 ## Features
 
@@ -39,6 +44,9 @@ Rewrite of [Sonixd](https://github.com/jeffvli/sonixd).
 - [x] Scrobble playback to your server
 - [x] Smart playlist editor (Navidrome)
 - [x] Synchronized and unsynchronized lyrics support
+- [x] Discover albums via Spotify
+- [x] Soulseek search and downloads
+- [x] All features from Feishin, with enhancements for discovery and peer-to-peer access
 - [ ] [Request a feature](https://github.com/jeffvli/feishin/issues) or [view taskboard](https://github.com/users/jeffvli/projects/5/views/1)
 
 ## Screenshots

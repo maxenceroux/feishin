@@ -1,7 +1,6 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
 
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
@@ -11,18 +10,13 @@ import { SongListContent } from '/@/renderer/features/songs/components/song-list
 import { SongListHeader } from '/@/renderer/features/songs/components/song-list-header';
 import { useSpotifyTrackSearch } from '/@/renderer/hooks/use-spotify-search';
 import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
-import {
-    LibraryItem,
-    Song,
-    SongListQuery,
-} from '/@/shared/types/domain-types';
-import { Play } from '/@/shared/types/types';
+import { LibraryItem, Song, SongListQuery } from '/@/shared/types/domain-types';
 
 const DiscoverTracksRoute = () => {
     const gridRef = useRef<null | VirtualInfiniteGridRef>(null);
     const tableRef = useRef<AgGridReactType | null>(null);
     const server = useCurrentServer();
-    const [searchParams] = useSearchParams();
+
     const pageKey = LibraryItem.SONG;
 
     const songListFilter = useListFilterByKey<SongListQuery>({
@@ -48,21 +42,10 @@ const DiscoverTracksRoute = () => {
 
     const handlePlayQueueAdd = usePlayQueueAdd();
 
-    const handlePlay = useCallback(
-        async (playType?: Play) => {
-            const spotifyTracks = spotifySearchResult.data || [];
-            const trackIds = spotifyTracks.map((t) => t.id);
-
-            handlePlayQueueAdd?.({
-                byItemType: {
-                    id: trackIds,
-                    type: LibraryItem.SONG,
-                },
-                playType,
-            });
-        },
-        [handlePlayQueueAdd, spotifySearchResult.data],
-    );
+    const handlePlay = useCallback(async () => {
+        // In discover mode, playing is not possible
+        window.alert('Play is not possible in Discover mode.');
+    }, [handlePlayQueueAdd, spotifySearchResult.data]);
 
     const providerValue = useMemo(() => {
         // Use Spotify search results
@@ -75,11 +58,7 @@ const DiscoverTracksRoute = () => {
             pageKey,
             spotifyTracks,
         };
-    }, [
-        handlePlay,
-        pageKey,
-        spotifySearchResult.data,
-    ]);
+    }, [handlePlay, pageKey, spotifySearchResult.data]);
 
     return (
         <AnimatedPage key={`discover-tracks`}>
@@ -89,22 +68,19 @@ const DiscoverTracksRoute = () => {
                     itemCount={itemCount}
                     tableRef={tableRef}
                     title="Discover Tracks"
-                    titlePrefix="Spotify"
                 />
                 {searchTerm ? (
-                    <SongListContent
-                        gridRef={gridRef}
-                        setItemCount={setItemCount}
-                        tableRef={tableRef}
-                    />
+                    <SongListContent gridRef={gridRef} tableRef={tableRef} />
                 ) : (
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        alignItems: 'center', 
-                        height: '200px',
-                        color: '#888'
-                    }}>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '200px',
+                            color: '#888',
+                        }}
+                    >
                         Search for tracks using the search bar above to discover Spotify content
                     </div>
                 )}
