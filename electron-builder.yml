@@ -45,5 +45,5 @@ linux:
 npmRebuild: false
 publish:
     provider: github
-    owner: jeffvli
-    repo: feishin
+    owner: maxenceroux
+    repo: noiseport

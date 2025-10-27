@@ -121,6 +121,7 @@
         "react-window": "^1.8.9",
         "react-window-infinite-loader": "^1.0.9",
         "semver": "^7.5.4",
+        "source-map-support": "^0.5.21",
         "swiper": "^9.3.1",
         "use-sync-external-store": "^1.5.0",
         "ws": "^8.18.2",

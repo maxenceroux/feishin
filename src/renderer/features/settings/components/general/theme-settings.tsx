@@ -144,6 +144,7 @@ export const ThemeSettings = () => {
                             });
                         }}
                         swatches={[
+                            'rgb(126, 82, 222)',
                             'rgb(53, 116, 252)',
                             'rgb(240, 170, 22)',
                             'rgb(29, 185, 84)',
