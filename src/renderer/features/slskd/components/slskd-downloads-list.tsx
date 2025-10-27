@@ -110,9 +110,9 @@ const calculateDirectoryStats = (files: SlskdDownload[]) => {
 
 interface ExpandableDirectoryRowProps {
     directory: { directory: string; fileCount: number; files: SlskdDownload[] };
-    username: string;
-    onRemoveDownload: (username: string, downloadId: string) => Promise<void>;
     onRemoveDirectory: (username: string, directory: string) => Promise<void>;
+    onRemoveDownload: (username: string, downloadId: string) => Promise<void>;
+    username: string;
 }
 type SortDirection = 'asc' | 'desc';
 
@@ -120,9 +120,9 @@ type SortField = 'album' | 'progress' | 'size' | 'speed' | 'startTime' | 'state'
 
 const ExpandableDirectoryRow = ({
     directory,
-    username,
-    onRemoveDownload,
     onRemoveDirectory,
+    onRemoveDownload,
+    username,
 }: ExpandableDirectoryRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -206,13 +206,13 @@ const ExpandableDirectoryRow = ({
                 <Table.Td>
                     <Group gap="xs">
                         <Button
-                            size="xs"
-                            variant="filled"
                             color="red"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleRemoveDirectory();
                             }}
+                            size="xs"
+                            variant="filled"
                         >
                             Remove Folder
                         </Button>
@@ -291,13 +291,13 @@ const ExpandableDirectoryRow = ({
                         <Table.Td>
                             <Group gap="xs">
                                 <Button
-                                    size="xs"
-                                    variant="filled"
                                     color="red"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleRemoveDownload(download.id);
                                     }}
+                                    size="xs"
+                                    variant="filled"
                                 >
                                     Cancel
                                 </Button>
@@ -518,11 +518,11 @@ export const SlskdDownloadsList = () => {
             gap="md"
             p="md"
             style={{
+                display: 'flex',
+                flexDirection: 'column',
                 height: '100vh',
                 minHeight: 0,
                 overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
             }}
         >
             <Group justify="space-between">
@@ -546,7 +546,7 @@ export const SlskdDownloadsList = () => {
                 </Group>
             </Group>
 
-            <ScrollArea style={{ flex: 1, minHeight: 0, maxHeight: '100%', overflowY: 'auto' }}>
+            <ScrollArea style={{ flex: 1, maxHeight: '100%', minHeight: 0, overflowY: 'auto' }}>
                 <Table>
                     <Table.Thead>
                         <Table.Tr>
@@ -565,9 +565,9 @@ export const SlskdDownloadsList = () => {
                             <ExpandableDirectoryRow
                                 directory={directory}
                                 key={`${directory.username}-${directory.directory}`}
-                                username={directory.username}
-                                onRemoveDownload={handleRemoveDownload}
                                 onRemoveDirectory={handleRemoveDirectory}
+                                onRemoveDownload={handleRemoveDownload}
+                                username={directory.username}
                             />
                         ))}
                     </Table.Tbody>

@@ -42,13 +42,13 @@ const formatDuration = (seconds?: number): string => {
 };
 
 interface ExpandableUserRowProps {
-    result: SlskdSearchResult;
     onDownload: (file: SlskdSearchResultFile, username: string) => void;
+    result: SlskdSearchResult;
 }
 
-const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
+const ExpandableUserRow = ({ onDownload, result }: ExpandableUserRowProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const { username, files, uploadSpeed, hasFreeUploadSlot, queueLength } = result;
+    const { files, hasFreeUploadSlot, queueLength, uploadSpeed, username } = result;
 
     const handleDownload = (file: SlskdSearchResultFile) => {
         onDownload(file, username);
@@ -96,7 +96,7 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                 <Table.Td>
                     <Group gap="xs">
                         {hasFreeUploadSlot && (
-                            <Badge size="xs" color="green">
+                            <Badge color="green" size="xs">
                                 Free slot
                             </Badge>
                         )}
@@ -110,16 +110,16 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                 <Table.Td>
                     <Group gap="xs">
                         <Button
-                            size="xs"
-                            variant="filled"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleDownloadFolder();
                             }}
+                            size="xs"
+                            variant="filled"
                         >
                             Download Folder
                         </Button>
-                        <Text size="xs" opacity={0.7}>
+                        <Text opacity={0.7} size="xs">
                             Click to {isExpanded ? 'collapse' : 'expand'}
                         </Text>
                     </Group>
@@ -137,12 +137,12 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                     >
                         <Table.Td style={{ paddingLeft: '2.5rem' }}>
                             <Stack gap={1}>
-                                <Text size="sm" fw={500} style={{ maxWidth: 300 }}>
+                                <Text fw={500} size="sm" style={{ maxWidth: 300 }}>
                                     {file.filename.split('/').pop()?.split('\\').pop() ||
                                         file.filename}
                                 </Text>
                                 {(file.artist || file.album) && (
-                                    <Text size="xs" opacity={0.7}>
+                                    <Text opacity={0.7} size="xs">
                                         {file.artist && file.album
                                             ? `${file.artist} - ${file.album}`
                                             : file.artist || file.album}
@@ -175,12 +175,12 @@ const ExpandableUserRow = ({ result, onDownload }: ExpandableUserRowProps) => {
                         </Table.Td>
                         <Table.Td>
                             <Button
-                                size="xs"
-                                variant="filled"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleDownload(file);
                                 }}
+                                size="xs"
+                                variant="filled"
                             >
                                 Download
                             </Button>
@@ -234,7 +234,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                 <Stack gap="md">
                     <Spinner size={24} />
                     <Text>{t('soulseek.loading', { postProcess: 'titleCase' })}</Text>
-                    <Text size="sm" opacity={0.7}>
+                    <Text opacity={0.7} size="sm">
                         Loading search results for "{searchText}"
                     </Text>
                 </Stack>
@@ -295,7 +295,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                     <Text fw={600} size="xl">
                         Search Results
                     </Text>
-                    <Text size="sm" opacity={0.7}>
+                    <Text opacity={0.7} size="sm">
                         "{searchText}"
                     </Text>
                 </Stack>
@@ -352,8 +352,8 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                         {results.map((result) => (
                             <ExpandableUserRow
                                 key={result.username}
-                                result={result}
                                 onDownload={handleDownload}
+                                result={result}
                             />
                         ))}
                     </Table.Tbody>

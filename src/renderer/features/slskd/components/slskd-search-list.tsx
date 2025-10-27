@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { SlskdSearchResults } from './slskd-search-results';
+
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 import { RefreshButton } from '/@/renderer/features/shared/components/refresh-button';
 import { Badge } from '/@/shared/components/badge/badge';
@@ -14,10 +16,8 @@ import { ScrollArea } from '/@/shared/components/scroll-area/scroll-area';
 import { Spinner } from '/@/shared/components/spinner/spinner';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Table } from '/@/shared/components/table/table';
-import { Text } from '/@/shared/components/text/text';
 import { TextInput } from '/@/shared/components/text-input/text-input';
-
-import { SlskdSearchResults } from './slskd-search-results';
+import { Text } from '/@/shared/components/text/text';
 
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -30,7 +30,7 @@ export const SlskdSearchList = () => {
     const { t } = useTranslation();
     const [sortField, setSortField] = useState<SearchSortField>('started');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-    const [selectedSearchId, setSelectedSearchId] = useState<string | null>(null);
+    const [selectedSearchId, setSelectedSearchId] = useState<null | string>(null);
     const [newSearchQuery, setNewSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
 
@@ -131,8 +131,8 @@ export const SlskdSearchList = () => {
                 <Group justify="space-between">
                     <Button
                         leftSection={<Icon icon="arrowLeftS" />}
-                        variant="subtle"
                         onClick={() => setSelectedSearchId(null)}
+                        variant="subtle"
                     >
                         Back to Searches
                     </Button>
@@ -223,21 +223,21 @@ export const SlskdSearchList = () => {
                     </Text>
                     <Group gap="sm">
                         <TextInput
-                            placeholder="Enter search terms (artist, album, song...)"
-                            value={newSearchQuery}
                             onChange={(e) => setNewSearchQuery(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     handleNewSearch();
                                 }
                             }}
+                            placeholder="Enter search terms (artist, album, song...)"
                             style={{ flex: 1 }}
+                            value={newSearchQuery}
                         />
                         <Button
+                            disabled={!newSearchQuery.trim()}
                             leftSection={<Icon icon="search" />}
                             loading={isSearching}
                             onClick={handleNewSearch}
-                            disabled={!newSearchQuery.trim()}
                         >
                             Search
                         </Button>
@@ -281,11 +281,11 @@ export const SlskdSearchList = () => {
                                 </Table.Td>
                                 <Table.Td>
                                     <Button
-                                        size="xs"
-                                        variant="filled"
+                                        disabled={search.responseCount === 0}
                                         leftSection={<Icon icon="folder" />}
                                         onClick={() => handleViewResults(search.id)}
-                                        disabled={search.responseCount === 0}
+                                        size="xs"
+                                        variant="filled"
                                     >
                                         View Results
                                     </Button>

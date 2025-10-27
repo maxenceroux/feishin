@@ -52,6 +52,15 @@ export class SlskdApiClient {
         this.token = null;
     }
 
+    async downloadFile(
+        username: string,
+        files: Array<{ filename: string; size?: number; token?: number }>,
+    ): Promise<void> {
+        await this.ensureToken();
+        await this.makePostRequest(`transfers/downloads/${encodeURIComponent(username)}`, files);
+        console.log('Download enqueued:', { files, username });
+    }
+
     async getRecentDownloads(limit = 50): Promise<SlskdDownloadListResponse> {
         await this.ensureToken();
         const response = await this.makeRequest<SlskdDownloadListResponse>(
@@ -106,6 +115,28 @@ export class SlskdApiClient {
         };
     }
 
+    async getSearchResults(searchId: string): Promise<SlskdSearchResultsResponse> {
+        await this.ensureToken();
+        const response = await this.makeRequest<any>(`searches/${searchId}/responses`);
+        console.log('slskd search results API response:', response);
+
+        // Handle different response formats from slskd API
+        let results: any[] = [];
+        if (Array.isArray(response.data)) {
+            results = response.data;
+        } else if (response.data && response.data.responses) {
+            results = response.data.responses;
+        } else if (response.data && response.data.results) {
+            results = response.data.results;
+        }
+
+        return {
+            results,
+            searchId,
+            searchText: '', // Will be filled by the component
+        };
+    }
+
     async login(): Promise<void> {
         // POST to /session to get Bearer token
         const url = `${this.baseUrl}/api/v0/session`;
@@ -135,66 +166,9 @@ export class SlskdApiClient {
         await this.makeDeleteRequest('transfers/downloads/all/completed');
     }
 
-    async getSearchResults(searchId: string): Promise<SlskdSearchResultsResponse> {
-        await this.ensureToken();
-        const response = await this.makeRequest<any>(`searches/${searchId}/responses`);
-        console.log('slskd search results API response:', response);
-
-        // Handle different response formats from slskd API
-        let results: any[] = [];
-        if (Array.isArray(response.data)) {
-            results = response.data;
-        } else if (response.data && response.data.responses) {
-            results = response.data.responses;
-        } else if (response.data && response.data.results) {
-            results = response.data.results;
-        }
-
-        return {
-            results,
-            searchId,
-            searchText: '', // Will be filled by the component
-        };
-    }
-
-    async startSearch(
-        query: string,
-        options?: { limit?: number; timeout?: number },
-    ): Promise<string> {
-        await this.ensureToken();
-        const response = await this.makePostRequest<{ id: string }>('searches', {
-            searchText: query,
-            timeout: options?.timeout || 30000,
-            responseLimit: options?.limit || 100,
-        });
-        return response.data.id;
-    }
-
-    async downloadFile(
-        username: string,
-        files: Array<{ filename: string; size?: number; token?: number }>,
-    ): Promise<void> {
-        await this.ensureToken();
-        await this.makePostRequest(`transfers/downloads/${encodeURIComponent(username)}`, files);
-        console.log('Download enqueued:', { username, files });
-    }
-
-    async removeDownload(
-        username: string,
-        downloadId: string,
-        remove: boolean = true,
-    ): Promise<void> {
-        await this.ensureToken();
-        const endpoint = `transfers/downloads/${encodeURIComponent(username)}/${downloadId}`;
-        const params = new URLSearchParams({ remove: remove.toString() });
-
-        await this.makeDeleteRequestWithParams(endpoint, params);
-        console.log('Download removed:', { username, downloadId, remove });
-    }
-
     async removeDirectory(username: string, directory: string): Promise<void> {
         await this.ensureToken();
-        console.log('Directory removal requested:', { username, directory });
+        console.log('Directory removal requested:', { directory, username });
         // Get all downloads for the user
         const downloadsResp = await this.getRecentDownloads(200); // Increase limit if needed
         let removedCount = 0;
@@ -218,6 +192,32 @@ export class SlskdApiClient {
         console.log(
             `Finished removing ${removedCount} downloads for directory '${directory}' and user '${username}'.`,
         );
+    }
+
+    async removeDownload(
+        username: string,
+        downloadId: string,
+        remove: boolean = true,
+    ): Promise<void> {
+        await this.ensureToken();
+        const endpoint = `transfers/downloads/${encodeURIComponent(username)}/${downloadId}`;
+        const params = new URLSearchParams({ remove: remove.toString() });
+
+        await this.makeDeleteRequestWithParams(endpoint, params);
+        console.log('Download removed:', { downloadId, remove, username });
+    }
+
+    async startSearch(
+        query: string,
+        options?: { limit?: number; timeout?: number },
+    ): Promise<string> {
+        await this.ensureToken();
+        const response = await this.makePostRequest<{ id: string }>('searches', {
+            responseLimit: options?.limit || 100,
+            searchText: query,
+            timeout: options?.timeout || 30000,
+        });
+        return response.data.id;
     }
 
     async testConnection(): Promise<boolean> {
@@ -288,12 +288,13 @@ export class SlskdApiClient {
         }
     }
 
-    private async makeRequest<T>(endpoint: string): Promise<SlskdApiResponse<T>> {
+    private async makePostRequest<T>(endpoint: string, data: any): Promise<SlskdApiResponse<T>> {
         if (!this.token) throw new Error('Not authenticated with slskd API');
-        console.log(`Making request to slskd endpoint: ${endpoint}`);
+        console.log(`Making POST request to slskd endpoint: ${endpoint}`);
         try {
-            const response: AxiosResponse<T> = await axios.get(
+            const response: AxiosResponse<T> = await axios.post(
                 `${this.baseUrl}/api/v0/${endpoint}`,
+                data,
                 {
                     headers: {
                         Authorization: `Bearer ${this.token}`,
@@ -320,13 +321,12 @@ export class SlskdApiClient {
         }
     }
 
-    private async makePostRequest<T>(endpoint: string, data: any): Promise<SlskdApiResponse<T>> {
+    private async makeRequest<T>(endpoint: string): Promise<SlskdApiResponse<T>> {
         if (!this.token) throw new Error('Not authenticated with slskd API');
-        console.log(`Making POST request to slskd endpoint: ${endpoint}`);
+        console.log(`Making request to slskd endpoint: ${endpoint}`);
         try {
-            const response: AxiosResponse<T> = await axios.post(
+            const response: AxiosResponse<T> = await axios.get(
                 `${this.baseUrl}/api/v0/${endpoint}`,
-                data,
                 {
                     headers: {
                         Authorization: `Bearer ${this.token}`,

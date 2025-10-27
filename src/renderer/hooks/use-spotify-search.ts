@@ -42,7 +42,11 @@ export const useSpotifySearch = ({ enabled = true, query, serverId }: UseSpotify
     });
 };
 
-export const useSpotifyArtistSearch = ({ enabled = true, query, serverId }: UseSpotifySearchArgs) => {
+export const useSpotifyArtistSearch = ({
+    enabled = true,
+    query,
+    serverId,
+}: UseSpotifySearchArgs) => {
     return useQuery({
         cacheTime: 1000 * 60 * 10, // 10 minutes
         enabled: enabled && !!query.trim(),
@@ -74,7 +78,11 @@ export const useSpotifyArtistSearch = ({ enabled = true, query, serverId }: UseS
     });
 };
 
-export const useSpotifyTrackSearch = ({ enabled = true, query, serverId }: UseSpotifySearchArgs) => {
+export const useSpotifyTrackSearch = ({
+    enabled = true,
+    query,
+    serverId,
+}: UseSpotifySearchArgs) => {
     return useQuery({
         cacheTime: 1000 * 60 * 10, // 10 minutes
         enabled: enabled && !!query.trim(),
@@ -93,7 +101,7 @@ export const useSpotifyTrackSearch = ({ enabled = true, query, serverId }: UseSp
 
                 const spotifyTracks = await spotifyClient.searchTracks(query);
                 console.log('Spotify track search results:', spotifyTracks);
-                
+
                 // We need to map tracks to songs, but we need album info. For now, create a dummy album
                 return spotifyTracks.map((track) => {
                     // Create a minimal album object for mapping

@@ -5,16 +5,16 @@ import { Album, AlbumArtist, Song } from '/@/shared/types/domain-types';
 import { CardRow, Play } from '/@/shared/types/types';
 
 interface ListContextProps {
+    customCardRows?: CardRow<Album>[]; // Add support for custom card rows
     customFilters?: Record<string, unknown>;
     handlePlay?: (args: { initialSongId?: string; playType: Play }) => void;
     id?: string;
     pageKey: ListKey;
     spotifyAlbums?: Album[];
     spotifyArtists?: AlbumArtist[];
-    spotifyTracks?: Song[];
     spotifyEnabled?: boolean;
     spotifySearchQuery?: string;
-    customCardRows?: CardRow<Album>[]; // Add support for custom card rows
+    spotifyTracks?: Song[];
 }
 
 export const ListContext = createContext<ListContextProps>({

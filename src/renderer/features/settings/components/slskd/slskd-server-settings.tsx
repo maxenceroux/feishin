@@ -1,6 +1,8 @@
 import { nanoid } from 'nanoid';
 import { useState } from 'react';
 
+import { SlskdServerForm } from './slskd-server-form';
+
 import { SlskdApiClient } from '/@/renderer/api/slskd/slskd-api';
 import {
     SettingOption,
@@ -16,14 +18,12 @@ import { Group } from '/@/shared/components/group/group';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Text } from '/@/shared/components/text/text';
 
-import { SlskdServerForm } from './slskd-server-form';
-
 export const SlskdServerSettings = () => {
     const slskdSettings = useSlskdSettings();
-    const { addSlskdServer, updateSlskdServer, removeSlskdServer, setSelectedSlskdServer } =
+    const { addSlskdServer, removeSlskdServer, setSelectedSlskdServer, updateSlskdServer } =
         useSettingsStoreActions();
     const [showAddForm, setShowAddForm] = useState(false);
-    const [editingServer, setEditingServer] = useState<SlskdServerItem | null>(null);
+    const [editingServer, setEditingServer] = useState<null | SlskdServerItem>(null);
 
     const handleAddServer = (serverData: Omit<SlskdServerItem, 'id'>) => {
         const newServer: SlskdServerItem = {
@@ -56,8 +56,8 @@ export const SlskdServerSettings = () => {
     const handleTestConnection = async (server: SlskdServerItem): Promise<boolean> => {
         const apiClient = new SlskdApiClient({
             baseUrl: server.baseUrl,
-            username: server.username,
             password: server.password,
+            username: server.username,
         });
         return await apiClient.testConnection();
     };
@@ -67,7 +67,7 @@ export const SlskdServerSettings = () => {
             control: (
                 <Stack gap="md">
                     <Group justify="space-between">
-                        <Text size="lg" fw={500}>
+                        <Text fw={500} size="lg">
                             slskd Servers
                         </Text>
                         <Button onClick={() => setShowAddForm(true)} size="sm">
@@ -83,24 +83,24 @@ export const SlskdServerSettings = () => {
 
                     {slskdSettings.servers.map((server) => (
                         <Group
-                            key={server.id}
                             justify="space-between"
+                            key={server.id}
                             p="sm"
                             style={{
-                                border: '1px solid var(--theme-colors-border)',
-                                borderRadius: 'var(--mantine-radius-sm)',
                                 backgroundColor:
                                     slskdSettings.selectedServerId === server.id
                                         ? 'var(--theme-colors-surface)'
                                         : undefined,
+                                border: '1px solid var(--theme-colors-border)',
+                                borderRadius: 'var(--mantine-radius-sm)',
                             }}
                         >
                             <Stack gap="xs">
                                 <Text fw={500}>{server.name}</Text>
-                                <Text size="sm" c="dimmed">
+                                <Text c="dimmed" size="sm">
                                     {server.baseUrl}
                                 </Text>
-                                <Text size="sm" c="dimmed">
+                                <Text c="dimmed" size="sm">
                                     Username: {server.username}
                                 </Text>
                             </Stack>
@@ -115,7 +115,7 @@ export const SlskdServerSettings = () => {
                                     </Button>
                                 )}
                                 {slskdSettings.selectedServerId === server.id && (
-                                    <Text size="xs" c="blue" fw={500}>
+                                    <Text c="blue" fw={500} size="xs">
                                         Active
                                     </Text>
                                 )}
@@ -127,10 +127,10 @@ export const SlskdServerSettings = () => {
                                     Edit
                                 </Button>
                                 <Button
+                                    color="red"
                                     onClick={() => handleRemoveServer(server.id)}
                                     size="xs"
                                     variant="outline"
-                                    color="red"
                                 >
                                     Remove
                                 </Button>
@@ -140,8 +140,8 @@ export const SlskdServerSettings = () => {
 
                     {showAddForm && (
                         <SlskdServerForm
-                            onSubmit={handleAddServer}
                             onCancel={() => setShowAddForm(false)}
+                            onSubmit={handleAddServer}
                             onTestConnection={handleTestConnection}
                         />
                     )}
@@ -149,8 +149,8 @@ export const SlskdServerSettings = () => {
                     {editingServer && (
                         <SlskdServerForm
                             initialData={editingServer}
-                            onSubmit={handleUpdateServer}
                             onCancel={() => setEditingServer(null)}
+                            onSubmit={handleUpdateServer}
                             onTestConnection={handleTestConnection}
                         />
                     )}

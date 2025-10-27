@@ -1,6 +1,6 @@
-import { Stack } from '/@/shared/components/stack/stack';
-
 import { SlskdServerSettings } from './slskd-server-settings';
+
+import { Stack } from '/@/shared/components/stack/stack';
 
 export const SlskdTab = () => {
     return (

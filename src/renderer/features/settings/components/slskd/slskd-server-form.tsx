@@ -32,7 +32,6 @@ export const SlskdServerForm = ({
             username: initialData?.username || '',
         },
         validate: {
-            name: (value) => (!value ? 'Name is required' : null),
             baseUrl: (value) => {
                 if (!value) return 'URL is required';
                 try {
@@ -42,8 +41,9 @@ export const SlskdServerForm = ({
                     return 'Invalid URL format';
                 }
             },
-            username: (value) => (!value ? 'Username is required' : null),
+            name: (value) => (!value ? 'Name is required' : null),
             password: (value) => (!value ? 'Password is required' : null),
+            username: (value) => (!value ? 'Username is required' : null),
         },
     });
 
@@ -91,9 +91,9 @@ export const SlskdServerForm = ({
                 gap="sm"
                 p="md"
                 style={{
+                    backgroundColor: 'var(--theme-colors-surface)',
                     border: '1px solid var(--theme-colors-border)',
                     borderRadius: 'var(--mantine-radius-sm)',
-                    backgroundColor: 'var(--theme-colors-surface)',
                 }}
             >
                 <TextInput
@@ -124,7 +124,7 @@ export const SlskdServerForm = ({
                     {...form.getInputProps('password')}
                 />
 
-                <Group justify="flex-end" gap="sm">
+                <Group gap="sm" justify="flex-end">
                     <Button onClick={onCancel} variant="default">
                         Cancel
                     </Button>

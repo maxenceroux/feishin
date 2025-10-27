@@ -666,43 +666,40 @@ export const useListStoreByKey = <TFilter>(args: {
     key: string;
 }): ListItemProps<TFilter> => {
     const key = args.key as keyof ListState['item'];
-    return useListStore(
-        (state) => {
-            // Check if key exists in main item store
-            if (state.item[key]) {
-                return {
-                    ...state.item[key],
-                    filter: {
-                        ...state.item[key].filter,
-                        ...args.filter,
-                    },
-                };
-            }
-            
-            // If key doesn't exist in main store, check detail store
-            if (state.detail[args.key]) {
-                // For detail store, fall back to album structure as default
-                const fallbackItem = state.item.album;
-                return {
-                    ...fallbackItem,
-                    filter: {
-                        ...state.detail[args.key].filter,
-                        ...args.filter,
-                    },
-                };
-            }
-            
-            // If neither exists, return album as fallback with empty filter
+    return useListStore((state) => {
+        // Check if key exists in main item store
+        if (state.item[key]) {
+            return {
+                ...state.item[key],
+                filter: {
+                    ...state.item[key].filter,
+                    ...args.filter,
+                },
+            };
+        }
+
+        // If key doesn't exist in main store, check detail store
+        if (state.detail[args.key]) {
+            // For detail store, fall back to album structure as default
             const fallbackItem = state.item.album;
             return {
                 ...fallbackItem,
                 filter: {
+                    ...state.detail[args.key].filter,
                     ...args.filter,
                 },
             };
-        },
-        shallow,
-    );
+        }
+
+        // If neither exists, return album as fallback with empty filter
+        const fallbackItem = state.item.album;
+        return {
+            ...fallbackItem,
+            filter: {
+                ...args.filter,
+            },
+        };
+    }, shallow);
 };
 
 export const useListFilterByKey = <TFilter>(args: {
@@ -733,7 +730,7 @@ export const useListFilterByKey = <TFilter>(args: {
                     }),
                 };
             }
-            
+
             // If key doesn't exist in main store, check detail store
             if (state.detail[args.key]) {
                 return {
@@ -755,7 +752,7 @@ export const useListFilterByKey = <TFilter>(args: {
                     }),
                 };
             }
-            
+
             // If neither exists, return empty filter with provided args
             return {
                 ...(args.filter || {}),

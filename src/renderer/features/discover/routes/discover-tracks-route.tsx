@@ -1,6 +1,6 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
 
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
@@ -74,11 +74,11 @@ const DiscoverTracksRoute = () => {
                 ) : (
                     <div
                         style={{
-                            display: 'flex',
-                            justifyContent: 'center',
                             alignItems: 'center',
-                            height: '200px',
                             color: '#888',
+                            display: 'flex',
+                            height: '200px',
+                            justifyContent: 'center',
                         }}
                     >
                         Search for tracks using the search bar above to discover Spotify content

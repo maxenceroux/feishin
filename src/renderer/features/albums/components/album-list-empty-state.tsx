@@ -21,7 +21,7 @@ export const AlbumListEmptyState = ({ searchTerm }: AlbumListEmptyStateProps) =>
             itemType: 'album' as any,
             key: 'album_discover',
         });
-        
+
         // Navigate to discover albums
         navigate(AppRoute.DISCOVER_ALBUMS);
     };
@@ -34,10 +34,7 @@ export const AlbumListEmptyState = ({ searchTerm }: AlbumListEmptyStateProps) =>
             <Text color="dimmed" size="sm">
                 No results found for "{searchTerm}"
             </Text>
-            <Button
-                onClick={handleSearchInDiscover}
-                variant="outline"
-            >
+            <Button onClick={handleSearchInDiscover} variant="outline">
                 Search in Discover (Spotify)
             </Button>
         </Stack>

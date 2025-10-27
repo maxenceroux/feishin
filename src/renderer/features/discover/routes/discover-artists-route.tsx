@@ -1,8 +1,8 @@
 import type { AgGridReact as AgGridReactType } from '@ag-grid-community/react/lib/agGridReact';
-
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
 import type { FallbackProps } from 'react-error-boundary';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import { useTranslation } from 'react-i18next';
 
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
@@ -19,17 +19,13 @@ import { Group } from '/@/shared/components/group/group';
 import { Icon } from '/@/shared/components/icon/icon';
 import { Stack } from '/@/shared/components/stack/stack';
 import { Text } from '/@/shared/components/text/text';
-import {
-    AlbumArtist,
-    AlbumArtistListQuery,
-    LibraryItem,
-} from '/@/shared/types/domain-types';
+import { AlbumArtist, AlbumArtistListQuery, LibraryItem } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
 
 // Error fallback component for the DiscoverArtistsRoute
 const DiscoverArtistsErrorFallback = ({ error, resetErrorBoundary }: FallbackProps) => {
     const { t } = useTranslation();
-    
+
     return (
         <Center style={{ height: '400px' }}>
             <Stack style={{ maxWidth: '50%' }}>
@@ -102,11 +98,7 @@ const DiscoverArtistsRoute = () => {
             pageKey,
             spotifyArtists,
         };
-    }, [
-        handlePlay,
-        pageKey,
-        spotifySearchResult.data,
-    ]);
+    }, [handlePlay, pageKey, spotifySearchResult.data]);
 
     return (
         <ErrorBoundary
@@ -129,14 +121,17 @@ const DiscoverArtistsRoute = () => {
                             tableRef={tableRef}
                         />
                     ) : (
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'center', 
-                            alignItems: 'center', 
-                            height: '200px',
-                            color: '#888'
-                        }}>
-                            Search for artists using the search bar above to discover Spotify content
+                        <div
+                            style={{
+                                alignItems: 'center',
+                                color: '#888',
+                                display: 'flex',
+                                height: '200px',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            Search for artists using the search bar above to discover Spotify
+                            content
                         </div>
                     )}
                 </ListContext.Provider>

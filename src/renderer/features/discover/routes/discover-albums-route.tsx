@@ -5,13 +5,12 @@ import { useCallback, useMemo, useRef } from 'react';
 import { ALBUM_CARD_ROWS } from '/@/renderer/components/card/card-rows';
 import { VirtualInfiniteGridRef } from '/@/renderer/components/virtual-grid';
 import { ListContext } from '/@/renderer/context/list-context';
-import { AlbumListHeader } from '/@/renderer/features/albums/components/album-list-header';
 import { AlbumListContent } from '/@/renderer/features/albums/components/album-list-content';
-
+import { AlbumListHeader } from '/@/renderer/features/albums/components/album-list-header';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { AnimatedPage } from '/@/renderer/features/shared';
 import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
-import { useCurrentServer, useAlbumListFilter } from '/@/renderer/store';
+import { useAlbumListFilter, useCurrentServer } from '/@/renderer/store';
 import { Album } from '/@/shared/types/domain-types';
 import { CardRow } from '/@/shared/types/types';
 
@@ -64,6 +63,7 @@ const DiscoverAlbumsRoute = () => {
         const spotifyAlbums: Album[] = spotifySearchResult.data || [];
 
         return {
+            customCardRows, // Pass custom card rows for enhanced display
             customFilters: undefined, // No custom filters for discover
             handlePlay,
             id: 'spotify:discover:albums', // Use spotify: prefix to indicate Spotify-only behavior
@@ -71,7 +71,6 @@ const DiscoverAlbumsRoute = () => {
             spotifyAlbums,
             spotifyEnabled: true, // Always enabled for discover
             spotifySearchQuery: searchTerm,
-            customCardRows, // Pass custom card rows for enhanced display
         };
     }, [handlePlay, pageKey, spotifySearchResult.data, searchTerm, customCardRows]);
 
@@ -81,21 +80,21 @@ const DiscoverAlbumsRoute = () => {
                 <AlbumListHeader
                     gridRef={gridRef}
                     itemCount={itemCount}
-                    tableRef={tableRef}
-                    title="Discover Albums"
                     // Don't show Spotify toggle for discover page - omit onToggleSpotify
                     spotifyEnabled={true}
+                    tableRef={tableRef}
+                    title="Discover Albums"
                 />
                 {searchTerm ? (
                     <AlbumListContent gridRef={gridRef} itemCount={itemCount} tableRef={tableRef} />
                 ) : (
                     <div
                         style={{
-                            display: 'flex',
-                            justifyContent: 'center',
                             alignItems: 'center',
-                            height: '200px',
                             color: '#888',
+                            display: 'flex',
+                            height: '200px',
+                            justifyContent: 'center',
                         }}
                     >
                         Search for albums using the search bar above to discover Spotify content

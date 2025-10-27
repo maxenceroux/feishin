@@ -4,24 +4,21 @@ import {
     SettingOption,
     SettingsSection,
 } from '/@/renderer/features/settings/components/settings-section';
-import {
-    useNoisePortSettings,
-    useSettingsStoreActions,
-} from '/@/renderer/store/settings.store';
+import { useNoisePortSettings, useSettingsStoreActions } from '/@/renderer/store/settings.store';
 import { Button } from '/@/shared/components/button/button';
 import { Group } from '/@/shared/components/group/group';
 import { Stack } from '/@/shared/components/stack/stack';
-import { Text } from '/@/shared/components/text/text';
 import { TextInput } from '/@/shared/components/text-input/text-input';
+import { Text } from '/@/shared/components/text/text';
 
 export const NoisePortServerSettings = () => {
     const noiseportSettings = useNoisePortSettings();
     const { setNoisePortServerIp } = useSettingsStoreActions();
     const [serverIp, setServerIp] = useState(noiseportSettings.serverIp);
-    const [testResult, setTestResult] = useState<{
+    const [testResult, setTestResult] = useState<null | {
         message: string;
         success: boolean;
-    } | null>(null);
+    }>(null);
     const [isTesting, setIsTesting] = useState(false);
 
     const handleSaveIp = () => {
@@ -75,13 +72,13 @@ export const NoisePortServerSettings = () => {
         {
             control: (
                 <Stack gap="md">
-                    <Text size="lg" fw={500}>
+                    <Text fw={500} size="lg">
                         NoisePort Server Configuration
                     </Text>
-                    <Text size="sm" c="dimmed">
-                        Configure the IP address of your NoisePort server for Spotify token
-                        requests and downloads. If you're using Tailscale VPN, the IP address
-                        typically starts with 100.x.x.x
+                    <Text c="dimmed" size="sm">
+                        Configure the IP address of your NoisePort server for Spotify token requests
+                        and downloads. If you&apos;re using Tailscale VPN, the IP address typically
+                        starts with 100.x.x.x
                     </Text>
 
                     <TextInput
@@ -111,11 +108,11 @@ export const NoisePortServerSettings = () => {
                             c={testResult.success ? 'green' : 'red'}
                             size="sm"
                             style={{
-                                padding: '0.5rem',
-                                borderRadius: 'var(--mantine-radius-sm)',
                                 backgroundColor: testResult.success
                                     ? 'rgba(0, 255, 0, 0.1)'
                                     : 'rgba(255, 0, 0, 0.1)',
+                                borderRadius: 'var(--mantine-radius-sm)',
+                                padding: '0.5rem',
                             }}
                         >
                             {testResult.message}

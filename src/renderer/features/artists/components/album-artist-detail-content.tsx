@@ -389,30 +389,35 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
         try {
             // Search Spotify for the artist
             console.log('Searching Spotify for artist:', artistName);
-            
+
             // Fetch the token from the backend
             const tokenRes = await fetch(getSpotifyTokenUrl());
             const { access_token } = await tokenRes.json();
-            
+
             // Create a temporary spotify client to search
-            const response = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`, {
-                headers: {
-                    'Authorization': `Bearer ${access_token}`
-                }
-            });
-            
+            const response = await fetch(
+                `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${access_token}`,
+                    },
+                },
+            );
+
             const searchResult = await response.json();
-            
+
             if (searchResult.artists?.items?.length > 0) {
                 const firstArtist = searchResult.artists.items[0];
                 const spotifyArtistId = `spotify:${firstArtist.id}`;
-                
+
                 console.log('Found Spotify artist:', firstArtist.name, 'with ID:', spotifyArtistId);
-                
+
                 // Navigate directly to the Spotify artist's detail page
-                navigate(generatePath(AppRoute.LIBRARY_ALBUM_ARTISTS_DETAIL, {
-                    albumArtistId: spotifyArtistId,
-                }));
+                navigate(
+                    generatePath(AppRoute.LIBRARY_ALBUM_ARTISTS_DETAIL, {
+                        albumArtistId: spotifyArtistId,
+                    }),
+                );
             } else {
                 console.log('No Spotify artist found for:', artistName);
                 // Fallback to discover page if no artist found

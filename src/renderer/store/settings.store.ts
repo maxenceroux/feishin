@@ -184,23 +184,23 @@ export type PersistedTableColumn = {
 
 export interface SettingsSlice extends SettingsState {
     actions: {
+        addSlskdServer: (server: SlskdServerItem) => void;
+        removeSlskdServer: (id: string) => void;
         reset: () => void;
         resetSampleRate: () => void;
         setArtistItems: (item: SortableItem<ArtistItem>[]) => void;
         setGenreBehavior: (target: GenreTarget) => void;
         setHomeItems: (item: SortableItem<HomeItem>[]) => void;
+        setNoisePortServerIp: (ip: string) => void;
+        setSelectedSlskdServer: (id: null | string) => void;
         setSettings: (data: Partial<SettingsState>) => void;
         setSidebarItems: (items: SidebarItemType[]) => void;
-        setTable: (type: TableType, data: DataTableProps) => void;
-        addSlskdServer: (server: SlskdServerItem) => void;
-        removeSlskdServer: (id: string) => void;
-        setSelectedSlskdServer: (id: string | null) => void;
         setSlskdServers: (servers: SlskdServerItem[]) => void;
+        setTable: (type: TableType, data: DataTableProps) => void;
         setTranscodingConfig: (config: TranscodingConfig) => void;
         toggleContextMenuItem: (item: ContextMenuItemType) => void;
-        updateSlskdServer: (id: string, server: SlskdServerItem) => void;
         toggleSidebarCollapseShare: () => void;
-        setNoisePortServerIp: (ip: string) => void;
+        updateSlskdServer: (id: string, server: SlskdServerItem) => void;
     };
 }
 
@@ -289,6 +289,9 @@ export interface SettingsState {
         translationApiProvider: null | string;
         translationTargetLanguage: null | string;
     };
+    noiseport: {
+        serverIp: string;
+    };
     playback: {
         audioDeviceId?: null | string;
         crossfadeDuration: number;
@@ -315,13 +318,18 @@ export interface SettingsState {
         username: string;
     };
     slskd: {
-        selectedServerId: string | null;
+        selectedServerId: null | string;
         servers: SlskdServerItem[];
     };
-    noiseport: {
-        serverIp: string;
-    };
-    tab: 'advanced' | 'general' | 'hotkeys' | 'playback' | 'slskd' | 'noiseport' | 'window' | string;
+    tab:
+        | 'advanced'
+        | 'general'
+        | 'hotkeys'
+        | 'noiseport'
+        | 'playback'
+        | 'slskd'
+        | 'window'
+        | string;
     tables: {
         albumDetail: DataTableProps;
         fullScreen: DataTableProps;
@@ -493,6 +501,9 @@ const initialState: SettingsState = {
         translationApiProvider: '',
         translationTargetLanguage: 'en',
     },
+    noiseport: {
+        serverIp: '',
+    },
     playback: {
         audioDeviceId: undefined,
         crossfadeDuration: 5,
@@ -532,9 +543,6 @@ const initialState: SettingsState = {
     slskd: {
         selectedServerId: null,
         servers: [],
-    },
-    noiseport: {
-        serverIp: '',
     },
     tab: 'general',
     tables: {
@@ -707,6 +715,19 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
         devtools(
             immer((set, get) => ({
                 actions: {
+                    addSlskdServer: (server) => {
+                        set((state) => {
+                            state.slskd.servers.push(server);
+                        });
+                    },
+                    removeSlskdServer: (id) => {
+                        set((state) => {
+                            state.slskd.servers = state.slskd.servers.filter((s) => s.id !== id);
+                            if (state.slskd.selectedServerId === id) {
+                                state.slskd.selectedServerId = null;
+                            }
+                        });
+                    },
                     reset: () => {
                         if (!isElectron()) {
                             set({
@@ -740,6 +761,16 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                             state.general.homeItems = items;
                         });
                     },
+                    setNoisePortServerIp: (ip: string) => {
+                        set((state) => {
+                            state.noiseport.serverIp = ip;
+                        });
+                    },
+                    setSelectedSlskdServer: (id) => {
+                        set((state) => {
+                            state.slskd.selectedServerId = id;
+                        });
+                    },
                     setSettings: (data) => {
                         set({ ...get(), ...data });
                     },
@@ -748,32 +779,14 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                             state.general.sidebarItems = items;
                         });
                     },
-                    setTable: (type: TableType, data: DataTableProps) => {
-                        set((state) => {
-                            state.tables[type] = data;
-                        });
-                    },
-                    addSlskdServer: (server) => {
-                        set((state) => {
-                            state.slskd.servers.push(server);
-                        });
-                    },
-                    removeSlskdServer: (id) => {
-                        set((state) => {
-                            state.slskd.servers = state.slskd.servers.filter((s) => s.id !== id);
-                            if (state.slskd.selectedServerId === id) {
-                                state.slskd.selectedServerId = null;
-                            }
-                        });
-                    },
-                    setSelectedSlskdServer: (id) => {
-                        set((state) => {
-                            state.slskd.selectedServerId = id;
-                        });
-                    },
                     setSlskdServers: (servers) => {
                         set((state) => {
                             state.slskd.servers = servers;
+                        });
+                    },
+                    setTable: (type: TableType, data: DataTableProps) => {
+                        set((state) => {
+                            state.tables[type] = data;
                         });
                     },
                     setTranscodingConfig: (config) => {
@@ -787,23 +800,18 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                                 !state.general.disabledContextMenu[item];
                         });
                     },
-                    updateSlskdServer: (id, server) => {
-                        set((state) => {
-                            const index = state.slskd.servers.findIndex((s) => s.id === id);
-                            if (index !== -1) {
-                                state.slskd.servers[index] = server;
-                            }
-                        });
-                    },
                     toggleSidebarCollapseShare: () => {
                         set((state) => {
                             state.general.sidebarCollapseShared =
                                 !state.general.sidebarCollapseShared;
                         });
                     },
-                    setNoisePortServerIp: (ip: string) => {
+                    updateSlskdServer: (id, server) => {
                         set((state) => {
-                            state.noiseport.serverIp = ip;
+                            const index = state.slskd.servers.findIndex((s) => s.id === id);
+                            if (index !== -1) {
+                                state.slskd.servers[index] = server;
+                            }
                         });
                     },
                 },
