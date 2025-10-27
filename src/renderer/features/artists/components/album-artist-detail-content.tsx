@@ -31,6 +31,7 @@ import { AppRoute } from '/@/renderer/router/routes';
 import { ArtistItem, useCurrentServer } from '/@/renderer/store';
 import { useListStoreActions } from '/@/renderer/store/list.store';
 import { useGeneralSettings, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
+import { getSpotifyTokenUrl } from '/@/renderer/utils/noiseport-server';
 import { sanitize } from '/@/renderer/utils/sanitize';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Button } from '/@/shared/components/button/button';
@@ -390,7 +391,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
             console.log('Searching Spotify for artist:', artistName);
             
             // Fetch the token from the backend
-            const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token');
+            const tokenRes = await fetch(getSpotifyTokenUrl());
             const { access_token } = await tokenRes.json();
             
             // Create a temporary spotify client to search

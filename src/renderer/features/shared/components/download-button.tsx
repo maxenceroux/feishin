@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import styles from './play-button.module.css';
 
+import { getDownloadUrl } from '/@/renderer/utils/noiseport-server';
 import { ActionIcon, ActionIconProps } from '/@/shared/components/action-icon/action-icon';
 import { toast } from '/@/shared/components/toast/toast';
 
@@ -35,7 +36,7 @@ export const DownloadButton = ({
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://100.98.104.55:8000/api/v1/downloads/download', {
+            const response = await fetch(getDownloadUrl(), {
                 body: JSON.stringify({
                     album: albumName,
                     artist: albumArtist,

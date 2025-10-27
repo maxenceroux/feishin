@@ -41,6 +41,12 @@ const SlskdTab = lazy(() =>
     })),
 );
 
+const NoisePortTab = lazy(() =>
+    import('/@/renderer/features/settings/components/noiseport/noiseport-tab').then((module) => ({
+        default: module.NoisePortTab,
+    })),
+);
+
 export const SettingsContent = () => {
     const { t } = useTranslation();
     const currentTab = useSettingsStore((state) => state.tab);
@@ -74,6 +80,7 @@ export const SettingsContent = () => {
                         {t('page.setting.advanced', { postProcess: 'sentenceCase' })}
                     </Tabs.Tab>
                     <Tabs.Tab value="slskd">slskd Server</Tabs.Tab>
+                    <Tabs.Tab value="noiseport">NoisePort Server</Tabs.Tab>
                 </Tabs.List>
                 <Tabs.Panel value="general">
                     <GeneralTab />
@@ -94,6 +101,9 @@ export const SettingsContent = () => {
                 </Tabs.Panel>
                 <Tabs.Panel value="slskd">
                     <SlskdTab />
+                </Tabs.Panel>
+                <Tabs.Panel value="noiseport">
+                    <NoisePortTab />
                 </Tabs.Panel>
             </Tabs>
         </div>

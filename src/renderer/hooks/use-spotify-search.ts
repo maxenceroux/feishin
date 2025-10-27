@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { spotifyClient } from '/@/renderer/api/spotify/spotify-client';
+import { getSpotifyTokenUrl } from '/@/renderer/utils/noiseport-server';
 import { Album, AlbumArtist, Song } from '/@/shared/types/domain-types';
 
 interface UseSpotifySearchArgs {
@@ -53,7 +54,7 @@ export const useSpotifyArtistSearch = ({ enabled = true, query, serverId }: UseS
 
             try {
                 // Fetch the token from the backend
-                const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token');
+                const tokenRes = await fetch(getSpotifyTokenUrl());
                 const { access_token } = await tokenRes.json();
                 await spotifyClient.setAccessToken(access_token);
                 console.log('Spotify access token set');
@@ -85,7 +86,7 @@ export const useSpotifyTrackSearch = ({ enabled = true, query, serverId }: UseSp
 
             try {
                 // Fetch the token from the backend
-                const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token');
+                const tokenRes = await fetch(getSpotifyTokenUrl());
                 const { access_token } = await tokenRes.json();
                 await spotifyClient.setAccessToken(access_token);
                 console.log('Spotify access token set');

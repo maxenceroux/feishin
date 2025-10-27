@@ -200,6 +200,7 @@ export interface SettingsSlice extends SettingsState {
         toggleContextMenuItem: (item: ContextMenuItemType) => void;
         updateSlskdServer: (id: string, server: SlskdServerItem) => void;
         toggleSidebarCollapseShare: () => void;
+        setNoisePortServerIp: (ip: string) => void;
     };
 }
 
@@ -317,7 +318,10 @@ export interface SettingsState {
         selectedServerId: string | null;
         servers: SlskdServerItem[];
     };
-    tab: 'advanced' | 'general' | 'hotkeys' | 'playback' | 'slskd' | 'window' | string;
+    noiseport: {
+        serverIp: string;
+    };
+    tab: 'advanced' | 'general' | 'hotkeys' | 'playback' | 'slskd' | 'noiseport' | 'window' | string;
     tables: {
         albumDetail: DataTableProps;
         fullScreen: DataTableProps;
@@ -528,6 +532,9 @@ const initialState: SettingsState = {
     slskd: {
         selectedServerId: null,
         servers: [],
+    },
+    noiseport: {
+        serverIp: '',
     },
     tab: 'general',
     tables: {
@@ -794,6 +801,11 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                                 !state.general.sidebarCollapseShared;
                         });
                     },
+                    setNoisePortServerIp: (ip: string) => {
+                        set((state) => {
+                            state.noiseport.serverIp = ip;
+                        });
+                    },
                 },
                 ...initialState,
             })),
@@ -864,3 +876,5 @@ export const useDiscordSettings = () => useSettingsStore((state) => state.discor
 export const useCssSettings = () => useSettingsStore((state) => state.css, shallow);
 
 export const useSlskdSettings = () => useSettingsStore((state) => state.slskd, shallow);
+
+export const useNoisePortSettings = () => useSettingsStore((state) => state.noiseport, shallow);

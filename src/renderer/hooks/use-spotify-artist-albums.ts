@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { spotifyClient } from '/@/renderer/api/spotify/spotify-client';
+import { getSpotifyTokenUrl } from '/@/renderer/utils/noiseport-server';
 import { Album } from '/@/shared/types/domain-types';
 
 interface UseSpotifyArtistAlbumsArgs {
@@ -29,7 +30,7 @@ export const useSpotifyArtistAlbums = ({
 
             try {
                 // Fetch the token from the backend
-                const tokenRes = await fetch('http://100.98.104.55:3001/api/spotify-token');
+                const tokenRes = await fetch(getSpotifyTokenUrl());
 
                 if (!tokenRes.ok) {
                     throw new Error(`Failed to fetch Spotify token: ${tokenRes.status}`);
