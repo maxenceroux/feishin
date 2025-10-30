@@ -14,9 +14,9 @@ export const getSpotifyTokenUrl = (): string => {
     const serverIp = getNoisePortServerIp();
     if (!serverIp) {
         console.warn('NoisePort server IP not configured, using default');
-        return 'http://100.98.104.55:3001/api/spotify-token';
+        return 'http://100.98.104.55:8010/api/v1/config/spotify-token';
     }
-    return `http://${serverIp}:3001/api/spotify-token`;
+    return `http://${serverIp}:8010/api/v1/config/spotify-token`;
 };
 
 /**
@@ -26,7 +26,7 @@ export const getDownloadUrl = (): string => {
     const serverIp = getNoisePortServerIp();
     if (!serverIp) {
         console.warn('NoisePort server IP not configured, using default');
-        return 'http://100.98.104.55:8000/api/v1/downloads/download';
+        return 'http://100.98.104.55:8010/api/v1/downloads/download';
     }
-    return `http://${serverIp}:8000/api/v1/downloads/download`;
+    return `http://${serverIp}:8010/api/v1/downloads/download`;
 };
