@@ -3,6 +3,14 @@ import { useEffect, useState } from 'react';
 
 import styles from './play-button.module.css';
 
+declare global {
+    interface Window {
+        headscale: {
+            getIp: () => Promise<string>;
+        };
+    }
+}
+
 import { getDownloadUrl } from '/@/renderer/utils/noiseport-server';
 import { ActionIcon, ActionIconProps } from '/@/shared/components/action-icon/action-icon';
 import { toast } from '/@/shared/components/toast/toast';

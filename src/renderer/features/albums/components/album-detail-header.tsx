@@ -103,7 +103,7 @@ export const AlbumDetailHeader = forwardRef(
                         _custom: {
                             navidrome: {
                                 downloaded_by: user,
-                            },
+                            } as any,
                         },
                     },
                     itemType: LibraryItem.ALBUM,
