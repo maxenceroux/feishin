@@ -175,10 +175,6 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
         }
 
-        console.log('fetchInitialData returning items:', itemData.length);
-        console.log('fetchInitialData isSpotifyArtist:', isSpotifyArtist);
-        console.log('fetchInitialData localItemCount:', localItemCount);
-        console.log('fetchInitialData spotifyAlbums count:', spotifyAlbums?.length || 0);
         return itemData;
     }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums, itemCount]);
 
