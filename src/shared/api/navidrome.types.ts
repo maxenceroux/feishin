@@ -389,6 +389,7 @@ export const NDSongQueryFields = [
     { label: 'Artist', type: 'string', value: 'artist' },
     { label: 'Artists', type: 'string', value: 'artists' },
     { label: 'Barcode', type: 'string', value: 'barcode' },
+    { label: 'Downloaded By', type: 'string', value: 'downloaded_by' },
     { label: 'Bitrate', type: 'number', value: 'bitrate' },
     { label: 'BPM', type: 'number', value: 'bpm' },
     { label: 'Catalog Number', type: 'string', value: 'catalognumber' },
