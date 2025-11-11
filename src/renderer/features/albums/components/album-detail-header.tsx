@@ -1,6 +1,6 @@
 import { forwardRef, Fragment, Ref, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { generatePath, useParams } from 'react-router';
+import { generatePath, useNavigate, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import { queryKeys } from '/@/renderer/api/query-keys';
@@ -11,7 +11,7 @@ import { useSongChange } from '/@/renderer/hooks/use-song-change';
 import { useSpotifyAlbumDetail } from '/@/renderer/hooks/use-spotify-album-detail';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { AppRoute } from '/@/renderer/router/routes';
-import { useCurrentServer } from '/@/renderer/store';
+import { useCurrentServer, useListStoreActions } from '/@/renderer/store';
 import { formatDateAbsoluteUTC, formatDurationString } from '/@/renderer/utils';
 import { Group } from '/@/shared/components/group/group';
 import { Rating } from '/@/shared/components/rating/rating';
@@ -31,6 +31,8 @@ export const AlbumDetailHeader = forwardRef(
     ({ background }: AlbumDetailHeaderProps, ref: Ref<HTMLDivElement>) => {
         const { albumId } = useParams() as { albumId: string };
         const server = useCurrentServer();
+        const navigate = useNavigate();
+        const { setFilter } = useListStoreActions();
 
         // Determine if this is a Spotify album
         const isSpotifyAlbum = albumId.startsWith('spotify:');
@@ -93,6 +95,27 @@ export const AlbumDetailHeader = forwardRef(
             }
         }, detailQuery.data !== undefined);
 
+        const handleDownloadedByClick = useCallback(
+            (user: string) => {
+                // Set the filter with the downloaded_by tag
+                setFilter({
+                    data: {
+                        _custom: {
+                            navidrome: {
+                                downloaded_by: user,
+                            },
+                        },
+                    },
+                    itemType: LibraryItem.ALBUM,
+                    key: 'album',
+                });
+
+                // Navigate to the albums page
+                navigate(AppRoute.LIBRARY_ALBUMS);
+            },
+            [navigate, setFilter],
+        );
+
         const metadataItems = [
             {
                 id: 'releaseDate',
@@ -125,7 +148,15 @@ export const AlbumDetailHeader = forwardRef(
                               Downloaded by:{' '}
                               {detailQuery?.data?.tags?.downloaded_by.map((user, index) => (
                                   <Fragment key={`downloaded-by-${user}`}>
-                                      <Link to="#">{user}</Link>
+                                      <Link
+                                          onClick={(e) => {
+                                              e.preventDefault();
+                                              handleDownloadedByClick(user);
+                                          }}
+                                          to="#"
+                                      >
+                                          {user}
+                                      </Link>
                                       {index <
                                           (detailQuery?.data?.tags?.downloaded_by?.length || 0) -
                                               1 && ', '}
