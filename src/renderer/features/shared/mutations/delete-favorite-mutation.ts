@@ -83,6 +83,11 @@ export const useDeleteFavorite = (args: MutationHookArgs) => {
                     });
                 }
             }
+
+            // Invalidate album count queries to ensure correct counts when filtering by favorites
+            if (variables.query.type === LibraryItem.ALBUM) {
+                queryClient.invalidateQueries(queryKeys.albums.count(serverId));
+            }
         },
         ...options,
     });
