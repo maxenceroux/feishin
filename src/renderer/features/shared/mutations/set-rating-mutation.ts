@@ -118,6 +118,14 @@ export const useSetRating = (args: MutationHookArgs) => {
                     });
                 }
             }
+
+            // Invalidate album count queries to ensure correct counts when filtering by rating
+            if (variables.query.item.some((item) => item.itemType === LibraryItem.ALBUM)) {
+                const serverId = variables.query.item[0].serverId;
+                if (serverId) {
+                    queryClient.invalidateQueries(queryKeys.albums.count(serverId));
+                }
+            }
         },
         ...options,
     });
