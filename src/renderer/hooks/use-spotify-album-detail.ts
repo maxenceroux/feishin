@@ -17,6 +17,7 @@ export const useSpotifyAlbumDetail = ({
 }: UseSpotifyAlbumDetailArgs) => {
     return useQuery({
         cacheTime: 1000 * 60 * 10, // 10 minutes
+
         enabled: enabled && !!albumId && albumId.startsWith('spotify:'),
         queryFn: async (): Promise<(Album & { songs: Song[] }) | null> => {
             if (!albumId.startsWith('spotify:')) {

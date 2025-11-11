@@ -422,6 +422,7 @@ export const AlbumDetailContent = ({ background, tableRef }: AlbumDetailContentP
                         </Group>
                     </section>
                 )}
+
                 {externalLinks && (lastFM || musicBrainz) ? (
                     <section>
                         <Group gap="sm">

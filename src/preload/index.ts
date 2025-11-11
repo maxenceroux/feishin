@@ -1,3 +1,16 @@
+import os from 'os';
+
+function getHeadscaleIp() {
+    const nets = os.networkInterfaces();
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name] || []) {
+            if (net.family === 'IPv4' && net.address.startsWith('100.') && !net.internal) {
+                return net.address;
+            }
+        }
+    }
+    return null;
+}
 import { electronAPI } from '@electron-toolkit/preload';
 import { contextBridge } from 'electron';
 
@@ -36,6 +49,9 @@ if (process.contextIsolated) {
     try {
         contextBridge.exposeInMainWorld('electron', electronAPI);
         contextBridge.exposeInMainWorld('api', api);
+        contextBridge.exposeInMainWorld('headscale', {
+            getIp: () => getHeadscaleIp(),
+        });
     } catch (error) {
         console.error(error);
     }

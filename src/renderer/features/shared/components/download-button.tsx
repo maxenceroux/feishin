@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import styles from './play-button.module.css';
 
@@ -10,6 +10,7 @@ import { toast } from '/@/shared/components/toast/toast';
 export interface DownloadButtonProps extends Omit<ActionIconProps, 'onClick'> {
     albumArtist?: string;
     albumName?: string;
+    vpnIp?: string;
     onDownloadComplete?: () => void;
     onDownloadError?: (error: string) => void;
     size?: number | string;
@@ -18,12 +19,28 @@ export interface DownloadButtonProps extends Omit<ActionIconProps, 'onClick'> {
 export const DownloadButton = ({
     albumArtist = '',
     albumName = '',
+    vpnIp = '',
     className,
     onDownloadComplete,
     onDownloadError,
     ...props
 }: DownloadButtonProps) => {
     const [isLoading, setIsLoading] = useState(false);
+    const [vpnIpState, setVpnIpState] = useState(vpnIp);
+
+    useEffect(() => {
+        if (!vpnIp) {
+            const fetchVpnIp = async () => {
+                try {
+                    const ip = await window.headscale.getIp();
+                    setVpnIpState(ip);
+                } catch (error) {
+                    console.error('Failed to fetch VPN IP:', error);
+                }
+            };
+            fetchVpnIp();
+        }
+    }, [vpnIp]);
 
     const handleDownload = async () => {
         if (!albumArtist || !albumName) {
@@ -40,6 +57,7 @@ export const DownloadButton = ({
                 body: JSON.stringify({
                     album: albumName,
                     artist: albumArtist,
+                    vpn_ip: vpnIpState,
                 }),
                 headers: {
                     'Content-Type': 'application/json',

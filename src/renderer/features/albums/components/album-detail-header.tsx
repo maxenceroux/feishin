@@ -117,7 +117,25 @@ export const AlbumDetailHeader = forwardRef(
                     count: detailQuery?.data?.playCount as number,
                 }),
             },
-        ];
+            detailQuery?.data?.tags?.downloaded_by && detailQuery.data.tags.downloaded_by.length > 0
+                ? {
+                      id: 'downloadedBy',
+                      value: (
+                          <>
+                              Downloaded by:{' '}
+                              {detailQuery?.data?.tags?.downloaded_by.map((user, index) => (
+                                  <Fragment key={`downloaded-by-${user}`}>
+                                      <Link to="#">{user}</Link>
+                                      {index <
+                                          (detailQuery?.data?.tags?.downloaded_by?.length || 0) -
+                                              1 && ', '}
+                                  </Fragment>
+                              ))}
+                          </>
+                      ),
+                  }
+                : undefined,
+        ].filter((item) => item !== undefined);
 
         if (originalDifferentFromRelease) {
             const formatted = `♫ ${formatDateAbsoluteUTC(detailQuery!.data!.originalDate)}`;
