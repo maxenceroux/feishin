@@ -404,7 +404,7 @@ const initialState: SettingsState = {
         type: FontType.BUILT_IN,
     },
     general: {
-        accent: 'rgb(53, 116, 252)',
+        accent: 'rgb(104, 103, 175)',
         albumArtRes: undefined,
         albumBackground: false,
         albumBackgroundBlur: 6,
