@@ -1,5 +1,5 @@
 {
-    "name": "feishin",
+    "name": "noiseport",
     "version": "0.20.1",
     "description": "A modern self-hosted music player.",
     "keywords": [
@@ -9,14 +9,14 @@
         "react",
         "electron"
     ],
-    "homepage": "https://github.com/jeffvli/feishin",
+    "homepage": "https://github.com/maxenceroux/noiseport",
     "bugs": {
-        "url": "https://github.com/jeffvli/feishin/issues"
+        "url": "https://github.com/maxenceroux/noiseport/issues"
     },
     "license": "GPL-3.0",
     "author": {
-        "name": "jeffvli",
-        "url": "https://github.com/jeffvli/"
+        "name": "maxenceroux",
+        "url": "https://github.com/maxenceroux/"
     },
     "main": "./out/main/index.js",
     "scripts": {
@@ -102,7 +102,7 @@
         "motion": "^12.18.1",
         "mpris-service": "^2.1.2",
         "nanoid": "^3.3.3",
-        "node-mpv": "github:jeffvli/Node-MPV#32b4d64395289ad710c41d481d2707a7acfc228f",
+        "node-mpv": "github:maxenceroux/Node-MPV#32b4d64395289ad710c41d481d2707a7acfc228f",
         "overlayscrollbars": "^2.11.1",
         "overlayscrollbars-react": "^0.5.6",
         "qs": "^6.14.0",
@@ -176,5 +176,5 @@
             "esbuild"
         ]
     },
-    "productName": "feishin"
+    "productName": "noiseport"
 }

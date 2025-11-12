@@ -7,7 +7,8 @@ import { createWithEqualityFn } from 'zustand/traditional';
 import { useAlbumArtistListDataStore } from '/@/renderer/store/album-artist-list-data.store';
 import { useAlbumListDataStore } from '/@/renderer/store/album-list-data.store';
 import { useListStore } from '/@/renderer/store/list.store';
-import { ServerListItem } from '/@/shared/types/domain-types';
+import { useSettingsStore } from '/@/renderer/store/settings.store';
+import { ServerListItem, ServerType } from '/@/shared/types/domain-types';
 
 export interface AuthSlice extends AuthState {
     actions: {
@@ -24,6 +25,52 @@ export interface AuthState {
     deviceId: string;
     serverList: Record<string, ServerListItem>;
 }
+
+/**
+ * Extracts the hostname or IP address from a server URL
+ * For example: "http://100.64.0.3:4533" returns "100.64.0.3"
+ */
+const extractHostFromUrl = (url: string): null | string => {
+    try {
+        const urlObj = new URL(url);
+        return urlObj.hostname;
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * Auto-populates Slskd and NoisePort settings when connecting to a Navidrome server
+ */
+const autoPopulateSettingsForNavidrome = (server: ServerListItem) => {
+    if (server.type !== ServerType.NAVIDROME) {
+        return;
+    }
+
+    const settingsStore = useSettingsStore.getState();
+    const host = extractHostFromUrl(server.url);
+
+    if (!host) {
+        return;
+    }
+
+    // Auto-populate NoisePort server IP
+    settingsStore.actions.setNoisePortServerIp(host);
+
+    // Auto-populate Slskd server only if no servers exist
+    if (settingsStore.slskd.servers.length === 0) {
+        const defaultSlskdServer = {
+            baseUrl: `http://${host}:5030`,
+            id: nanoid(),
+            name: 'noiseport',
+            password: 'slskd',
+            username: 'slskd',
+        };
+
+        settingsStore.actions.addSlskdServer(defaultSlskdServer);
+        settingsStore.actions.setSelectedSlskdServer(defaultSlskdServer.id);
+    }
+};
 
 export const useAuthStore = createWithEqualityFn<AuthSlice>()(
     persist(
@@ -60,6 +107,9 @@ export const useAuthStore = createWithEqualityFn<AuthSlice>()(
                                 // Reset persisted grid list stores
                                 useAlbumListDataStore.getState().actions.setItemData([]);
                                 useAlbumArtistListDataStore.getState().actions.setItemData([]);
+
+                                // Auto-populate Slskd and NoisePort settings for Navidrome
+                                autoPopulateSettingsForNavidrome(server);
                             }
                         });
                     },
