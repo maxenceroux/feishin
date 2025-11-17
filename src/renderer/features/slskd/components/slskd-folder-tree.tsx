@@ -59,7 +59,7 @@ export const FolderTree = ({
                             />
                         )}
                         {!hasContent && <div style={{ width: '1rem' }} />}
-                        <Icon color="yellow" icon="folder" size="1.2rem" />
+                        <Icon color="warn" icon="folder" size="1.2rem" />
                         <Text fw={500}>{directory.name}</Text>
                     </Group>
                 </Table.Td>
@@ -132,8 +132,8 @@ export const FolderTree = ({
                             <Table.Td style={{ paddingLeft: `${paddingLeft + 3}rem` }}>
                                 <Group gap="xs">
                                     <Icon
-                                        color={file.isLocked ? 'red' : 'blue'}
-                                        icon={file.isLocked ? 'lock' : 'musicNote'}
+                                        color={file.isLocked ? 'error' : 'primary'}
+                                        icon={file.isLocked ? 'lock' : 'itemSong'}
                                         size="1rem"
                                     />
                                     <Stack gap={0}>
@@ -246,7 +246,7 @@ export const UserFolderTree = ({
                 <Table.Td>
                     <Group gap="xs">
                         <Icon icon={isUserExpanded ? 'arrowDownS' : 'arrowRightS'} size="1.2rem" />
-                        <Icon color="green" icon="user" size="1.2rem" />
+                        <Icon color="success" icon="user" size="1.2rem" />
                         <Text fw={700} size="md">
                             {username}
                         </Text>
