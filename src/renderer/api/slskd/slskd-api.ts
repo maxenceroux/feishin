@@ -4,7 +4,10 @@ import {
     SlskdApiResponse,
     SlskdDownloadListResponse,
     SlskdSearchListResponse,
+    SlskdSearchResponse,
     SlskdSearchResultsResponse,
+    SlskdSearchState,
+    SlskdTransfer,
 } from './slskd-types';
 
 // Default slskd server configuration for backward compatibility
@@ -115,26 +118,73 @@ export class SlskdApiClient {
         };
     }
 
+    /**
+     * Gets search responses for a specific search ID
+     * @param searchId UUID of the search
+     * @returns Array of search responses from different users
+     */
     async getSearchResults(searchId: string): Promise<SlskdSearchResultsResponse> {
         await this.ensureToken();
-        const response = await this.makeRequest<any>(`searches/${searchId}/responses`);
+        const response = await this.makeRequest<SlskdSearchResponse[]>(
+            `searches/${searchId}/responses`,
+        );
         console.log('slskd search results API response:', response);
 
-        // Handle different response formats from slskd API
-        let results: any[] = [];
-        if (Array.isArray(response.data)) {
-            results = response.data;
-        } else if (response.data && response.data.responses) {
-            results = response.data.responses;
-        } else if (response.data && response.data.results) {
-            results = response.data.results;
-        }
+        // The API returns an array of search responses directly
+        const results: SlskdSearchResponse[] = Array.isArray(response.data)
+            ? response.data
+            : [];
 
         return {
             results,
             searchId,
             searchText: '', // Will be filled by the component
         };
+    }
+
+    /**
+     * Gets the state of a specific search
+     * @param searchId UUID of the search
+     * @param includeResponses Whether to include search responses in the state
+     * @returns Search state information
+     */
+    async getSearchState(
+        searchId: string,
+        includeResponses: boolean = false,
+    ): Promise<SlskdSearchState> {
+        await this.ensureToken();
+        const params = includeResponses ? '?includeResponses=true' : '';
+        const response = await this.makeRequest<SlskdSearchState>(
+            `searches/${searchId}${params}`,
+        );
+        return response.data;
+    }
+
+    /**
+     * Gets all downloads, grouped by user
+     * @param includeRemoved Whether to include removed downloads
+     * @returns Array of transfers grouped by user
+     */
+    async getAllDownloads(includeRemoved: boolean = false): Promise<SlskdTransfer[]> {
+        await this.ensureToken();
+        const params = includeRemoved ? '?includeRemoved=true' : '';
+        const response = await this.makeRequest<SlskdTransfer[]>(
+            `transfers/downloads/${params}`,
+        );
+        return Array.isArray(response.data) ? response.data : [];
+    }
+
+    /**
+     * Gets downloads for a specific user
+     * @param username Username to get downloads for
+     * @returns Transfer information for the user
+     */
+    async getDownloadsForUser(username: string): Promise<SlskdTransfer> {
+        await this.ensureToken();
+        const response = await this.makeRequest<SlskdTransfer>(
+            `transfers/downloads/${encodeURIComponent(username)}`,
+        );
+        return response.data;
     }
 
     async login(): Promise<void> {
