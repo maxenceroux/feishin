@@ -8,6 +8,8 @@ import {
     SlskdSearchResultsResponse,
     SlskdSearchState,
     SlskdTransfer,
+    SlskdUserBrowseResponse,
+    SlskdUserDirectory,
 } from './slskd-types';
 
 // Default slskd server configuration for backward compatibility
@@ -185,6 +187,30 @@ export class SlskdApiClient {
             `transfers/downloads/${encodeURIComponent(username)}`,
         );
         return response.data;
+    }
+
+    /**
+     * Browse a user's shared folders and files
+     * @param username Username to browse
+     * @returns User's shared directories and files
+     */
+    async browseUser(username: string): Promise<SlskdUserBrowseResponse> {
+        await this.ensureToken();
+        const response = await this.makeRequest<SlskdUserDirectory[]>(
+            `users/${encodeURIComponent(username)}/browse`,
+        );
+        
+        // Transform the response to include metadata
+        const directories = Array.isArray(response.data) ? response.data : [];
+        const directoryCount = directories.length;
+        const fileCount = directories.reduce((sum, dir) => sum + dir.fileCount, 0);
+        
+        return {
+            directories,
+            directoryCount,
+            fileCount,
+            username,
+        };
     }
 
     async login(): Promise<void> {

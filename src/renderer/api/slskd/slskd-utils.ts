@@ -3,11 +3,13 @@
  */
 
 import {
+    SlskdFileAttribute,
     SlskdHierarchicalDirectory,
     SlskdHierarchicalFile,
     SlskdHierarchicalSearchResult,
     SlskdSearchResponse,
     SlskdSearchResultFile,
+    SlskdUserBrowseResponse,
 } from './slskd-types';
 
 /**
@@ -260,4 +262,94 @@ export function formatSampleRate(sampleRate?: number): string {
     if (!sampleRate) return '';
     const kHz = sampleRate / 1000;
     return `${kHz} kHz`;
+}
+
+/**
+ * Transforms a user browse response to a hierarchical structure
+ * This converts the flat directory list from the browse API into a nested structure
+ * suitable for tree views
+ * @param browseResponse Browse response from slskd API
+ * @returns Hierarchical browse result with nested directories
+ */
+export function transformBrowseToHierarchical(
+    browseResponse: SlskdUserBrowseResponse,
+): SlskdHierarchicalSearchResult {
+    // Convert browse directories to search files format for reusing buildDirectoryTree
+    const allFiles: SlskdSearchResultFile[] = [];
+    
+    for (const dir of browseResponse.directories) {
+        for (const file of dir.files) {
+            // Construct full path: directory/filename
+            const fullPath = `${dir.name}/${file.filename}`;
+            allFiles.push({
+                filename: fullPath,
+                size: file.size,
+                code: file.code,
+                extension: file.extension,
+                isLocked: false,
+                // Extract attributes if available
+                bitRate: extractBitRate(file.attributes),
+                bitDepth: extractBitDepth(file.attributes),
+                length: extractLength(file.attributes),
+                sampleRate: extractSampleRate(file.attributes),
+            });
+        }
+    }
+    
+    const directories = buildDirectoryTree(allFiles);
+    
+    return {
+        username: browseResponse.username,
+        uploadSpeed: 0, // Not available in browse response
+        hasFreeUploadSlot: false, // Not available in browse response
+        queueLength: 0, // Not available in browse response
+        directories,
+        totalFileCount: browseResponse.fileCount,
+        lockedFileCount: browseResponse.lockedDirectoryCount || 0,
+        token: 0, // Not applicable for browse
+    };
+}
+
+/**
+ * Extract bit rate from file attributes
+ * Based on slskd attribute type codes
+ */
+function extractBitRate(attributes?: SlskdFileAttribute[]): number | undefined {
+    if (!attributes) return undefined;
+    // Attribute type 0 is bit rate for lossy files
+    const bitRateAttr = attributes.find((attr) => attr.type === 0);
+    return bitRateAttr?.value;
+}
+
+/**
+ * Extract bit depth from file attributes
+ * Based on slskd attribute type codes
+ */
+function extractBitDepth(attributes?: SlskdFileAttribute[]): number | undefined {
+    if (!attributes) return undefined;
+    // Attribute type 3 is bit depth for lossless files
+    const bitDepthAttr = attributes.find((attr) => attr.type === 3);
+    return bitDepthAttr?.value;
+}
+
+/**
+ * Extract length/duration from file attributes
+ * Based on slskd attribute type codes
+ */
+function extractLength(attributes?: SlskdFileAttribute[]): number | undefined {
+    if (!attributes) return undefined;
+    // Attribute type 1 is length in seconds
+    const lengthAttr = attributes.find((attr) => attr.type === 1);
+    return lengthAttr?.value;
+}
+
+/**
+ * Extract sample rate from file attributes
+ * Based on slskd attribute type codes
+ */
+function extractSampleRate(attributes?: SlskdFileAttribute[]): number | undefined {
+    if (!attributes) return undefined;
+    // Attribute type 4 is sample rate
+    const sampleRateAttr = attributes.find((attr) => attr.type === 4);
+    return sampleRateAttr?.value;
 }
