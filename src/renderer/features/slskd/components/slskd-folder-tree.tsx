@@ -93,7 +93,7 @@ export const FolderTree = ({
                             onDownloadFolder(directory);
                         }}
                         size="xs"
-                        variant="light"
+                        variant="filled"
                     >
                         <Icon icon="download" size="0.9rem" />
                         <span style={{ marginLeft: '0.5rem' }}>Folder</span>
@@ -272,9 +272,9 @@ export const UserFolderTree = ({
                             handleDownloadAllUserFiles();
                         }}
                         size="xs"
-                        variant="gradient"
+                        variant="filled"
                     >
-                        <Icon icon="download" size="1rem" />
+                        <Icon icon="download" size="0.9rem" />
                         <span style={{ marginLeft: '0.5rem' }}>All Files</span>
                     </Button>
                 </Table.Td>
