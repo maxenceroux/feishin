@@ -45,8 +45,6 @@ export const FolderTree = ({
                 key={`dir-${directory.path}`}
                 onClick={() => setIsExpanded(!isExpanded)}
                 style={{
-                    backgroundColor:
-                        level % 2 === 0 ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-dark-6)',
                     cursor: hasContent ? 'pointer' : 'default',
                 }}
             >
@@ -59,7 +57,7 @@ export const FolderTree = ({
                             />
                         )}
                         {!hasContent && <div style={{ width: '1rem' }} />}
-                        <Icon color="warn" icon="folder" size="1.2rem" />
+                        <Icon icon="folder" />
                         <Text fw={500}>{directory.name}</Text>
                     </Group>
                 </Table.Td>
@@ -122,19 +120,12 @@ export const FolderTree = ({
                     {directory.files.map((file) => (
                         <Table.Tr
                             key={`${directory.path}-${file.filename}`}
-                            style={{
-                                backgroundColor:
-                                    level % 2 === 0
-                                        ? 'var(--mantine-color-dark-8)'
-                                        : 'var(--mantine-color-dark-7)',
-                            }}
                         >
                             <Table.Td style={{ paddingLeft: `${paddingLeft + 3}rem` }}>
                                 <Group gap="xs">
                                     <Icon
-                                        color={file.isLocked ? 'error' : 'primary'}
-                                        icon={file.isLocked ? 'lock' : 'itemSong'}
-                                        size="1rem"
+                                        icon={file.isLocked ? 'lock' : 'track'}
+                                        size="0.8rem"
                                     />
                                     <Stack gap={0}>
                                         <Text fw={400} size="sm">
@@ -238,16 +229,14 @@ export const UserFolderTree = ({
             <Table.Tr
                 onClick={() => setIsUserExpanded(!isUserExpanded)}
                 style={{
-                    backgroundColor: 'var(--mantine-color-dark-5)',
                     cursor: 'pointer',
-                    fontWeight: 600,
                 }}
             >
                 <Table.Td>
                     <Group gap="xs">
-                        <Icon icon={isUserExpanded ? 'arrowDownS' : 'arrowRightS'} size="1.2rem" />
-                        <Icon color="success" icon="user" size="1.2rem" />
-                        <Text fw={700} size="md">
+                        <Icon icon={isUserExpanded ? 'arrowDownS' : 'arrowRightS'} size="1rem" />
+                        <Icon icon="user" />
+                        <Text fw={600}>
                             {username}
                         </Text>
                     </Group>

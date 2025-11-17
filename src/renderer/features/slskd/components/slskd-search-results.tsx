@@ -183,15 +183,8 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
             </Group>
 
             <ScrollArea style={{ flex: 1 }}>
-                <Table highlightOnHover>
-                    <Table.Thead
-                        style={{
-                            position: 'sticky',
-                            top: 0,
-                            zIndex: 10,
-                            backgroundColor: 'var(--mantine-color-dark-7)',
-                        }}
-                    >
+                <Table>
+                    <Table.Thead>
                         <Table.Tr>
                             <Table.Th>
                                 <Group gap="xs">
