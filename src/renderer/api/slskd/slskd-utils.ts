@@ -280,7 +280,11 @@ export function transformBrowseToHierarchical(
     for (const dir of browseResponse.directories) {
         for (const file of dir.files) {
             // Construct full path: directory/filename
-            const fullPath = `${dir.name}/${file.filename}`;
+            // Handle edge cases: remove trailing slashes from dir name, ensure single separator
+            const dirPath = dir.name.replace(/[/\\]+$/, '');
+            const fileName = file.filename.replace(/^[/\\]+/, '');
+            const fullPath = `${dirPath}/${fileName}`;
+            
             allFiles.push({
                 filename: fullPath,
                 size: file.size,

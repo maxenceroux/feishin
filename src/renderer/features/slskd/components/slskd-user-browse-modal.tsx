@@ -13,12 +13,13 @@ import {
     getAllFilesInDirectory,
     transformBrowseToHierarchical,
 } from '/@/renderer/api/slskd/slskd-utils';
+import { Modal as MantineModal } from '@mantine/core';
+
 import { Badge } from '/@/shared/components/badge/badge';
 import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
 import { Group } from '/@/shared/components/group/group';
 import { Icon } from '/@/shared/components/icon/icon';
-import { Modal } from '/@/shared/components/modal/modal';
 import { Paper } from '/@/shared/components/paper/paper';
 import { ScrollArea } from '/@/shared/components/scroll-area/scroll-area';
 import { Spinner } from '/@/shared/components/spinner/spinner';
@@ -101,7 +102,8 @@ export const SlskdUserBrowseModal = ({ opened, onClose, username }: SlskdUserBro
     const hierarchicalData = data ? transformBrowseToHierarchical(data) : null;
 
     return (
-        <Modal
+        <MantineModal
+            centered
             onClose={onClose}
             opened={opened}
             size="xl"
@@ -244,6 +246,6 @@ export const SlskdUserBrowseModal = ({ opened, onClose, username }: SlskdUserBro
                     </>
                 )}
             </Stack>
-        </Modal>
+        </MantineModal>
     );
 };
