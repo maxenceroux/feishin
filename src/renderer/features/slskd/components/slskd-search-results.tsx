@@ -1,12 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { UserFolderTree } from './slskd-folder-tree';
+
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
-import { SlskdSearchResult, SlskdSearchResultFile } from '/@/renderer/api/slskd/slskd-types';
+import {
+    SlskdHierarchicalDirectory,
+    SlskdHierarchicalFile,
+} from '/@/renderer/api/slskd/slskd-types';
+import {
+    getAllFilesInDirectory,
+    transformSearchResultsToHierarchical,
+} from '/@/renderer/api/slskd/slskd-utils';
 import { RefreshButton } from '/@/renderer/features/shared/components/refresh-button';
 import { Badge } from '/@/shared/components/badge/badge';
-import { Button } from '/@/shared/components/button/button';
 import { Center } from '/@/shared/components/center/center';
 import { Group } from '/@/shared/components/group/group';
 import { Icon } from '/@/shared/components/icon/icon';
@@ -22,175 +29,6 @@ interface SlskdSearchResultsProps {
     searchText: string;
 }
 
-const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
-};
-
-const formatBitrate = (bitrate?: number): string => {
-    return bitrate ? `${bitrate} kbps` : '-';
-};
-
-const formatDuration = (seconds?: number): string => {
-    if (!seconds) return '-';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-};
-
-interface ExpandableUserRowProps {
-    onDownload: (file: SlskdSearchResultFile, username: string) => void;
-    result: SlskdSearchResult;
-}
-
-const ExpandableUserRow = ({ onDownload, result }: ExpandableUserRowProps) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const { files, hasFreeUploadSlot, queueLength, uploadSpeed, username } = result;
-
-    const handleDownload = (file: SlskdSearchResultFile) => {
-        onDownload(file, username);
-    };
-
-    const handleDownloadFolder = async () => {
-        try {
-            // Download all files in the folder
-            for (const file of files) {
-                await onDownload(file, username);
-            }
-        } catch (error) {
-            console.error('Failed to download folder:', error);
-        }
-    };
-
-    return (
-        <>
-            {/* User row */}
-            <Table.Tr
-                key={`user-${username}`}
-                onClick={() => setIsExpanded(!isExpanded)}
-                style={{
-                    cursor: 'pointer',
-                }}
-            >
-                <Table.Td>
-                    <Group gap="xs">
-                        <Icon icon={isExpanded ? 'arrowDownS' : 'arrowRightS'} size="1rem" />
-                        <Text fw={600}>{username}</Text>
-                        {/* Note: Country code not available in current API response */}
-                    </Group>
-                </Table.Td>
-                <Table.Td>
-                    <Text size="sm">{files.length} files</Text>
-                </Table.Td>
-                <Table.Td>
-                    <Text size="sm">
-                        {uploadSpeed ? `${Math.round(uploadSpeed / 1024)} KB/s` : '-'}
-                    </Text>
-                </Table.Td>
-                <Table.Td>
-                    <Text size="sm">-</Text> {/* Client version not available in current API */}
-                </Table.Td>
-                <Table.Td>
-                    <Group gap="xs">
-                        {hasFreeUploadSlot && (
-                            <Badge color="green" size="xs">
-                                Free slot
-                            </Badge>
-                        )}
-                        {queueLength !== undefined && (
-                            <Badge size="xs" variant="light">
-                                Queue: {queueLength}
-                            </Badge>
-                        )}
-                    </Group>
-                </Table.Td>
-                <Table.Td>
-                    <Group gap="xs">
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDownloadFolder();
-                            }}
-                            size="xs"
-                            variant="filled"
-                        >
-                            Download Folder
-                        </Button>
-                        <Text opacity={0.7} size="xs">
-                            Click to {isExpanded ? 'collapse' : 'expand'}
-                        </Text>
-                    </Group>
-                </Table.Td>
-            </Table.Tr>
-
-            {/* Expanded files */}
-            {isExpanded &&
-                files.map((file, index) => (
-                    <Table.Tr
-                        key={`${username}-${file.filename}-${index}`}
-                        style={{
-                            paddingLeft: '1rem',
-                        }}
-                    >
-                        <Table.Td style={{ paddingLeft: '2.5rem' }}>
-                            <Stack gap={1}>
-                                <Text fw={500} size="sm" style={{ maxWidth: 300 }}>
-                                    {file.filename.split('/').pop()?.split('\\').pop() ||
-                                        file.filename}
-                                </Text>
-                                {(file.artist || file.album) && (
-                                    <Text opacity={0.7} size="xs">
-                                        {file.artist && file.album
-                                            ? `${file.artist} - ${file.album}`
-                                            : file.artist || file.album}
-                                    </Text>
-                                )}
-                            </Stack>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text size="sm">{formatFileSize(file.size)}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text size="sm">{formatBitrate(file.bitRate)}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text size="sm">{formatDuration(file.length)}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Group gap="xs">
-                                {file.track && (
-                                    <Badge size="xs" variant="light">
-                                        Track {file.track}
-                                    </Badge>
-                                )}
-                                {file.sampleRate && (
-                                    <Badge size="xs" variant="outline">
-                                        {file.sampleRate} Hz
-                                    </Badge>
-                                )}
-                            </Group>
-                        </Table.Td>
-                        <Table.Td>
-                            <Button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDownload(file);
-                                }}
-                                size="xs"
-                                variant="filled"
-                            >
-                                Download
-                            </Button>
-                        </Table.Td>
-                    </Table.Tr>
-                ))}
-        </>
-    );
-};
-
 export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsProps) => {
     const { t } = useTranslation();
 
@@ -205,15 +43,15 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
         refetch();
     };
 
-    const handleDownload = async (file: SlskdSearchResultFile, username: string) => {
+    const handleDownloadFile = async (file: SlskdHierarchicalFile, username: string) => {
         try {
-            console.log('Starting download:', { file, username });
-            // Prepare files array for API (match Python client)
+            console.log('Starting file download:', { file, username });
+            // Prepare files array for API
             const files = [
                 {
+                    code: file.code,
                     filename: file.filename,
                     size: file.size,
-                    ...(file.token && { token: file.token }),
                 },
             ];
             await slskdApi.downloadFile(username, files);
@@ -225,6 +63,37 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
             console.error('Failed to start download:', error);
             // TODO: Add proper error handling UI
             alert('Failed to start download. Please check your connection and try again.');
+        }
+    };
+
+    const handleDownloadFolder = async (
+        directory: SlskdHierarchicalDirectory,
+        username: string,
+    ) => {
+        try {
+            console.log('Starting folder download:', { directory, username });
+
+            // Get all files in the directory and subdirectories
+            const allFiles = getAllFilesInDirectory(directory);
+
+            // Prepare files array for API
+            const files = allFiles.map((file) => ({
+                code: file.code,
+                filename: file.filename,
+                size: file.size,
+            }));
+
+            await slskdApi.downloadFile(username, files);
+
+            // Show success feedback
+            console.log(
+                `Download started: ${allFiles.length} files from folder "${directory.name}" (${username})`,
+            );
+            // TODO: Add toast notification or other UI feedback
+        } catch (error) {
+            console.error('Failed to start folder download:', error);
+            // TODO: Add proper error handling UI
+            alert('Failed to start folder download. Please check your connection and try again.');
         }
     };
 
@@ -270,7 +139,14 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
     }
 
     const results = data?.results || [];
-    const totalFiles = results.reduce((sum, result) => sum + result.files.length, 0);
+
+    // Transform flat search results to hierarchical structure
+    const hierarchicalResults = transformSearchResultsToHierarchical(results);
+
+    const totalFiles = hierarchicalResults.reduce(
+        (sum, result) => sum + result.totalFileCount,
+        0,
+    );
 
     if (results.length === 0) {
         return (
@@ -312,32 +188,32 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                         <Table.Tr>
                             <Table.Th>
                                 <Group gap="xs">
-                                    <Icon icon="user" size="0.8rem" />
-                                    User / File
+                                    <Icon icon="folder" size="0.8rem" />
+                                    User / Folder / File
                                 </Group>
                             </Table.Th>
                             <Table.Th>
                                 <Group gap="xs">
-                                    <Icon icon="folder" size="0.8rem" />
+                                    <Icon icon="info" size="0.8rem" />
                                     Size / Files
                                 </Group>
                             </Table.Th>
                             <Table.Th>
                                 <Group gap="xs">
                                     <Icon icon="info" size="0.8rem" />
-                                    Speed / Bitrate
+                                    Speed / Quality
                                 </Group>
                             </Table.Th>
                             <Table.Th>
                                 <Group gap="xs">
                                     <Icon icon="info" size="0.8rem" />
-                                    Client / Duration
+                                    Duration
                                 </Group>
                             </Table.Th>
                             <Table.Th>
                                 <Group gap="xs">
                                     <Icon icon="info" size="0.8rem" />
-                                    Info
+                                    Details
                                 </Group>
                             </Table.Th>
                             <Table.Th>
@@ -349,11 +225,17 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        {results.map((result) => (
-                            <ExpandableUserRow
+                        {hierarchicalResults.map((result) => (
+                            <UserFolderTree
                                 key={result.username}
-                                onDownload={handleDownload}
-                                result={result}
+                                hasFreeUploadSlot={result.hasFreeUploadSlot}
+                                onDownloadFile={handleDownloadFile}
+                                onDownloadFolder={handleDownloadFolder}
+                                queueLength={result.queueLength}
+                                rootDirectories={result.directories}
+                                totalFileCount={result.totalFileCount}
+                                uploadSpeed={result.uploadSpeed}
+                                username={result.username}
                             />
                         ))}
                     </Table.Tbody>

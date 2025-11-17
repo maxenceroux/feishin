@@ -100,7 +100,7 @@ export const AlbumArtistDetailContent = ({ background }: AlbumArtistDetailConten
 
     // Use the appropriate query result
     const detailQuery = isSpotifyArtist ? spotifyDetailQuery : regularDetailQuery;
-
+    console.log('AlbumArtistDetailContent detailQuery data:', detailQuery?.data);
     // Hook for Spotify related artists (only for Spotify artists)
     const spotifyRelatedArtists = useSpotifyRelatedArtists({
         artistId: routeId,
