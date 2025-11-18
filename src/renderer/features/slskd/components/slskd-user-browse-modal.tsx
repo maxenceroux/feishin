@@ -41,7 +41,8 @@ export const SlskdUserBrowseModal = ({ opened, onClose, username }: SlskdUserBro
         enabled: opened && !!username,
         queryFn: () => slskdApi.browseUser(username),
         queryKey: ['slskd', 'browse-user', username],
-        retry: 2,
+        retry: 1, // Only retry once since browse operations are slow
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     });
 
     const handleDownloadFile = async (file: SlskdHierarchicalFile) => {

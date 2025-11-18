@@ -38,7 +38,9 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
     const { data, error, isLoading, refetch } = useQuery({
         queryFn: () => slskdApi.getSearchResults(searchId),
         queryKey: ['slskd', 'search-results', searchId],
-        refetchInterval: 5000, // Refetch every 5 seconds while search is active
+        // Pause auto-refresh when browse modal is open to avoid concurrent API calls
+        // that can cause timeouts and slow response times
+        refetchInterval: browseUsername ? false : 5000,
         retry: 3,
     });
 
