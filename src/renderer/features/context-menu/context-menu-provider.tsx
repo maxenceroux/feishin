@@ -727,6 +727,11 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
         }
     }, [ctx, handlePlayQueueAdd]);
 
+    /**
+     * Handle download action for songs and albums.
+     * For albums, downloads all tracks with batch processing and comprehensive feedback.
+     * For songs, downloads the single track directly (existing behavior).
+     */
     const handleDownload = useCallback(async () => {
         const item = ctx.data[0];
 
