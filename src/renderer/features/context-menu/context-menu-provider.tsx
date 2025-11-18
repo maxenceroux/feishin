@@ -727,8 +727,115 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
         }
     }, [ctx, handlePlayQueueAdd]);
 
-    const handleDownload = useCallback(() => {
+    const handleDownload = useCallback(async () => {
         const item = ctx.data[0];
+
+        // Handle album downloads
+        if (item.itemType === LibraryItem.ALBUM) {
+            try {
+                // Show initial toast notification
+                toast.info({
+                    message: t('page.contextMenu.downloadAlbumStarting', {
+                        defaultValue: 'Starting album download...',
+                        postProcess: 'sentenceCase',
+                    }),
+                    title: t('page.contextMenu.download', { postProcess: 'sentenceCase' }),
+                });
+
+                // Fetch album details if songs aren't available
+                let songs = item.songs;
+                if (!songs || songs.length === 0) {
+                    const albumDetails = await controller.getAlbumDetail({
+                        apiClientProps: { server, signal: undefined },
+                        query: { id: item.id },
+                    });
+                    songs = albumDetails?.songs || [];
+                }
+
+                if (!songs || songs.length === 0) {
+                    toast.error({
+                        message: t('page.contextMenu.downloadAlbumNoSongs', {
+                            defaultValue: 'No songs found in album',
+                            postProcess: 'sentenceCase',
+                        }),
+                        title: t('error.genericError', { postProcess: 'sentenceCase' }),
+                    });
+                    return;
+                }
+
+                // Queue downloads for all songs with a small delay between each
+                let successCount = 0;
+                let failCount = 0;
+
+                for (let i = 0; i < songs.length; i++) {
+                    try {
+                        const song = songs[i];
+                        const url = api.controller.getDownloadUrl({
+                            apiClientProps: { server },
+                            query: { id: song.id },
+                        });
+
+                        if (utils) {
+                            utils.download(url!);
+                        } else {
+                            window.open(url, '_blank');
+                        }
+
+                        successCount++;
+
+                        // Add small delay between downloads to avoid overwhelming the browser
+                        if (i < songs.length - 1) {
+                            await new Promise((resolve) => setTimeout(resolve, 100));
+                        }
+                    } catch (error) {
+                        console.error('Failed to download song:', songs[i], error);
+                        failCount++;
+                    }
+                }
+
+                // Show completion toast
+                if (failCount === 0) {
+                    toast.success({
+                        message: t('page.contextMenu.downloadAlbumSuccess', {
+                            count: successCount,
+                            defaultValue: `Successfully started download of ${successCount} tracks`,
+                            postProcess: 'sentenceCase',
+                        }),
+                        title: t('page.contextMenu.download', { postProcess: 'sentenceCase' }),
+                    });
+                } else if (successCount > 0) {
+                    toast.warning({
+                        message: t('page.contextMenu.downloadAlbumPartial', {
+                            defaultValue: `Downloaded ${successCount} tracks, ${failCount} failed`,
+                            failCount,
+                            postProcess: 'sentenceCase',
+                            successCount,
+                        }),
+                        title: t('page.contextMenu.download', { postProcess: 'sentenceCase' }),
+                    });
+                } else {
+                    toast.error({
+                        message: t('page.contextMenu.downloadAlbumFailed', {
+                            defaultValue: 'Failed to download album',
+                            postProcess: 'sentenceCase',
+                        }),
+                        title: t('error.genericError', { postProcess: 'sentenceCase' }),
+                    });
+                }
+            } catch (error) {
+                console.error('Album download error:', error);
+                toast.error({
+                    message: t('page.contextMenu.downloadAlbumError', {
+                        defaultValue: 'An error occurred while downloading the album',
+                        postProcess: 'sentenceCase',
+                    }),
+                    title: t('error.genericError', { postProcess: 'sentenceCase' }),
+                });
+            }
+            return;
+        }
+
+        // Handle single song/item downloads (existing behavior)
         const url = api.controller.getDownloadUrl({
             apiClientProps: { server },
             query: { id: item.id },
@@ -739,7 +846,7 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
         } else {
             window.open(url, '_blank');
         }
-    }, [ctx.data, server]);
+    }, [ctx.data, server, t]);
 
     const handleGoToAlbum = useCallback(() => {
         const item = ctx.data[0];

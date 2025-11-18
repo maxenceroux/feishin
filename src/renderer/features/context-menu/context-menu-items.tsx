@@ -86,6 +86,7 @@ export const ALBUM_CONTEXT_MENU_ITEMS: SetContextMenuItems = [
     { id: 'addToFavorites' },
     { id: 'removeFromFavorites' },
     { children: true, disabled: false, divider: true, id: 'setRating' },
+    { divider: true, id: 'download' },
     { divider: true, id: 'shareItem' },
     { id: 'goToAlbumArtist' },
     { divider: true, id: 'showDetails' },
