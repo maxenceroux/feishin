@@ -187,6 +187,7 @@ export const FolderTree = ({
 
 interface UserFolderTreeProps {
     hasFreeUploadSlot: boolean;
+    onBrowseUser?: (username: string) => void;
     onDownloadFile: (file: SlskdHierarchicalFile, username: string) => void;
     onDownloadFolder: (directory: SlskdHierarchicalDirectory, username: string) => void;
     queueLength: number;
@@ -198,6 +199,7 @@ interface UserFolderTreeProps {
 
 export const UserFolderTree = ({
     hasFreeUploadSlot,
+    onBrowseUser,
     onDownloadFile,
     onDownloadFolder,
     queueLength,
@@ -266,17 +268,32 @@ export const UserFolderTree = ({
                     </Group>
                 </Table.Td>
                 <Table.Td>
-                    <Button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDownloadAllUserFiles();
-                        }}
-                        size="xs"
-                        variant="filled"
-                    >
-                        <Icon icon="download" size="0.9rem" />
-                        <span style={{ marginLeft: '0.5rem' }}>All Files</span>
-                    </Button>
+                    <Group gap="xs">
+                        {onBrowseUser && (
+                            <Button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onBrowseUser(username);
+                                }}
+                                size="xs"
+                                variant="light"
+                            >
+                                <Icon icon="folder" size="0.9rem" />
+                                <span style={{ marginLeft: '0.5rem' }}>Browse</span>
+                            </Button>
+                        )}
+                        <Button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadAllUserFiles();
+                            }}
+                            size="xs"
+                            variant="filled"
+                        >
+                            <Icon icon="download" size="0.9rem" />
+                            <span style={{ marginLeft: '0.5rem' }}>All Files</span>
+                        </Button>
+                    </Group>
                 </Table.Td>
             </Table.Tr>
 

@@ -8,6 +8,8 @@ import {
     SlskdSearchResultsResponse,
     SlskdSearchState,
     SlskdTransfer,
+    SlskdUserBrowseResponse,
+    SlskdUserDirectory,
 } from './slskd-types';
 
 // Default slskd server configuration for backward compatibility
@@ -185,6 +187,35 @@ export class SlskdApiClient {
             `transfers/downloads/${encodeURIComponent(username)}`,
         );
         return response.data;
+    }
+
+    /**
+     * Browse a user's shared folders and files
+     * This is a peer-to-peer operation that can take 30-60 seconds for large libraries
+     * @param username Username to browse
+     * @returns User's shared directories and files
+     */
+    async browseUser(username: string): Promise<SlskdUserBrowseResponse> {
+        await this.ensureToken();
+        // Browse is a peer-to-peer operation that requires connecting to the user
+        // and waiting for them to respond. Use a 60-second timeout to allow for
+        // large libraries and network latency.
+        const response = await this.makeRequest<SlskdUserDirectory[]>(
+            `users/${encodeURIComponent(username)}/browse`,
+            60000, // 60 second timeout for browse operations
+        );
+        
+        // Transform the response to include metadata
+        const directories = Array.isArray(response.data) ? response.data : [];
+        const directoryCount = directories.length;
+        const fileCount = directories.reduce((sum, dir) => sum + dir.fileCount, 0);
+        
+        return {
+            directories,
+            directoryCount,
+            fileCount,
+            username,
+        };
     }
 
     async login(): Promise<void> {
@@ -371,7 +402,7 @@ export class SlskdApiClient {
         }
     }
 
-    private async makeRequest<T>(endpoint: string): Promise<SlskdApiResponse<T>> {
+    private async makeRequest<T>(endpoint: string, timeoutMs: number = 10000): Promise<SlskdApiResponse<T>> {
         if (!this.token) throw new Error('Not authenticated with slskd API');
         console.log(`Making request to slskd endpoint: ${endpoint}`);
         try {
@@ -382,7 +413,7 @@ export class SlskdApiClient {
                         Authorization: `Bearer ${this.token}`,
                         'Content-Type': 'application/json',
                     },
-                    timeout: 10000, // 10 second timeout
+                    timeout: timeoutMs,
                 },
             );
 

@@ -378,6 +378,29 @@ export interface SlskdHierarchicalSearchResult {
 }
 
 // ============================================================================
+// User Browse Types
+// ============================================================================
+
+/**
+ * Response from browsing a user's shared folders
+ * Based on Python wrapper's browse response
+ */
+export interface SlskdUserBrowseResponse {
+    /** Username of the browsed user */
+    username: string;
+    /** Array of directories shared by the user */
+    directories: SlskdUserDirectory[];
+    /** Total number of directories shared */
+    directoryCount: number;
+    /** Total number of files shared across all directories */
+    fileCount: number;
+    /** Whether the user is currently locked (private shares) */
+    isLocked?: boolean;
+    /** Number of locked directories */
+    lockedDirectoryCount?: number;
+}
+
+// ============================================================================
 // Validation Schemas
 // ============================================================================
 

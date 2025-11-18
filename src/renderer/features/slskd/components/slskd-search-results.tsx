@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { UserFolderTree } from './slskd-folder-tree';
+import { SlskdUserBrowseModal } from './slskd-user-browse-modal';
 
 import { slskdApi } from '/@/renderer/api/slskd/slskd-api';
 import {
@@ -31,16 +33,27 @@ interface SlskdSearchResultsProps {
 
 export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsProps) => {
     const { t } = useTranslation();
+    const [browseUsername, setBrowseUsername] = useState<string | null>(null);
 
     const { data, error, isLoading, refetch } = useQuery({
         queryFn: () => slskdApi.getSearchResults(searchId),
         queryKey: ['slskd', 'search-results', searchId],
-        refetchInterval: 5000, // Refetch every 5 seconds while search is active
+        // Pause auto-refresh when browse modal is open to avoid concurrent API calls
+        // that can cause timeouts and slow response times
+        refetchInterval: browseUsername ? false : 5000,
         retry: 3,
     });
 
     const handleRefresh = () => {
         refetch();
+    };
+
+    const handleBrowseUser = (username: string) => {
+        setBrowseUsername(username);
+    };
+
+    const handleCloseBrowse = () => {
+        setBrowseUsername(null);
     };
 
     const handleDownloadFile = async (file: SlskdHierarchicalFile, username: string) => {
@@ -229,6 +242,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                             <UserFolderTree
                                 key={result.username}
                                 hasFreeUploadSlot={result.hasFreeUploadSlot}
+                                onBrowseUser={handleBrowseUser}
                                 onDownloadFile={handleDownloadFile}
                                 onDownloadFolder={handleDownloadFolder}
                                 queueLength={result.queueLength}
@@ -241,6 +255,14 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                     </Table.Tbody>
                 </Table>
             </ScrollArea>
+
+            {browseUsername && (
+                <SlskdUserBrowseModal
+                    onClose={handleCloseBrowse}
+                    opened={!!browseUsername}
+                    username={browseUsername}
+                />
+            )}
         </Stack>
     );
 };
