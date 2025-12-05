@@ -22,10 +22,9 @@ nsis:
     createDesktopShortcut: always
 mac:
     target:
-        target: default
-        arch:
-            - arm64
-            - x64
+        - target: default
+          arch:
+            - universal
     icon: assets/icons/icon.icns
     type: distribution
     hardenedRuntime: true
@@ -34,6 +33,7 @@ mac:
     gatekeeperAssess: false
     notarize: false
     minimumSystemVersion: '11.0'
+    mergeASARs: true
 dmg:
     contents: [{ x: 130, y: 220 }, { x: 410, y: 220, type: link, path: /Applications }]
 linux:
@@ -43,8 +43,8 @@ linux:
     category: AudioVideo;Audio;Player
     icon: assets/icons/icon.png
     artifactName: ${productName}-${os}-${arch}.${ext}
-npmRebuild: false
+npmRebuild: true
 publish:
     provider: github
-    owner: maxenceroux
+    owner: raxmou
     repo: noiseport

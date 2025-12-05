@@ -1,7 +1,7 @@
 {
     "name": "noiseport",
-    "version": "0.20.2",
-    "description": "A modern self-hosted music player.",
+    "version": "0.20.3",
+    "description": "A modern community-driven self-hosted music player.",
     "keywords": [
         "subsonic",
         "navidrome",
@@ -9,14 +9,14 @@
         "react",
         "electron"
     ],
-    "homepage": "https://github.com/maxenceroux/noiseport",
+    "homepage": "https://github.com/raxmou/noiseport",
     "bugs": {
-        "url": "https://github.com/maxenceroux/noiseport/issues"
+        "url": "https://github.com/raxmou/noiseport/issues"
     },
     "license": "GPL-3.0",
     "author": {
-        "name": "maxenceroux",
-        "url": "https://github.com/maxenceroux/"
+        "name": "raxmou",
+        "url": "https://github.com/raxmou/"
     },
     "main": "./out/main/index.js",
     "scripts": {
@@ -102,7 +102,7 @@
         "motion": "^12.18.1",
         "mpris-service": "^2.1.2",
         "nanoid": "^3.3.3",
-        "node-mpv": "github:maxenceroux/Node-MPV#32b4d64395289ad710c41d481d2707a7acfc228f",
+        "node-mpv": "github:raxmou/Node-MPV#32b4d64395289ad710c41d481d2707a7acfc228f",
         "overlayscrollbars": "^2.11.1",
         "overlayscrollbars-react": "^0.5.6",
         "qs": "^6.14.0",
@@ -173,7 +173,8 @@
     "pnpm": {
         "onlyBuiltDependencies": [
             "electron",
-            "esbuild"
+            "esbuild",
+            "node-mpv"
         ]
     },
     "productName": "noiseport"
