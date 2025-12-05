@@ -727,8 +727,16 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
         }
     }, [ctx, handlePlayQueueAdd]);
 
+    /**
+     * Handle download action for songs and albums.
+     * For albums, the server creates a zip file with all tracks.
+     * For songs, downloads the single track directly.
+     */
     const handleDownload = useCallback(() => {
         const item = ctx.data[0];
+        
+        // Get download URL for the item (works for both albums and songs)
+        // When an album ID is passed, the server automatically creates a zip file
         const url = api.controller.getDownloadUrl({
             apiClientProps: { server },
             query: { id: item.id },
@@ -739,7 +747,18 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
         } else {
             window.open(url, '_blank');
         }
-    }, [ctx.data, server]);
+
+        // Show appropriate toast notification
+        if (item.itemType === LibraryItem.ALBUM) {
+            toast.success({
+                message: t('page.contextMenu.downloadAlbumStarted', {
+                    defaultValue: 'Album download started',
+                    postProcess: 'sentenceCase',
+                }),
+                title: t('page.contextMenu.download', { postProcess: 'sentenceCase' }),
+            });
+        }
+    }, [ctx.data, server, t]);
 
     const handleGoToAlbum = useCallback(() => {
         const item = ctx.data[0];

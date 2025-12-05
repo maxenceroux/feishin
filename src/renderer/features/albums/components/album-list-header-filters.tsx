@@ -28,6 +28,7 @@ import {
     useListStoreActions,
     useListStoreByKey,
 } from '/@/renderer/store';
+import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Button } from '/@/shared/components/button/button';
 import { Divider } from '/@/shared/components/divider/divider';
 import { DropdownMenu } from '/@/shared/components/dropdown-menu/dropdown-menu';
@@ -402,6 +403,25 @@ export const AlbumListHeaderFilters = ({
         }
     };
 
+    const handleClearFilters = useCallback(() => {
+        const updatedFilters = setFilter({
+            customFilters,
+            data: {
+                _custom: undefined,
+                artistIds: customFilters?.artistIds as string[] | undefined, // Preserve artist filter if on artist page
+                compilation: undefined,
+                favorite: undefined,
+                genres: undefined,
+                maxYear: undefined,
+                minYear: undefined,
+            },
+            itemType: LibraryItem.ALBUM,
+            key: pageKey,
+        }) as AlbumListFilter;
+
+        onFilterChange(updatedFilters);
+    }, [customFilters, onFilterChange, pageKey, setFilter]);
+
     const isFilterApplied = useMemo(() => {
         const isNavidromeFilterApplied =
             server?.type === ServerType.NAVIDROME &&
@@ -491,6 +511,19 @@ export const AlbumListHeaderFilters = ({
                     </>
                 )}
                 <FilterButton isActive={!!isFilterApplied} onClick={handleOpenFiltersModal} />
+                {isFilterApplied && (
+                    <ActionIcon
+                        icon="x"
+                        iconProps={{
+                            size: 'lg',
+                        }}
+                        onClick={handleClearFilters}
+                        tooltip={{
+                            label: t('common.clear', { postProcess: 'titleCase' }),
+                        }}
+                        variant="subtle"
+                    />
+                )}
                 <RefreshButton onClick={handleRefresh} />
                 <DropdownMenu position="bottom-start">
                     <DropdownMenu.Target>

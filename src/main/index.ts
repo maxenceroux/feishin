@@ -57,6 +57,21 @@ if (store.get('ignore_ssl')) {
     app.commandLine.appendSwitch('ignore-certificate-errors');
 }
 
+// Performance optimizations for Apple Silicon Macs
+if (isMacOS()) {
+    // Enable hardware acceleration features for Apple Silicon
+    app.commandLine.appendSwitch(
+        'enable-features',
+        'VaapiVideoDecoder,VaapiVideoEncoder,CanvasOopRasterization,BackForwardCache',
+    );
+    // Disable software rendering
+    app.commandLine.appendSwitch('disable-software-rasterizer');
+    // Enable GPU rasterization
+    app.commandLine.appendSwitch('enable-gpu-rasterization');
+    // Use the macOS native color space
+    app.commandLine.appendSwitch('force-color-profile', 'srgb');
+}
+
 // From https://github.com/tutao/tutanota/commit/92c6ed27625fcf367f0fbcc755d83d7ff8fde94b
 if (isLinux() && !process.argv.some((a) => a.startsWith('--password-store='))) {
     const passwordStore = store.get('password_store', 'gnome-libsecret') as string;
@@ -261,6 +276,7 @@ async function createWindow(first = true): Promise<void> {
             preload: join(__dirname, '../preload/index.js'),
             sandbox: false,
             webSecurity: !store.get('ignore_cors'),
+            enableWebSQL: false,
         },
         width: 1440,
         ...(nativeFrame && isLinux() && nativeFrameConfig.linux),

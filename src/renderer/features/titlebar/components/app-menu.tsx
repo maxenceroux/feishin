@@ -197,7 +197,7 @@ export const AppMenu = () => {
             <DropdownMenu.Divider />
             <DropdownMenu.Item
                 component="a"
-                href="https://github.com/jeffvli/feishin/releases"
+                href="https://github.com/maxenceroux/noiseport"
                 leftSection={<Icon icon="brandGitHub" />}
                 rightSection={<Icon icon="externalLink" />}
                 target="_blank"
