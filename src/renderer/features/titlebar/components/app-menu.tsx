@@ -141,6 +141,13 @@ export const AppMenu = () => {
                 {t('page.appMenu.settings', { postProcess: 'sentenceCase' })}
             </DropdownMenu.Item>
             <DropdownMenu.Item
+                component={Link}
+                leftSection={<Icon icon="upload" />}
+                to={AppRoute.IMPORT}
+            >
+                Import Music
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
                 leftSection={<Icon icon="edit" />}
                 onClick={handleManageServersModal}
             >

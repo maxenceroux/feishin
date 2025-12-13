@@ -81,6 +81,8 @@ const DiscoverTracksRoute = lazy(
     () => import('/@/renderer/features/discover/routes/discover-tracks-route'),
 );
 
+const ImportRoute = lazy(() => import('/@/renderer/features/import/routes/import-route'));
+
 const RouteErrorBoundary = lazy(
     () => import('/@/renderer/features/action-required/components/route-error-boundary'),
 );
@@ -213,6 +215,11 @@ export const AppRouter = () => {
                                     element={<SlskdDownloadsRoute />}
                                     errorElement={<RouteErrorBoundary />}
                                     path={AppRoute.SLSKD_DOWNLOADS}
+                                />
+                                <Route
+                                    element={<ImportRoute />}
+                                    errorElement={<RouteErrorBoundary />}
+                                    path={AppRoute.IMPORT}
                                 />
                                 <Route
                                     errorElement={<RouteErrorBoundary />}

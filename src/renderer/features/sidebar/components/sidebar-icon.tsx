@@ -19,6 +19,8 @@ import {
     RiSearchLine,
     RiSettings2Fill,
     RiSettings2Line,
+    RiUpload2Fill,
+    RiUpload2Line,
     RiUserVoiceFill,
     RiUserVoiceLine,
 } from 'react-icons/ri';
@@ -47,6 +49,9 @@ export const SidebarIcon = ({ active, route, size }: SidebarIconProps) => {
         case AppRoute.HOME:
             if (active) return <RiHome6Fill size={size} />;
             return <RiHome6Line size={size} />;
+        case AppRoute.IMPORT:
+            if (active) return <RiUpload2Fill size={size} />;
+            return <RiUpload2Line size={size} />;
         case AppRoute.LIBRARY_ALBUM_ARTISTS:
             if (active) return <RiUserVoiceFill size={size} />;
             return <RiUserVoiceLine size={size} />;

@@ -172,7 +172,7 @@ export const Sidebar = () => {
                     <Accordion.Item value="discover">
                         <Accordion.Control>
                             <Text fw={600} variant="secondary">
-                                Discover
+                                Download
                             </Text>
                         </Accordion.Control>
                         <Accordion.Panel>
@@ -185,30 +185,12 @@ export const Sidebar = () => {
                                     Albums
                                 </Group>
                             </SidebarItem>
-                            <SidebarItem to={AppRoute.DISCOVER_TRACKS}>
-                                <Group gap="sm">
-                                    <SidebarIcon
-                                        active={location.pathname === AppRoute.DISCOVER_TRACKS}
-                                        route={AppRoute.DISCOVER_TRACKS}
-                                    />
-                                    Tracks
-                                </Group>
-                            </SidebarItem>
-                            <SidebarItem to={AppRoute.DISCOVER_ARTISTS}>
-                                <Group gap="sm">
-                                    <SidebarIcon
-                                        active={location.pathname === AppRoute.DISCOVER_ARTISTS}
-                                        route={AppRoute.DISCOVER_ARTISTS}
-                                    />
-                                    Artists
-                                </Group>
-                            </SidebarItem>
                         </Accordion.Panel>
                     </Accordion.Item>
                     <Accordion.Item value="slskd">
                         <Accordion.Control>
                             <Text fw={600} variant="secondary">
-                                slskd
+                                Monitor
                             </Text>
                         </Accordion.Control>
                         <Accordion.Panel>
