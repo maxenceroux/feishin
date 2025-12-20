@@ -1,8 +1,10 @@
 {
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
-    ]
+  "build": {
+    "env": {},
+    "commands": {
+      "install": "pnpm install --frozen-lockfile=false"
+    }
+  },
+  "functions": {},
+  "routes": []
 }
