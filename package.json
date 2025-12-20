@@ -53,10 +53,10 @@
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false"
     },
-    "packageManager": "pnpm@8",
-    "engines": {
-        "node": ">=18 <22"
-    },
+      "packageManager": "pnpm@10.17.1",
+      "engines": {
+    "node": "22.x"
+  },
     "dependencies": {
         "@ag-grid-community/client-side-row-model": "^28.2.1",
         "@ag-grid-community/core": "^28.2.1",
