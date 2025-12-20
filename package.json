@@ -1,6 +1,6 @@
 {
     "name": "noiseport",
-    "version": "0.20.4",
+    "version": "0.20.5",
     "description": "A modern community-driven self-hosted music player.",
     "keywords": [
         "subsonic",
@@ -102,7 +102,7 @@
         "motion": "^12.18.1",
         "mpris-service": "^2.1.2",
         "nanoid": "^3.3.3",
-        "node-mpv": "github:raxmou/Node-MPV#32b4d64395289ad710c41d481d2707a7acfc228f",
+        "node-mpv": "^1.5.0",
         "overlayscrollbars": "^2.11.1",
         "overlayscrollbars-react": "^0.5.6",
         "qs": "^6.14.0",
