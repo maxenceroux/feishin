@@ -1,0 +1,391 @@
+/**
+ * MPD Playback Service
+ * Controls a remote MPD (Music Player Daemon) instance over TCP
+ */
+
+import MPC from 'mpc-js';
+import {
+    IPlaybackService,
+    PlaybackEventCallback,
+    PlaybackServiceConfig,
+    PlaybackState,
+    PlaybackStatus,
+    QueueItem,
+    PlaybackEvent,
+} from './types';
+
+export interface MpdConfig {
+    host: string;
+    port: number;
+    password?: string;
+}
+
+interface MpdQueueMapping {
+    /** MPD queue position -> noiseport QueueItem ID */
+    [mpdIndex: number]: string;
+}
+
+export class MpdPlaybackService implements IPlaybackService {
+    private client: MPC | null = null;
+    private config: MpdConfig;
+    private connected = false;
+    private subscribers: PlaybackEventCallback[] = [];
+    private statusPollInterval: NodeJS.Timeout | null = null;
+    private queueMapping: MpdQueueMapping = {};
+    private lastStatus: PlaybackStatus | null = null;
+    private reconnectAttempts = 0;
+    private maxReconnectAttempts = 10;
+    private reconnectTimeout: NodeJS.Timeout | null = null;
+
+    constructor(config: MpdConfig) {
+        this.config = config;
+    }
+
+    getConfig(): PlaybackServiceConfig {
+        return {
+            id: 'mpd',
+            name: `MPD (${this.config.host}:${this.config.port})`,
+        };
+    }
+
+    async connect(): Promise<void> {
+        if (this.connected && this.client) {
+            return;
+        }
+
+        try {
+            this.client = await MPC.connect({
+                host: this.config.host,
+                port: this.config.port,
+            });
+
+            // Authenticate if password provided
+            if (this.config.password) {
+                await this.sendCommand('password', [this.config.password]);
+            }
+
+            this.connected = true;
+            this.reconnectAttempts = 0;
+            this.emit({ type: 'connected' });
+
+            // Start status polling
+            this.startStatusPolling();
+
+            console.log(`[MPD] Connected to ${this.config.host}:${this.config.port}`);
+        } catch (error) {
+            console.error('[MPD] Connection failed:', error);
+            this.connected = false;
+            this.emit({
+                type: 'error',
+                data: { message: 'Failed to connect to MPD', error },
+            });
+            this.scheduleReconnect();
+            throw error;
+        }
+    }
+
+    async disconnect(): Promise<void> {
+        this.stopStatusPolling();
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
+
+        if (this.client) {
+            try {
+                this.client.disconnect();
+            } catch (error) {
+                console.error('[MPD] Error during disconnect:', error);
+            }
+            this.client = null;
+        }
+
+        this.connected = false;
+        this.queueMapping = {};
+        this.emit({ type: 'disconnected' });
+        console.log('[MPD] Disconnected');
+    }
+
+    isConnected(): boolean {
+        return this.connected && this.client !== null;
+    }
+
+    async play(): Promise<void> {
+        await this.sendCommand('play');
+        this.emit({ type: 'play' });
+    }
+
+    async pause(): Promise<void> {
+        await this.sendCommand('pause', [1]);
+        this.emit({ type: 'pause' });
+    }
+
+    async stop(): Promise<void> {
+        await this.sendCommand('stop');
+        this.emit({ type: 'stop' });
+    }
+
+    async next(): Promise<void> {
+        await this.sendCommand('next');
+        this.emit({ type: 'next' });
+    }
+
+    async previous(): Promise<void> {
+        await this.sendCommand('previous');
+        this.emit({ type: 'previous' });
+    }
+
+    async seek(seconds: number): Promise<void> {
+        const status = await this.getStatus();
+        await this.sendCommand('seekcur', [seconds.toString()]);
+        this.emit({ type: 'seek', data: { position: seconds } });
+    }
+
+    async setVolume(volume: number): Promise<void> {
+        // Clamp volume to 0-100
+        const clampedVolume = Math.max(0, Math.min(100, volume));
+        await this.sendCommand('setvol', [clampedVolume.toString()]);
+        this.emit({ type: 'volume', data: { volume: clampedVolume } });
+    }
+
+    async setQueue(items: QueueItem[], startIndex = 0): Promise<void> {
+        try {
+            // Clear current queue
+            await this.sendCommand('clear');
+
+            // Reset queue mapping
+            this.queueMapping = {};
+
+            // Add all items to queue
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                await this.sendCommand('add', [item.uri]);
+                this.queueMapping[i] = item.id;
+            }
+
+            // Start playback at specified index
+            if (items.length > 0) {
+                await this.sendCommand('play', [startIndex.toString()]);
+            }
+
+            this.emit({ type: 'queue', data: { items, startIndex } });
+            console.log(`[MPD] Queue set with ${items.length} items, starting at ${startIndex}`);
+        } catch (error) {
+            console.error('[MPD] Failed to set queue:', error);
+            throw error;
+        }
+    }
+
+    async addToQueue(items: QueueItem[]): Promise<void> {
+        try {
+            const currentQueueLength = Object.keys(this.queueMapping).length;
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                await this.sendCommand('add', [item.uri]);
+                this.queueMapping[currentQueueLength + i] = item.id;
+            }
+
+            this.emit({ type: 'queue', data: { added: items } });
+            console.log(`[MPD] Added ${items.length} items to queue`);
+        } catch (error) {
+            console.error('[MPD] Failed to add to queue:', error);
+            throw error;
+        }
+    }
+
+    async clearQueue(): Promise<void> {
+        await this.sendCommand('clear');
+        this.queueMapping = {};
+        this.emit({ type: 'queue', data: { cleared: true } });
+    }
+
+    async getStatus(): Promise<PlaybackStatus> {
+        if (!this.isConnected()) {
+            throw new Error('MPD not connected');
+        }
+
+        try {
+            const [statusResult, currentSongResult] = await Promise.all([
+                this.sendCommand('status'),
+                this.sendCommand('currentsong'),
+            ]);
+
+            const status = this.parseResponse(statusResult);
+            const currentSong = this.parseResponse(currentSongResult);
+
+            const state = this.mapMpdState(status.state);
+            const position = parseFloat(status.elapsed || '0');
+            const duration = parseFloat(status.duration || currentSong.duration || '0');
+            const volume = parseInt(status.volume || '0', 10);
+            const currentIndex = parseInt(status.song || '-1', 10);
+
+            const playbackStatus: PlaybackStatus = {
+                state,
+                position,
+                duration,
+                volume,
+                currentTrackUri: currentSong.file,
+                currentIndex: currentIndex >= 0 ? currentIndex : undefined,
+            };
+
+            this.lastStatus = playbackStatus;
+            return playbackStatus;
+        } catch (error) {
+            console.error('[MPD] Failed to get status:', error);
+            throw error;
+        }
+    }
+
+    subscribe(callback: PlaybackEventCallback): () => void {
+        this.subscribers.push(callback);
+        return () => {
+            const index = this.subscribers.indexOf(callback);
+            if (index > -1) {
+                this.subscribers.splice(index, 1);
+            }
+        };
+    }
+
+    private emit(event: PlaybackEvent): void {
+        this.subscribers.forEach((callback) => {
+            try {
+                callback(event);
+            } catch (error) {
+                console.error('[MPD] Error in event callback:', error);
+            }
+        });
+    }
+
+    private async sendCommand(command: string, args: string[] = []): Promise<string> {
+        if (!this.client) {
+            throw new Error('MPD client not initialized');
+        }
+
+        try {
+            const result = await this.client.sendCommand(command, args);
+            return result;
+        } catch (error) {
+            console.error(`[MPD] Command failed: ${command}`, error);
+            
+            // Handle connection errors
+            if (this.isConnectionError(error)) {
+                this.connected = false;
+                this.emit({ type: 'disconnected' });
+                this.scheduleReconnect();
+            }
+            
+            throw error;
+        }
+    }
+
+    private parseResponse(response: string): Record<string, string> {
+        const lines = response.split('\n').filter((line) => line.trim() !== '');
+        const result: Record<string, string> = {};
+
+        for (const line of lines) {
+            const colonIndex = line.indexOf(':');
+            if (colonIndex > 0) {
+                const key = line.substring(0, colonIndex).trim();
+                const value = line.substring(colonIndex + 1).trim();
+                result[key.toLowerCase()] = value;
+            }
+        }
+
+        return result;
+    }
+
+    private mapMpdState(mpdState: string | undefined): PlaybackState {
+        switch (mpdState) {
+            case 'play':
+                return PlaybackState.PLAYING;
+            case 'pause':
+                return PlaybackState.PAUSED;
+            case 'stop':
+            default:
+                return PlaybackState.STOPPED;
+        }
+    }
+
+    private startStatusPolling(): void {
+        if (this.statusPollInterval) {
+            return;
+        }
+
+        // Poll status every 1.5 seconds
+        this.statusPollInterval = setInterval(async () => {
+            try {
+                const status = await this.getStatus();
+                this.emit({ type: 'status', data: status });
+            } catch (error) {
+                // Polling errors are logged but don't emit events
+                // (disconnect events are handled in sendCommand)
+            }
+        }, 1500);
+    }
+
+    private stopStatusPolling(): void {
+        if (this.statusPollInterval) {
+            clearInterval(this.statusPollInterval);
+            this.statusPollInterval = null;
+        }
+    }
+
+    private scheduleReconnect(): void {
+        if (this.reconnectTimeout || this.reconnectAttempts >= this.maxReconnectAttempts) {
+            return;
+        }
+
+        this.reconnectAttempts++;
+        
+        // Exponential backoff: 1s, 2s, 4s, 8s, max 30s
+        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 30000);
+        
+        console.log(
+            `[MPD] Scheduling reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`
+        );
+
+        this.reconnectTimeout = setTimeout(async () => {
+            this.reconnectTimeout = null;
+            try {
+                await this.connect();
+            } catch (error) {
+                // Error already handled in connect()
+            }
+        }, delay);
+    }
+
+    private isConnectionError(error: any): boolean {
+        // Check for common connection error patterns
+        if (!error) return false;
+        
+        const errorMessage = error.message?.toLowerCase() || '';
+        return (
+            errorMessage.includes('connect') ||
+            errorMessage.includes('econnrefused') ||
+            errorMessage.includes('timeout') ||
+            errorMessage.includes('socket')
+        );
+    }
+
+    /**
+     * Get the noiseport queue item ID for a given MPD queue position
+     */
+    getQueueItemId(mpdIndex: number): string | undefined {
+        return this.queueMapping[mpdIndex];
+    }
+
+    /**
+     * Update configuration and reconnect if needed
+     */
+    async updateConfig(config: Partial<MpdConfig>): Promise<void> {
+        const wasConnected = this.isConnected();
+        
+        this.config = { ...this.config, ...config };
+        
+        if (wasConnected) {
+            await this.disconnect();
+            await this.connect();
+        }
+    }
+}

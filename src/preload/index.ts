@@ -20,6 +20,7 @@ import { discordRpc } from './discord-rpc';
 import { ipc } from './ipc';
 import { localSettings } from './local-settings';
 import { lyrics } from './lyrics';
+import { mpdPlayer, mpdPlayerListener } from './mpd-player';
 import { mpris } from './mpris';
 import { mpvPlayer, mpvPlayerListener } from './mpv-player';
 import { remote } from './remote';
@@ -33,6 +34,8 @@ const api = {
     ipc,
     localSettings,
     lyrics,
+    mpdPlayer,
+    mpdPlayerListener,
     mpris,
     mpvPlayer,
     mpvPlayerListener,

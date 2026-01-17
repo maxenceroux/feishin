@@ -3,6 +3,7 @@ import { lazy, Suspense, useMemo } from 'react';
 
 import { AudioSettings } from '/@/renderer/features/settings/components/playback/audio-settings';
 import { LyricSettings } from '/@/renderer/features/settings/components/playback/lyric-settings';
+import { RemoteTargetsSettings } from '/@/renderer/features/settings/components/playback/remote-targets-settings';
 import { ScrobbleSettings } from '/@/renderer/features/settings/components/playback/scrobble-settings';
 import { TranscodeSettings } from '/@/renderer/features/settings/components/playback/transcode-settings';
 import { useSettingsStore } from '/@/renderer/store';
@@ -29,6 +30,7 @@ export const PlaybackTab = () => {
     return (
         <Stack gap="md">
             <AudioSettings hasFancyAudio={hasFancyAudio} />
+            {isElectron() && <RemoteTargetsSettings />}
             <Suspense fallback={<></>}>{hasFancyAudio && <MpvSettings />}</Suspense>
             <TranscodeSettings />
             <ScrobbleSettings />

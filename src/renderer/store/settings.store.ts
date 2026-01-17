@@ -300,6 +300,14 @@ export interface SettingsState {
         mpvProperties: MpvSettings;
         muted: boolean;
         preservePitch: boolean;
+        remoteTargets: {
+            mpd: {
+                enabled: boolean;
+                host: string;
+                password: string;
+                port: number;
+            };
+        };
         scrobble: {
             enabled: boolean;
             notify: boolean;
@@ -521,6 +529,14 @@ const initialState: SettingsState = {
         },
         muted: false,
         preservePitch: true,
+        remoteTargets: {
+            mpd: {
+                enabled: false,
+                host: '',
+                password: '',
+                port: 6600,
+            },
+        },
         scrobble: {
             enabled: true,
             notify: false,

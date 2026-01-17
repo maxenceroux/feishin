@@ -56,6 +56,11 @@ export const AudioSettings = ({ hasFancyAudio }: { hasFancyAudio: boolean }) => 
                             label: 'MPV',
                             value: PlaybackType.LOCAL,
                         },
+                        {
+                            disabled: !isElectron(),
+                            label: 'Remote MPD',
+                            value: PlaybackType.REMOTE_MPD,
+                        },
                         { label: 'Web', value: PlaybackType.WEB },
                     ]}
                     defaultValue={settings.type}

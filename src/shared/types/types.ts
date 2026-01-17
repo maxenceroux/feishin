@@ -113,6 +113,7 @@ export enum PlaybackStyle {
 
 export enum PlaybackType {
     LOCAL = 'local',
+    REMOTE_MPD = 'remote_mpd',
     WEB = 'web',
 }
 
