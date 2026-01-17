@@ -5,9 +5,21 @@
 
 import { api } from '/@/renderer/api';
 import { getServerById } from '/@/renderer/store/auth.store';
-import type { MpdQueueItem } from '/@/preload/mpd-player';
 import type { QueueSong } from '/@/shared/types/domain-types';
 import type { TranscodingConfig } from '/@/renderer/store/settings.store';
+
+// Replicate MpdQueueItem type to avoid preload import issues in renderer
+export interface MpdQueueItem {
+    id: string;
+    uri: string;
+    duration?: number;
+    metadata?: {
+        title?: string;
+        artist?: string;
+        album?: string | null;
+        [key: string]: any;
+    };
+}
 
 /**
  * Build a complete Subsonic stream URL for a song

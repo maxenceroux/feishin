@@ -27,7 +27,7 @@ export interface MpdQueueItem {
     metadata?: {
         title?: string;
         artist?: string;
-        album?: string;
+        album?: string | null;
         [key: string]: any;
     };
 }

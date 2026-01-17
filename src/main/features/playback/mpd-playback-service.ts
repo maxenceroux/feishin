@@ -3,7 +3,7 @@
  * Controls a remote MPD (Music Player Daemon) instance over TCP
  */
 
-import MPC from 'mpc-js';
+import { MPC } from 'mpc-js';
 import {
     IPlaybackService,
     PlaybackEventCallback,
@@ -32,7 +32,6 @@ export class MpdPlaybackService implements IPlaybackService {
     private subscribers: PlaybackEventCallback[] = [];
     private statusPollInterval: NodeJS.Timeout | null = null;
     private queueMapping: MpdQueueMapping = {};
-    private lastStatus: PlaybackStatus | null = null;
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 10;
     private reconnectTimeout: NodeJS.Timeout | null = null;
@@ -54,10 +53,8 @@ export class MpdPlaybackService implements IPlaybackService {
         }
 
         try {
-            this.client = await MPC.connect({
-                host: this.config.host,
-                port: this.config.port,
-            });
+            this.client = new MPC();
+            await this.client.connectTCP(this.config.host, this.config.port);
 
             // Authenticate if password provided
             if (this.config.password) {
@@ -116,7 +113,7 @@ export class MpdPlaybackService implements IPlaybackService {
     }
 
     async pause(): Promise<void> {
-        await this.sendCommand('pause', [1]);
+        await this.sendCommand('pause', ['1']);
         this.emit({ type: 'pause' });
     }
 
@@ -136,7 +133,6 @@ export class MpdPlaybackService implements IPlaybackService {
     }
 
     async seek(seconds: number): Promise<void> {
-        const status = await this.getStatus();
         await this.sendCommand('seekcur', [seconds.toString()]);
         this.emit({ type: 'seek', data: { position: seconds } });
     }
@@ -229,7 +225,6 @@ export class MpdPlaybackService implements IPlaybackService {
                 currentIndex: currentIndex >= 0 ? currentIndex : undefined,
             };
 
-            this.lastStatus = playbackStatus;
             return playbackStatus;
         } catch (error) {
             console.error('[MPD] Failed to get status:', error);
@@ -263,8 +258,12 @@ export class MpdPlaybackService implements IPlaybackService {
         }
 
         try {
-            const result = await this.client.sendCommand(command, args);
-            return result;
+            // Build command string with arguments
+            const cmdString = args.length > 0 ? `${command} ${args.join(' ')}` : command;
+            const response = await this.client.sendCommand(cmdString);
+            
+            // Return the response lines joined
+            return response.lines.join('\n');
         } catch (error) {
             console.error(`[MPD] Command failed: ${command}`, error);
             

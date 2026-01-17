@@ -83,17 +83,18 @@ export const RemoteTargetsSettings = () => {
             control: (
                 <Switch
                     checked={mpdConfig.enabled}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                        const checked = e.currentTarget.checked;
                         setSettings({
                             playback: {
                                 ...settings,
                                 remoteTargets: {
                                     ...settings.remoteTargets,
-                                    mpd: { ...mpdConfig, enabled: e },
+                                    mpd: { ...mpdConfig, enabled: checked },
                                 },
                             },
-                        })
-                    }
+                        });
+                    }}
                 />
             ),
             description: t('setting.enableMpdRemote', {
@@ -227,10 +228,6 @@ export const RemoteTargetsSettings = () => {
     return (
         <SettingsSection
             options={remoteTargetOptions}
-            title={t('setting.remotePlaybackTargets', {
-                defaultValue: 'Remote Playback Targets',
-                postProcess: 'sentenceCase',
-            })}
         />
     );
 };
