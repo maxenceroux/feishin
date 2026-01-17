@@ -3,6 +3,7 @@ import isElectron from 'is-electron';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PlaybackOutputIndicator } from '/@/renderer/features/player/components/playback-output-indicator';
 import { PlayerbarSlider } from '/@/renderer/features/player/components/playerbar-slider';
 import { useRightControls } from '/@/renderer/features/player/hooks/use-right-controls';
 import { useCreateFavorite, useDeleteFavorite, useSetRating } from '/@/renderer/features/shared';
@@ -315,6 +316,7 @@ export const RightControls = () => {
                         w={volumeWidth}
                     />
                 ) : null}
+                <PlaybackOutputIndicator />
             </Group>
             <Group h="calc(100% / 3)" />
         </Flex>
