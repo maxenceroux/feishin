@@ -870,13 +870,20 @@ export const useGeneralSettings = () => useSettingsStore((state) => state.genera
 
 export const usePlaybackType = () =>
     useSettingsStore((state) => {
-        const isFallback = usePlayerStore.getState().fallback;
+        const settingType = state.playback.type;
 
+        // MPD mode is independent of mpv fallback - always honor the setting
+        if (settingType === PlaybackType.REMOTE_MPD) {
+            return PlaybackType.REMOTE_MPD;
+        }
+
+        // For LOCAL mode, check if we need to fall back to WEB (mpv not available)
+        const isFallback = usePlayerStore.getState().fallback;
         if (isFallback) {
             return PlaybackType.WEB;
         }
 
-        return state.playback.type;
+        return settingType;
     });
 
 export const usePlayButtonBehavior = () =>

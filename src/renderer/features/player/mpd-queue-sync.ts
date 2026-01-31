@@ -51,6 +51,7 @@ export function buildStreamUrl(song: QueueSong, transcode?: TranscodingConfig): 
     }
 
     // Use original stream URL (already includes auth params from Subsonic normalization)
+    console.log('[MPD Queue] Built stream URL:', song.streamUrl);
     return song.streamUrl;
 }
 

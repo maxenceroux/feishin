@@ -97,7 +97,7 @@ Look for your DAC in the output and note the card number and device number. Adju
 Ensure MPD can access audio devices:
 
 ```bash
-sudo usermod -aG audio mpd
+    sudo usermod -aG audio mpd
 ```
 
 ### 1.4 Restart MPD
