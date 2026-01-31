@@ -1,6 +1,6 @@
 {
     "name": "noiseport",
-    "version": "0.20.5",
+    "version": "0.20.6",
     "description": "A modern community-driven self-hosted music player.",
     "keywords": [
         "subsonic",
@@ -53,10 +53,10 @@
         "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
         "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false"
     },
-      "packageManager": "pnpm@10.17.1",
-      "engines": {
-    "node": "22.x"
-  },
+    "packageManager": "pnpm@10.17.1",
+    "engines": {
+        "node": "22.x"
+    },
     "dependencies": {
         "@ag-grid-community/client-side-row-model": "^28.2.1",
         "@ag-grid-community/core": "^28.2.1",
@@ -104,6 +104,7 @@
         "md5": "^2.3.0",
         "memoize-one": "^6.0.0",
         "motion": "^12.18.1",
+        "mpc-js": "^2.1.1",
         "mpris-service": "^2.1.2",
         "nanoid": "^3.3.3",
         "node-mpv": "^1.5.0",

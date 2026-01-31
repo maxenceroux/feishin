@@ -113,6 +113,7 @@ export enum PlaybackStyle {
 
 export enum PlaybackType {
     LOCAL = 'local',
+    REMOTE_MPD = 'remote_mpd',
     WEB = 'web',
 }
 
@@ -196,6 +197,7 @@ export type PlayQueueAddOptions = {
         id: string[];
         type: LibraryItem;
     };
+    expandToAlbum?: boolean;
     initialIndex?: number;
     initialSongId?: string;
     playType: Play;

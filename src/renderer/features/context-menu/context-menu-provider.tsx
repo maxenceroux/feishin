@@ -246,7 +246,11 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
 
                     break;
                 case LibraryItem.SONG:
-                    handlePlayQueueAdd?.({ byData: ctx.data, playType });
+                    handlePlayQueueAdd?.({
+                        byData: ctx.data,
+                        expandToAlbum: ctx.data.length === 1,
+                        playType,
+                    });
                     break;
             }
         },
@@ -734,7 +738,7 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
      */
     const handleDownload = useCallback(() => {
         const item = ctx.data[0];
-        
+
         // Get download URL for the item (works for both albums and songs)
         // When an album ID is passed, the server automatically creates a zip file
         const url = api.controller.getDownloadUrl({

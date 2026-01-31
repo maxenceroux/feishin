@@ -22,6 +22,8 @@ import { WebAudioContext } from '/@/renderer/features/player/context/webaudio-co
 import { useHandlePlayQueueAdd } from '/@/renderer/features/player/hooks/use-handle-playqueue-add';
 import { updateSong } from '/@/renderer/features/player/update-remote-song';
 import { getMpvProperties } from '/@/renderer/features/settings/components/playback/mpv-settings';
+import { useMpdPlayback } from '/@/renderer/hooks/use-mpd-playback';
+import { useMpdStatusSync } from '/@/renderer/hooks/use-mpd-status-sync';
 import { useServerVersion } from '/@/renderer/hooks/use-server-version';
 import { IsUpdatedDialog } from '/@/renderer/is-updated-dialog';
 import { AppRouter } from '/@/renderer/router/app-router';
@@ -61,6 +63,8 @@ export const App = () => {
     const cssRef = useRef<HTMLStyleElement | null>(null);
     useDiscordRpc();
     useServerVersion();
+    useMpdStatusSync(); // Sync MPD status to player store
+    useMpdPlayback(); // Handle MPD playback routing
 
     const [webAudio, setWebAudio] = useState<WebAudio>();
 

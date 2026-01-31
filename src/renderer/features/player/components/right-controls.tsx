@@ -3,6 +3,7 @@ import isElectron from 'is-electron';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PlaybackOutputSelector } from '/@/renderer/features/player/components/playback-output-selector';
 import { PlayerbarSlider } from '/@/renderer/features/player/components/playerbar-slider';
 import { useRightControls } from '/@/renderer/features/player/hooks/use-right-controls';
 import { useCreateFavorite, useDeleteFavorite, useSetRating } from '/@/renderer/features/shared';
@@ -206,6 +207,7 @@ export const RightControls = () => {
                 )}
             </Group>
             <Group align="center" gap="xs" wrap="nowrap">
+                <PlaybackOutputSelector />
                 <DropdownMenu arrowOffset={12} offset={0} position="top-end" width={425} withArrow>
                     <DropdownMenu.Target>
                         <ActionIcon

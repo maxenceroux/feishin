@@ -22,6 +22,7 @@ import { PlaybackType, PlayerRepeat, PlayerShuffle, PlayerStatus } from '/@/shar
 
 const mpvPlayer = isElectron() ? window.api.mpvPlayer : null;
 const mpvPlayerListener = isElectron() ? window.api.mpvPlayerListener : null;
+const mpdPlayer = isElectron() ? window.api.mpdPlayer : null;
 const ipc = isElectron() ? window.api.ipc : null;
 const utils = isElectron() ? window.api.utils : null;
 const mpris = isElectron() && utils?.isLinux() ? window.api.mpris : null;
@@ -66,53 +67,67 @@ export const useCenterControls = (args: { playersRef: any }) => {
     }, [shuffleStatus]);
 
     const resetPlayers = useCallback(() => {
-        if (player1Ref.getInternalPlayer()) {
+        // Skip for MPD mode - no web players to reset
+        if (playbackType === PlaybackType.REMOTE_MPD) return;
+
+        if (player1Ref?.getInternalPlayer()) {
             player1Ref.getInternalPlayer().currentTime = 0;
             player1Ref.getInternalPlayer().pause();
         }
 
-        if (player2Ref.getInternalPlayer()) {
+        if (player2Ref?.getInternalPlayer()) {
             player2Ref.getInternalPlayer().currentTime = 0;
             player2Ref.getInternalPlayer().pause();
         }
-    }, [player1Ref, player2Ref]);
+    }, [playbackType, player1Ref, player2Ref]);
 
     const resetNextPlayer = useCallback(() => {
-        currentPlayerRef.getInternalPlayer().volume = 0.1;
+        // Skip for MPD mode - no web players to reset
+        if (playbackType === PlaybackType.REMOTE_MPD) return;
 
-        const nextPlayer = nextPlayerRef.getInternalPlayer();
+        currentPlayerRef?.getInternalPlayer() &&
+            (currentPlayerRef.getInternalPlayer().volume = 0.1);
+
+        const nextPlayer = nextPlayerRef?.getInternalPlayer();
         if (nextPlayer) {
             nextPlayer.currentTime = 0;
             nextPlayer.pause();
         }
-    }, [currentPlayerRef, nextPlayerRef]);
+    }, [playbackType, currentPlayerRef, nextPlayerRef]);
 
     const stopPlayback = useCallback(() => {
-        player1Ref.getInternalPlayer().pause();
-        player2Ref.getInternalPlayer().pause();
+        // Skip for MPD mode - no web players to stop
+        if (playbackType === PlaybackType.REMOTE_MPD) return;
+
+        player1Ref?.getInternalPlayer()?.pause();
+        player2Ref?.getInternalPlayer()?.pause();
         resetPlayers();
-    }, [player1Ref, player2Ref, resetPlayers]);
+    }, [playbackType, player1Ref, player2Ref, resetPlayers]);
 
     const isMpvPlayer = isElectron() && playbackType === PlaybackType.LOCAL;
+    const isMpdPlayer = playbackType === PlaybackType.REMOTE_MPD;
 
     const handlePlay = useCallback(() => {
         if (isMpvPlayer) {
             mpvPlayer?.volume(usePlayerStore.getState().volume);
             mpvPlayer!.play();
-        } else {
+        } else if (!isMpdPlayer) {
+            // Web player - only access internal player if not in MPD mode
             currentPlayerRef
-                .getInternalPlayer()
+                ?.getInternalPlayer()
                 ?.play()
                 .catch(() => {});
         }
+        // For MPD mode, the use-mpd-playback hook handles play via status change
 
         play();
-    }, [currentPlayerRef, isMpvPlayer, play]);
+    }, [currentPlayerRef, isMpdPlayer, isMpvPlayer, play]);
 
     const handlePause = useCallback(() => {
         if (isMpvPlayer) {
             mpvPlayer!.pause();
         }
+        // For MPD mode, the use-mpd-playback hook handles pause via status change
 
         pause();
     }, [isMpvPlayer, pause]);
@@ -120,13 +135,13 @@ export const useCenterControls = (args: { playersRef: any }) => {
     const handleStop = useCallback(() => {
         if (isMpvPlayer) {
             mpvPlayer!.stop();
-        } else {
+        } else if (!isMpdPlayer) {
             stopPlayback();
         }
 
         setCurrentTime(0);
         pause();
-    }, [isMpvPlayer, pause, setCurrentTime, stopPlayback]);
+    }, [isMpdPlayer, isMpvPlayer, pause, setCurrentTime, stopPlayback]);
 
     const handleToggleShuffle = useCallback(() => {
         if (shuffleStatus === PlayerShuffle.NONE) {
@@ -502,7 +517,9 @@ export const useCenterControls = (args: { playersRef: any }) => {
     };
 
     const debouncedSeek = debounce((e: number) => {
-        if (isMpvPlayer) {
+        if (isMpdPlayer) {
+            mpdPlayer?.seek(e);
+        } else if (isMpvPlayer) {
             mpvPlayer!.seekTo(e);
         } else {
             currentPlayerRef.seekTo(e, 'seconds');
