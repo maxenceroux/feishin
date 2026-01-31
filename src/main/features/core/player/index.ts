@@ -9,8 +9,6 @@ import { getMainWindow, sendToastToRenderer } from '../../../index';
 import { createLog, isWindows } from '../../../utils';
 import { store } from '../settings';
 
-declare module 'node-mpv';
-
 // function wait(timeout: number) {
 //     return new Promise((resolve) => {
 //         setTimeout(() => {
