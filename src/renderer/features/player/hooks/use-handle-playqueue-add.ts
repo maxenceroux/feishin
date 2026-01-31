@@ -73,7 +73,15 @@ export const useHandlePlayQueueAdd = () => {
     const handlePlayQueueAdd = useCallback(
         async (options: PlayQueueAddOptions) => {
             if (!server) return toast.error({ message: 'No server selected', type: 'error' });
-            const { byData, byItemType, initialIndex, initialSongId, playType, query } = options;
+            const {
+                byData,
+                byItemType,
+                expandToAlbum,
+                initialIndex,
+                initialSongId,
+                playType,
+                query,
+            } = options;
             let songs: null | QueueSong[] = null;
             // Allow this to be undefined for "play shuffled". If undefined, default to 0,
             // otherwise, choose the selected item in the queue
@@ -136,11 +144,37 @@ export const useHandlePlayQueueAdd = () => {
                         if (id?.length === 1) {
                             songList = await getSongById({ id: id?.[0], queryClient, server });
                         } else if (!doubleClickQueueAll && initialSongId) {
-                            songList = await getSongById({
+                            // Fetch the single song first
+                            const singleSongList = await getSongById({
                                 id: initialSongId,
                                 queryClient,
                                 server,
                             });
+
+                            // Try to expand to full album
+                            const singleSong = singleSongList?.items?.[0];
+                            if (singleSong?.albumId) {
+                                const albumSongs = await getAlbumSongsById({
+                                    id: [singleSong.albumId],
+                                    queryClient,
+                                    server,
+                                });
+
+                                if (albumSongs?.items && albumSongs.items.length > 1) {
+                                    songList = albumSongs;
+                                    // Find the index of the clicked song
+                                    const songIndex = albumSongs.items.findIndex(
+                                        (s) => s.id === singleSong.id,
+                                    );
+                                    if (songIndex !== -1) {
+                                        initialSongIndex = songIndex;
+                                    }
+                                } else {
+                                    songList = singleSongList;
+                                }
+                            } else {
+                                songList = singleSongList;
+                            }
                         } else {
                             songList = await getSongsByQuery({ query, queryClient, server });
                         }
@@ -168,6 +202,35 @@ export const useHandlePlayQueueAdd = () => {
 
                 songs =
                     songList?.items?.map((song: Song) => ({ ...song, uniqueId: nanoid() })) || null;
+            } else if (byData && byData.length === 1 && expandToAlbum) {
+                // Expand single song to full album
+                const song = byData[0];
+
+                if (song.albumId) {
+                    try {
+                        const albumSongs = await getAlbumSongsById({
+                            id: [song.albumId],
+                            queryClient,
+                            server,
+                        });
+
+                        if (albumSongs?.items && albumSongs.items.length > 1) {
+                            // Replace with full album, find initial song index
+                            songs = albumSongs.items.map((s) => ({ ...s, uniqueId: nanoid() }));
+                            initialSongIndex = songs.findIndex((s) => s.id === song.id);
+                            if (initialSongIndex === -1) {
+                                initialSongIndex = 0;
+                            }
+                        } else {
+                            songs = byData.map((s) => ({ ...s, uniqueId: nanoid() }));
+                        }
+                    } catch {
+                        // Fallback to single song on error
+                        songs = byData.map((s) => ({ ...s, uniqueId: nanoid() }));
+                    }
+                } else {
+                    songs = byData.map((s) => ({ ...s, uniqueId: nanoid() }));
+                }
             } else if (byData) {
                 songs = byData.map((song) => ({ ...song, uniqueId: nanoid() })) || null;
             }
