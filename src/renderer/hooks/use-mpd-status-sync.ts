@@ -7,10 +7,9 @@ import isElectron from 'is-electron';
 import { useEffect } from 'react';
 
 import { usePlaybackType, usePlayerStore } from '/@/renderer/store';
-import { PlaybackType } from '/@/shared/types/types';
+import { PlaybackType, PlayerStatus } from '/@/shared/types/types';
 
 const mpdPlayerListener = isElectron() ? window.api.mpdPlayerListener : null;
-const ipc = isElectron() ? window.api.ipc : null;
 
 export const useMpdStatusSync = () => {
     const playbackType = usePlaybackType();
@@ -26,11 +25,11 @@ export const useMpdStatusSync = () => {
         const handleStatusUpdate = (
             _event: any,
             status: {
-                currentIndex?: number;
-                duration: number;
+                state: 'playing' | 'paused' | 'stopped';
                 position: number;
-                state: 'paused' | 'playing' | 'stopped';
+                duration: number;
                 volume: number;
+                currentIndex?: number;
             },
         ) => {
             // Update player store with MPD status
@@ -41,8 +40,8 @@ export const useMpdStatusSync = () => {
             // Volume sync is handled by use-mpd-playback hook
 
             console.log('[MPD Status Sync] Updated position:', {
-                duration: status.duration,
                 position: status.position,
+                duration: status.duration,
                 state: status.state,
             });
         };
@@ -51,7 +50,7 @@ export const useMpdStatusSync = () => {
 
         // Cleanup
         return () => {
-            ipc?.removeAllListeners('renderer-mpd-status');
+            // Note: mpc-js doesn't provide removeListener
         };
     }, [isMpdMode, actions]);
 };

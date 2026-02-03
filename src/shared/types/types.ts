@@ -197,7 +197,6 @@ export type PlayQueueAddOptions = {
         id: string[];
         type: LibraryItem;
     };
-    expandToAlbum?: boolean;
     initialIndex?: number;
     initialSongId?: string;
     playType: Play;

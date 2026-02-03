@@ -9,15 +9,14 @@ import { usePlaybackSettings, usePlaybackType } from '/@/renderer/store/settings
 import { PlaybackType } from '/@/shared/types/types';
 
 const mpdPlayerListener = isElectron() ? window.api.mpdPlayerListener : null;
-const ipc = isElectron() ? window.api.ipc : null;
 
-export type MpdConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
+export type MpdConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'error';
 
 export const useMpdConnection = () => {
     const playbackType = usePlaybackType();
     const settings = usePlaybackSettings();
     const [status, setStatus] = useState<MpdConnectionStatus>('disconnected');
-    const [error, setError] = useState<null | string>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const isMpdMode = playbackType === PlaybackType.REMOTE_MPD;
     const mpdConfig = settings.remoteTargets?.mpd;
@@ -30,19 +29,16 @@ export const useMpdConnection = () => {
 
         // Set up event listeners
         const handleConnected = () => {
-            console.log('[MPD Connection] Connected event received');
             setStatus('connected');
             setError(null);
         };
 
         const handleDisconnected = () => {
-            console.log('[MPD Connection] Disconnected event received');
             setStatus('disconnected');
             setError(null);
         };
 
         const handleError = (_event: any, errorData: { message: string }) => {
-            console.log('[MPD Connection] Error event received:', errorData.message);
             setStatus('error');
             setError(errorData.message);
         };
@@ -63,9 +59,8 @@ export const useMpdConnection = () => {
 
         // Cleanup
         return () => {
-            ipc?.removeAllListeners('renderer-mpd-connected');
-            ipc?.removeAllListeners('renderer-mpd-disconnected');
-            ipc?.removeAllListeners('renderer-mpd-error');
+            // Note: mpc-js doesn't provide removeListener, 
+            // but since this is tied to component lifecycle it's okay
         };
     }, [isMpdMode, mpdConfig?.enabled, mpdConfig?.host]);
 

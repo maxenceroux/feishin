@@ -547,7 +547,7 @@ const initialState: SettingsState = {
         transcode: {
             enabled: false,
         },
-        type: PlaybackType.WEB,
+        type: PlaybackType.LOCAL,
         webAudio: true,
     },
     remote: {
@@ -854,6 +854,12 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                 return persistedState;
             },
             name: 'store_settings',
+            partialize: (state) => {
+                // Exclude playback.type from persistence so it resets to LOCAL on restart
+                const { playback, ...rest } = state;
+                const { type, ...playbackRest } = playback;
+                return { ...rest, playback: playbackRest } as SettingsSlice;
+            },
             version: 9,
         },
     ),
@@ -870,20 +876,13 @@ export const useGeneralSettings = () => useSettingsStore((state) => state.genera
 
 export const usePlaybackType = () =>
     useSettingsStore((state) => {
-        const settingType = state.playback.type;
-
-        // MPD mode is independent of mpv fallback - always honor the setting
-        if (settingType === PlaybackType.REMOTE_MPD) {
-            return PlaybackType.REMOTE_MPD;
-        }
-
-        // For LOCAL mode, check if we need to fall back to WEB (mpv not available)
         const isFallback = usePlayerStore.getState().fallback;
+
         if (isFallback) {
             return PlaybackType.WEB;
         }
 
-        return settingType;
+        return state.playback.type;
     });
 
 export const usePlayButtonBehavior = () =>

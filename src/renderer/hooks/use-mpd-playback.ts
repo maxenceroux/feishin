@@ -41,41 +41,32 @@ export const useMpdPlayback = () => {
 
     // Connect/disconnect based on playback type and settings
     useEffect(() => {
-        let cancelled = false;
-
-        console.log('[MPD Hook] Connect/disconnect effect fired', {
-            enabled: mpdConfig?.enabled,
-            host: mpdConfig?.host,
-            isMpdMode,
-        });
-
         const connect = async () => {
             if (!isMpdMode) {
                 console.log('[MPD Hook] Not in MPD mode, skipping connect');
                 return;
             }
-
+            
             if (!mpdConfig?.enabled) {
                 console.log('[MPD Hook] MPD not enabled in config');
                 return;
             }
-
+            
             if (!mpdConfig.host) {
                 console.log('[MPD Hook] No MPD host configured');
                 return;
             }
 
             console.log('[MPD Hook] Attempting to connect to MPD:', {
-                hasPassword: !!mpdConfig.password,
                 host: mpdConfig.host,
                 port: mpdConfig.port,
+                hasPassword: !!mpdConfig.password,
             });
 
             try {
                 const connected = await mpdPlayer?.isConnected();
-                if (cancelled) return;
                 console.log('[MPD Hook] Current connection state:', connected);
-
+                
                 if (!connected) {
                     console.log('[MPD Hook] Connecting...');
                     await mpdPlayer?.connect({
@@ -83,7 +74,6 @@ export const useMpdPlayback = () => {
                         password: mpdConfig.password || undefined,
                         port: mpdConfig.port,
                     });
-                    if (cancelled) return;
                     isConnectedRef.current = true;
                     queueSyncedRef.current = false; // Reset queue sync on reconnect
                     console.log('[MPD Hook] Successfully connected to MPD');
@@ -92,48 +82,39 @@ export const useMpdPlayback = () => {
                     isConnectedRef.current = true;
                 }
             } catch (error) {
-                if (cancelled) return;
                 console.error('[MPD Hook] Failed to connect:', error);
                 isConnectedRef.current = false;
             }
         };
 
+        const disconnect = async () => {
+            if (isConnectedRef.current && !isMpdMode) {
+                try {
+                    await mpdPlayer?.disconnect();
+                    isConnectedRef.current = false;
+                    queueSyncedRef.current = false;
+                    console.log('[MPD Hook] Disconnected from MPD');
+                } catch (error) {
+                    console.error('[MPD Hook] Failed to disconnect:', error);
+                }
+            }
+        };
+
         if (isMpdMode) {
             connect();
-        } else if (isConnectedRef.current) {
-            // Switching away from MPD mode — fire-and-forget disconnect
-            console.log('[MPD Hook] Leaving MPD mode, disconnecting');
-            isConnectedRef.current = false;
-            queueSyncedRef.current = false;
-            mpdPlayer?.disconnect().catch((error: unknown) => {
-                console.error('[MPD Hook] Failed to disconnect:', error);
-            });
+        } else {
+            disconnect();
         }
 
         return () => {
-            cancelled = true;
-            // Synchronously reset refs so subsequent effects don't act on stale state
             if (isConnectedRef.current) {
-                console.log('[MPD Hook] Cleanup: resetting refs and disconnecting');
-                isConnectedRef.current = false;
-                queueSyncedRef.current = false;
-                // Fire-and-forget disconnect
-                mpdPlayer?.disconnect().catch((error: unknown) => {
-                    console.error('[MPD Hook] Cleanup disconnect error:', error);
-                });
+                disconnect();
             }
         };
     }, [isMpdMode, mpdConfig?.enabled, mpdConfig?.host, mpdConfig?.port, mpdConfig?.password]);
 
     // Sync queue to MPD when queue changes
     useEffect(() => {
-        console.log('[MPD Hook] Queue sync effect', {
-            connected: isConnectedRef.current,
-            isMpdMode,
-            queueLen: queue.length,
-            synced: queueSyncedRef.current,
-        });
-
         if (!isMpdMode || !isConnectedRef.current || queue.length === 0) {
             return;
         }
@@ -145,13 +126,11 @@ export const useMpdPlayback = () => {
             try {
                 // Convert entire queue to MPD format
                 const mpdQueue = convertToMpdQueue(queue, settings.transcode);
-
+                
                 // Set queue starting at current index
                 mpdPlayer?.setQueue(mpdQueue, currentIndex);
                 queueSyncedRef.current = true;
-                console.log(
-                    `[MPD Hook] Queue synced: ${queue.length} tracks, starting at index ${currentIndex}`,
-                );
+                console.log(`[MPD Hook] Queue synced: ${queue.length} tracks, starting at index ${currentIndex}`);
             } catch (error) {
                 console.error('[MPD Hook] Failed to sync queue:', error);
             }
@@ -160,12 +139,6 @@ export const useMpdPlayback = () => {
 
     // Handle play/pause status changes
     useEffect(() => {
-        console.log('[MPD Hook] Status effect', {
-            isMpdMode,
-            prevStatus: prevStatusRef.current,
-            status,
-        });
-
         if (!isMpdMode || !isConnectedRef.current) {
             return;
         }
@@ -188,8 +161,6 @@ export const useMpdPlayback = () => {
 
     // Handle volume changes
     useEffect(() => {
-        console.log('[MPD Hook] Volume effect', { isMpdMode, volume });
-
         if (!isMpdMode || !isConnectedRef.current) {
             return;
         }
@@ -199,13 +170,6 @@ export const useMpdPlayback = () => {
 
     // Handle song changes (track navigation via next/previous or jump)
     useEffect(() => {
-        console.log('[MPD Hook] Song change effect', {
-            currentIndex,
-            isMpdMode,
-            prevIndex: prevIndexRef.current,
-            songId: currentSong?.uniqueId,
-        });
-
         if (!isMpdMode || !isConnectedRef.current || !queueSyncedRef.current) {
             return;
         }
@@ -216,7 +180,7 @@ export const useMpdPlayback = () => {
         // Detect if index changed (user pressed next/previous or jumped to track)
         if (prevIndex !== currentIndex && prevIndex !== -1) {
             const indexDiff = currentIndex - prevIndex;
-
+            
             if (indexDiff === 1) {
                 // User went forward by 1 - call next()
                 mpdPlayer?.next();
