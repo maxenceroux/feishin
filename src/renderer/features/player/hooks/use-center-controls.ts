@@ -191,6 +191,10 @@ export const useCenterControls = (args: { playersRef: any }) => {
                 setAutoNext(playerData);
                 play();
             },
+            remote_mpd: () => {
+                const playerData = autoNext();
+                updateSong(playerData.current.song);
+            },
             web: () => {
                 const playerData = autoNext();
                 updateSong(playerData.current.song);
@@ -211,6 +215,14 @@ export const useCenterControls = (args: { playersRef: any }) => {
                     play();
                 }
             },
+            remote_mpd: () => {
+                if (isLastTrack) {
+                    pause();
+                } else {
+                    const playerData = autoNext();
+                    updateSong(playerData.current.song);
+                }
+            },
             web: () => {
                 if (isLastTrack) {
                     resetPlayers();
@@ -229,6 +241,10 @@ export const useCenterControls = (args: { playersRef: any }) => {
                 updateSong(playerData.current.song);
                 setAutoNext(playerData);
                 play();
+            },
+            remote_mpd: () => {
+                const playerData = autoNext();
+                updateSong(playerData.current.song);
             },
             web: () => {
                 if (isLastTrack) {
@@ -275,6 +291,10 @@ export const useCenterControls = (args: { playersRef: any }) => {
                 updateSong(playerData.current.song);
                 setQueue(playerData);
             },
+            remote_mpd: () => {
+                const playerData = next();
+                updateSong(playerData.current.song);
+            },
             web: () => {
                 const playerData = next();
                 updateSong(playerData.current.song);
@@ -292,6 +312,16 @@ export const useCenterControls = (args: { playersRef: any }) => {
                     const playerData = next();
                     updateSong(playerData.current.song);
                     setQueue(playerData);
+                }
+            },
+            remote_mpd: () => {
+                if (isLastTrack) {
+                    const playerData = setCurrentIndex(0);
+                    updateSong(playerData.current.song);
+                    pause();
+                } else {
+                    const playerData = next();
+                    updateSong(playerData.current.song);
                 }
             },
             web: () => {
@@ -314,6 +344,12 @@ export const useCenterControls = (args: { playersRef: any }) => {
                     const playerData = next();
                     updateSong(playerData.current.song);
                     setQueue(playerData);
+                }
+            },
+            remote_mpd: () => {
+                if (!isLastTrack) {
+                    const playerData = next();
+                    updateSong(playerData.current.song);
                 }
             },
             web: () => {
@@ -354,7 +390,9 @@ export const useCenterControls = (args: { playersRef: any }) => {
     const handlePrevTrack = useCallback(() => {
         const currentTime = isMpvPlayer
             ? usePlayerStore.getState().current.time
-            : currentPlayerRef.getCurrentTime();
+            : isMpdPlayer
+              ? usePlayerStore.getState().current.time
+              : currentPlayerRef.getCurrentTime();
 
         // Reset the current track more than 10 seconds have elapsed
         if (currentTime >= 10) {
@@ -363,6 +401,10 @@ export const useCenterControls = (args: { playersRef: any }) => {
             mpris?.updateSeek(0);
             if (isMpvPlayer) {
                 return mpvPlayer!.seekTo(0);
+            }
+            if (isMpdPlayer) {
+                mpdPlayer?.seek(0);
+                return;
             }
             return currentPlayerRef.seekTo(0);
         }
@@ -379,6 +421,15 @@ export const useCenterControls = (args: { playersRef: any }) => {
                     const playerData = setCurrentIndex(queue.length - 1);
                     updateSong(playerData.current.song);
                     setQueue(playerData);
+                }
+            },
+            remote_mpd: () => {
+                if (isFirstTrack) {
+                    const playerData = setCurrentIndex(queue.length - 1);
+                    updateSong(playerData.current.song);
+                } else {
+                    const playerData = previous();
+                    updateSong(playerData.current.song);
                 }
             },
             web: () => {
@@ -407,6 +458,14 @@ export const useCenterControls = (args: { playersRef: any }) => {
                     setQueue(playerData);
                 }
             },
+            remote_mpd: () => {
+                if (isFirstTrack) {
+                    pause();
+                } else {
+                    const playerData = previous();
+                    updateSong(playerData.current.song);
+                }
+            },
             web: () => {
                 if (isFirstTrack) {
                     resetPlayers();
@@ -424,6 +483,10 @@ export const useCenterControls = (args: { playersRef: any }) => {
                 const playerData = previous();
                 updateSong(playerData.current.song);
                 setQueue(playerData);
+            },
+            remote_mpd: () => {
+                const playerData = previous();
+                updateSong(playerData.current.song);
             },
             web: () => {
                 const playerData = previous();
