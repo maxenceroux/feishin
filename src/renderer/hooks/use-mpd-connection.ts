@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { usePlaybackSettings, usePlaybackType } from '/@/renderer/store/settings.store';
 import { PlaybackType } from '/@/shared/types/types';
 
+const mpdPlayer = isElectron() ? window.api.mpdPlayer : null;
 const mpdPlayerListener = isElectron() ? window.api.mpdPlayerListener : null;
 
 export type MpdConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'error';
@@ -47,11 +48,15 @@ export const useMpdConnection = () => {
         mpdPlayerListener?.onDisconnected(handleDisconnected);
         mpdPlayerListener?.onError(handleError);
 
-        // Check initial connection state
+        // Query actual connection state (read-only, no connect attempt)
         const checkConnection = async () => {
             if (mpdConfig?.enabled && mpdConfig.host) {
-                setStatus('connecting');
-                // The useMpdPlayback hook will handle actual connection
+                try {
+                    const connected = await mpdPlayer?.isConnected();
+                    setStatus(connected ? 'connected' : 'connecting');
+                } catch {
+                    setStatus('connecting');
+                }
             }
         };
 
@@ -59,8 +64,7 @@ export const useMpdConnection = () => {
 
         // Cleanup
         return () => {
-            // Note: mpc-js doesn't provide removeListener, 
-            // but since this is tied to component lifecycle it's okay
+            // Note: preload doesn't expose removeListener for ipcRenderer
         };
     }, [isMpdMode, mpdConfig?.enabled, mpdConfig?.host]);
 

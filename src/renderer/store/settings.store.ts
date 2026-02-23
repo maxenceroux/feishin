@@ -878,7 +878,9 @@ export const usePlaybackType = () =>
     useSettingsStore((state) => {
         const isFallback = usePlayerStore.getState().fallback;
 
-        if (isFallback) {
+        // Fallback only applies to LOCAL → WEB (MPV failed);
+        // REMOTE_MPD should always be honored since it doesn't use MPV
+        if (isFallback && state.playback.type === PlaybackType.LOCAL) {
             return PlaybackType.WEB;
         }
 

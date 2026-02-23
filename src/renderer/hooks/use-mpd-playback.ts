@@ -7,6 +7,7 @@ import isElectron from 'is-electron';
 import { useEffect, useRef } from 'react';
 
 import { convertToMpdQueue } from '/@/renderer/features/player/mpd-queue-sync';
+import { mpdStatusDrivenIndexChange, resetMpdStatusFlag } from '/@/renderer/hooks/use-mpd-status-sync';
 import {
     useCurrentSong,
     useCurrentStatus,
@@ -19,6 +20,7 @@ import { usePlaybackSettings } from '/@/renderer/store/settings.store';
 import { PlaybackType, PlayerStatus } from '/@/shared/types/types';
 
 const mpdPlayer = isElectron() ? window.api.mpdPlayer : null;
+const mpdPlayerListener = isElectron() ? window.api.mpdPlayerListener : null;
 
 export const useMpdPlayback = () => {
     const playbackType = usePlaybackType();
@@ -39,19 +41,38 @@ export const useMpdPlayback = () => {
     const isMpdMode = playbackType === PlaybackType.REMOTE_MPD;
     const mpdConfig = settings.remoteTargets?.mpd;
 
+    // Track connection state from main process events
+    useEffect(() => {
+        if (!isMpdMode || !isElectron()) return;
+
+        mpdPlayerListener?.onConnected(() => {
+            console.log('[MPD Hook] Received connected event');
+            isConnectedRef.current = true;
+            queueSyncedRef.current = false;
+        });
+
+        mpdPlayerListener?.onDisconnected(() => {
+            console.log('[MPD Hook] Received disconnected event');
+            isConnectedRef.current = false;
+        });
+
+        mpdPlayerListener?.onError(() => {
+            isConnectedRef.current = false;
+        });
+    }, [isMpdMode]);
+
     // Connect/disconnect based on playback type and settings
     useEffect(() => {
         const connect = async () => {
             if (!isMpdMode) {
-                console.log('[MPD Hook] Not in MPD mode, skipping connect');
                 return;
             }
-            
+
             if (!mpdConfig?.enabled) {
                 console.log('[MPD Hook] MPD not enabled in config');
                 return;
             }
-            
+
             if (!mpdConfig.host) {
                 console.log('[MPD Hook] No MPD host configured');
                 return;
@@ -66,16 +87,25 @@ export const useMpdPlayback = () => {
             try {
                 const connected = await mpdPlayer?.isConnected();
                 console.log('[MPD Hook] Current connection state:', connected);
-                
+
                 if (!connected) {
                     console.log('[MPD Hook] Connecting...');
-                    await mpdPlayer?.connect({
+                    const result = await mpdPlayer?.connect({
                         host: mpdConfig.host,
                         password: mpdConfig.password || undefined,
                         port: mpdConfig.port,
                     });
+
+                    if (result && !result.success) {
+                        console.error('[MPD Hook] Connection failed:', result.error);
+                        // Main process may retry via reconnect logic;
+                        // isConnectedRef updated by 'connected' event listener
+                        return;
+                    }
+
+                    // Success path — also set ref directly for immediate availability
                     isConnectedRef.current = true;
-                    queueSyncedRef.current = false; // Reset queue sync on reconnect
+                    queueSyncedRef.current = false;
                     console.log('[MPD Hook] Successfully connected to MPD');
                 } else {
                     console.log('[MPD Hook] Already connected');
@@ -83,7 +113,6 @@ export const useMpdPlayback = () => {
                 }
             } catch (error) {
                 console.error('[MPD Hook] Failed to connect:', error);
-                isConnectedRef.current = false;
             }
         };
 
@@ -179,8 +208,16 @@ export const useMpdPlayback = () => {
 
         // Detect if index changed (user pressed next/previous or jumped to track)
         if (prevIndex !== currentIndex && prevIndex !== -1) {
+            // Skip if this change originated from MPD status polling (not a user action)
+            if (mpdStatusDrivenIndexChange) {
+                resetMpdStatusFlag();
+                console.log('[MPD Hook] Index change from MPD status sync, skipping command');
+                prevSongIdRef.current = currentSong?.uniqueId;
+                return;
+            }
+
             const indexDiff = currentIndex - prevIndex;
-            
+
             if (indexDiff === 1) {
                 // User went forward by 1 - call next()
                 mpdPlayer?.next();

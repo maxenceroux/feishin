@@ -4,18 +4,29 @@
  */
 
 import isElectron from 'is-electron';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { usePlaybackType, usePlayerStore } from '/@/renderer/store';
-import { PlaybackType, PlayerStatus } from '/@/shared/types/types';
+import { PlaybackType } from '/@/shared/types/types';
 
 const mpdPlayerListener = isElectron() ? window.api.mpdPlayerListener : null;
+
+/**
+ * Flag to indicate an index change originated from MPD status polling,
+ * so the playback hook doesn't echo the command back to MPD.
+ */
+export let mpdStatusDrivenIndexChange = false;
+
+export function resetMpdStatusFlag(): void {
+    mpdStatusDrivenIndexChange = false;
+}
 
 export const useMpdStatusSync = () => {
     const playbackType = usePlaybackType();
     const { actions } = usePlayerStore();
 
     const isMpdMode = playbackType === PlaybackType.REMOTE_MPD;
+    const prevMpdIndexRef = useRef<number>(-1);
 
     useEffect(() => {
         if (!isMpdMode || !isElectron()) {
@@ -32,25 +43,35 @@ export const useMpdStatusSync = () => {
                 currentIndex?: number;
             },
         ) => {
-            // Update player store with MPD status
             // Update current time (position)
             actions.setCurrentTime(status.position);
 
-            // Note: Duration is typically stored in the song metadata, not updated here
-            // Volume sync is handled by use-mpd-playback hook
+            // Sync track index when MPD advances to a different track
+            if (
+                status.currentIndex !== undefined &&
+                status.currentIndex >= 0 &&
+                status.currentIndex !== prevMpdIndexRef.current
+            ) {
+                prevMpdIndexRef.current = status.currentIndex;
 
-            console.log('[MPD Status Sync] Updated position:', {
-                position: status.position,
-                duration: status.duration,
-                state: status.state,
-            });
+                // Read current store index directly to avoid stale closure
+                const storeIndex = usePlayerStore.getState().current.index;
+                if (status.currentIndex !== storeIndex) {
+                    console.log('[MPD Status Sync] Track changed:', {
+                        mpdIndex: status.currentIndex,
+                        storeIndex,
+                    });
+                    mpdStatusDrivenIndexChange = true;
+                    actions.setCurrentIndex(status.currentIndex);
+                }
+            }
         };
 
         mpdPlayerListener?.onStatusUpdate(handleStatusUpdate);
 
         // Cleanup
         return () => {
-            // Note: mpc-js doesn't provide removeListener
+            // Note: preload doesn't expose removeListener for ipcRenderer
         };
     }, [isMpdMode, actions]);
 };

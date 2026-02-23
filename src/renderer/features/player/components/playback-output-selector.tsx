@@ -43,7 +43,7 @@ export const PlaybackOutputSelector = () => {
             }
         }
 
-        // Update playback type
+        // Update playback type — useMpdPlayback hook handles connection
         setSettings({
             playback: {
                 ...settings,
@@ -85,7 +85,6 @@ export const PlaybackOutputSelector = () => {
             <DropdownMenu.Target>
                 <ActionIcon
                     iconProps={{
-                        color: playbackType === PlaybackType.REMOTE_MPD && isConnected ? 'primary' : undefined,
                         size: 'xl',
                     }}
                     onClick={(e) => {
@@ -98,7 +97,10 @@ export const PlaybackOutputSelector = () => {
                     }}
                     variant="subtle"
                 >
-                    <OutputIcon size={22} />
+                    <OutputIcon
+                        color={playbackType === PlaybackType.REMOTE_MPD && isConnected ? 'var(--theme-colors-primary-filled)' : undefined}
+                        size={22}
+                    />
                 </ActionIcon>
             </DropdownMenu.Target>
             <DropdownMenu.Dropdown>
