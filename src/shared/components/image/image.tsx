@@ -4,6 +4,7 @@ import { ForwardedRef, forwardRef, type ImgHTMLAttributes } from 'react';
 import { Img } from 'react-image';
 import { InView } from 'react-intersection-observer';
 
+import { isImageCached, markImageLoaded } from './image-cache';
 import styles from './image.module.css';
 
 import { animationProps } from '/@/shared/components/animations/animation-props';
@@ -47,6 +48,31 @@ export function Image({
     src,
 }: ImageProps) {
     if (src) {
+        if (isImageCached(src)) {
+            return (
+                <Img
+                    className={clsx(styles.image, className)}
+                    container={(children) => (
+                        <ImageContainer
+                            className={containerClassName}
+                            enableAnimation={enableAnimation}
+                            {...imageContainerProps}
+                        >
+                            {children}
+                        </ImageContainer>
+                    )}
+                    src={src}
+                    unloader={
+                        includeUnloader ? (
+                            <ImageContainer className={containerClassName}>
+                                <ImageUnloader className={className} />
+                            </ImageContainer>
+                        ) : null
+                    }
+                />
+            );
+        }
+
         return (
             <InView>
                 {({ inView, ref }) => (
@@ -69,6 +95,11 @@ export function Image({
                                 </ImageContainer>
                             ) : null
                         }
+                        onLoad={() => {
+                            if (inView) {
+                                markImageLoaded(src);
+                            }
+                        }}
                         src={inView ? src : FALLBACK_SVG}
                         unloader={
                             includeUnloader ? (

@@ -34,7 +34,7 @@ export const useMpdPlayback = () => {
     const prevStatusRef = useRef<PlayerStatus>(status);
     const prevSongIdRef = useRef<string | undefined>(currentSong?.uniqueId);
     const prevIndexRef = useRef(currentIndex);
-    const prevQueueLengthRef = useRef(0);
+    const prevQueueRef = useRef(queue);
     const isConnectedRef = useRef(false);
     const queueSyncedRef = useRef(false);
 
@@ -148,17 +148,23 @@ export const useMpdPlayback = () => {
             return;
         }
 
-        const queueChanged = queue.length !== prevQueueLengthRef.current || !queueSyncedRef.current;
-        prevQueueLengthRef.current = queue.length;
+        // Detect actual queue changes by reference (immer always produces new refs)
+        const queueChanged = queue !== prevQueueRef.current || !queueSyncedRef.current;
+        prevQueueRef.current = queue;
 
         if (queueChanged) {
             try {
                 // Convert entire queue to MPD format
                 const mpdQueue = convertToMpdQueue(queue, settings.transcode);
-                
+
                 // Set queue starting at current index
                 mpdPlayer?.setQueue(mpdQueue, currentIndex);
                 queueSyncedRef.current = true;
+
+                // Update prevIndexRef so the song change effect (runs after this one)
+                // doesn't also fire a redundant setQueue for the same index change
+                prevIndexRef.current = currentIndex;
+
                 console.log(`[MPD Hook] Queue synced: ${queue.length} tracks, starting at index ${currentIndex}`);
             } catch (error) {
                 console.error('[MPD Hook] Failed to sync queue:', error);

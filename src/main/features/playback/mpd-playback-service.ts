@@ -63,6 +63,12 @@ export class MpdPlaybackService implements IPlaybackService {
 
             this.connected = true;
             this.reconnectAttempts = 0;
+
+            // Ensure MPD plays through the queue (disable single-song repeat/stop)
+            await this.sendCommand('single', ['0']);
+            await this.sendCommand('repeat', ['0']);
+            await this.sendCommand('consume', ['0']);
+
             this.emit({ type: 'connected' });
 
             // Start status polling
@@ -260,8 +266,9 @@ export class MpdPlaybackService implements IPlaybackService {
         }
 
         try {
-            // Build command string with arguments
-            const cmdString = args.length > 0 ? `${command} ${args.join(' ')}` : command;
+            // Build command string with quoted arguments (MPD protocol requires quoting)
+            const quotedArgs = args.map((arg) => `"${arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`);
+            const cmdString = quotedArgs.length > 0 ? `${command} ${quotedArgs.join(' ')}` : command;
             const response = await this.client.sendCommand(cmdString);
             
             // Return the response lines joined

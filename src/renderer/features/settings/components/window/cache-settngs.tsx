@@ -9,6 +9,7 @@ import {
     SettingsSection,
 } from '/@/renderer/features/settings/components/settings-section';
 import { Button } from '/@/shared/components/button/button';
+import { clearImageCache } from '/@/shared/components/image/image-cache';
 import { ConfirmModal } from '/@/shared/components/modal/modal';
 import { toast } from '/@/shared/components/toast/toast';
 
@@ -25,6 +26,7 @@ export const CacheSettings = () => {
 
             try {
                 queryClient.clear();
+                clearImageCache();
 
                 if (full && browser) {
                     await browser.clearCache();

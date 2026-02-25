@@ -1,4 +1,4 @@
-appId: org.jeffvli.feishin
+appId: org.raxmou.noiseport
 productName: NoisePort
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 electronVersion: 35.1.5
