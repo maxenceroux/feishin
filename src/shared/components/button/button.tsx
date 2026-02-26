@@ -12,7 +12,8 @@ import { Tooltip, TooltipProps } from '/@/shared/components/tooltip/tooltip';
 import { createPolymorphicComponent } from '/@/shared/utils/create-polymorphic-component';
 
 export interface ButtonProps
-    extends ElementProps<'button', keyof MantineButtonProps>,
+    extends
+        ElementProps<'button', keyof MantineButtonProps>,
         MantineButtonProps,
         MantineButtonProps {
     tooltip?: Omit<TooltipProps, 'children'>;

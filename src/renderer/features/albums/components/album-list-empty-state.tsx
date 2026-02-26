@@ -32,7 +32,7 @@ export const AlbumListEmptyState = ({ searchTerm }: AlbumListEmptyStateProps) =>
                 No albums found in your library
             </Text>
             <Text color="dimmed" size="sm">
-                No results found for "{searchTerm}"
+                No results found for &ldquo;{searchTerm}&rdquo;
             </Text>
             <Button onClick={handleSearchInDiscover} variant="outline">
                 Search in Discover (Spotify)

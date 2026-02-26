@@ -3,75 +3,27 @@
  */
 
 export enum PlaybackState {
-    PLAYING = 'playing',
     PAUSED = 'paused',
+    PLAYING = 'playing',
     STOPPED = 'stopped',
 }
-
-export interface PlaybackStatus {
-    /** Current playback state */
-    state: PlaybackState;
-    /** Current position in seconds */
-    position: number;
-    /** Total duration in seconds */
-    duration: number;
-    /** Volume level (0-100) */
-    volume: number;
-    /** Current track URI or ID */
-    currentTrackUri?: string;
-    /** Current queue position/index */
-    currentIndex?: number;
-}
-
-export interface PlaybackServiceConfig {
-    /** Unique identifier for this service instance */
-    id: string;
-    /** Display name for the service */
-    name: string;
-}
-
-export interface QueueItem {
-    /** Unique identifier for tracking */
-    id: string;
-    /** Playable URI (HTTP URL, file path, etc.) */
-    uri: string;
-    /** Duration in seconds */
-    duration?: number;
-    /** Additional metadata */
-    metadata?: {
-        title?: string;
-        artist?: string;
-        album?: string;
-        [key: string]: any;
-    };
-}
-
-export type PlaybackEventType =
-    | 'status'
-    | 'play'
-    | 'pause'
-    | 'stop'
-    | 'next'
-    | 'previous'
-    | 'seek'
-    | 'volume'
-    | 'queue'
-    | 'error'
-    | 'connected'
-    | 'disconnected';
-
-export interface PlaybackEvent {
-    type: PlaybackEventType;
-    data?: any;
-}
-
-export type PlaybackEventCallback = (event: PlaybackEvent) => void;
 
 /**
  * Abstract interface for playback services (MPV, Web Audio, MPD, etc.)
  * All implementations must provide these methods for unified control
  */
 export interface IPlaybackService {
+    /**
+     * Add items to the end of the queue
+     * @param items Array of queue items to add
+     */
+    addToQueue(items: QueueItem[]): Promise<void>;
+
+    /**
+     * Clear the entire queue
+     */
+    clearQueue(): Promise<void>;
+
     /**
      * Connect/initialize the playback service
      * @returns Promise that resolves when connected
@@ -85,14 +37,25 @@ export interface IPlaybackService {
     disconnect(): Promise<void>;
 
     /**
+     * Get service configuration
+     */
+    getConfig(): PlaybackServiceConfig;
+
+    /**
+     * Get current playback status
+     * @returns Current status including state, position, volume, etc.
+     */
+    getStatus(): Promise<PlaybackStatus>;
+
+    /**
      * Check if service is currently connected
      */
     isConnected(): boolean;
 
     /**
-     * Start or resume playback
+     * Skip to next track in queue
      */
-    play(): Promise<void>;
+    next(): Promise<void>;
 
     /**
      * Pause playback
@@ -100,14 +63,9 @@ export interface IPlaybackService {
     pause(): Promise<void>;
 
     /**
-     * Stop playback completely
+     * Start or resume playback
      */
-    stop(): Promise<void>;
-
-    /**
-     * Skip to next track in queue
-     */
-    next(): Promise<void>;
+    play(): Promise<void>;
 
     /**
      * Go back to previous track in queue
@@ -121,12 +79,6 @@ export interface IPlaybackService {
     seek(seconds: number): Promise<void>;
 
     /**
-     * Set volume level
-     * @param volume Volume level (0-100)
-     */
-    setVolume(volume: number): Promise<void>;
-
-    /**
      * Set/replace the entire playback queue
      * @param items Array of queue items to play
      * @param startIndex Optional index to start playing from (default: 0)
@@ -134,21 +86,15 @@ export interface IPlaybackService {
     setQueue(items: QueueItem[], startIndex?: number): Promise<void>;
 
     /**
-     * Add items to the end of the queue
-     * @param items Array of queue items to add
+     * Set volume level
+     * @param volume Volume level (0-100)
      */
-    addToQueue(items: QueueItem[]): Promise<void>;
+    setVolume(volume: number): Promise<void>;
 
     /**
-     * Clear the entire queue
+     * Stop playback completely
      */
-    clearQueue(): Promise<void>;
-
-    /**
-     * Get current playback status
-     * @returns Current status including state, position, volume, etc.
-     */
-    getStatus(): Promise<PlaybackStatus>;
+    stop(): Promise<void>;
 
     /**
      * Subscribe to playback events
@@ -156,9 +102,63 @@ export interface IPlaybackService {
      * @returns Unsubscribe function
      */
     subscribe(callback: PlaybackEventCallback): () => void;
+}
 
-    /**
-     * Get service configuration
-     */
-    getConfig(): PlaybackServiceConfig;
+export interface PlaybackEvent {
+    data?: any;
+    type: PlaybackEventType;
+}
+
+export type PlaybackEventCallback = (event: PlaybackEvent) => void;
+
+export type PlaybackEventType =
+    | 'connected'
+    | 'disconnected'
+    | 'error'
+    | 'next'
+    | 'pause'
+    | 'play'
+    | 'previous'
+    | 'queue'
+    | 'seek'
+    | 'status'
+    | 'stop'
+    | 'volume';
+
+export interface PlaybackServiceConfig {
+    /** Unique identifier for this service instance */
+    id: string;
+    /** Display name for the service */
+    name: string;
+}
+
+export interface PlaybackStatus {
+    /** Current queue position/index */
+    currentIndex?: number;
+    /** Current track URI or ID */
+    currentTrackUri?: string;
+    /** Total duration in seconds */
+    duration: number;
+    /** Current position in seconds */
+    position: number;
+    /** Current playback state */
+    state: PlaybackState;
+    /** Volume level (0-100) */
+    volume: number;
+}
+
+export interface QueueItem {
+    /** Duration in seconds */
+    duration?: number;
+    /** Unique identifier for tracking */
+    id: string;
+    /** Additional metadata */
+    metadata?: {
+        [key: string]: any;
+        album?: string;
+        artist?: string;
+        title?: string;
+    };
+    /** Playable URI (HTTP URL, file path, etc.) */
+    uri: string;
 }

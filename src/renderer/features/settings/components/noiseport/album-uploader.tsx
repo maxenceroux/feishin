@@ -1,14 +1,20 @@
 import { useRef, useState } from 'react';
-import { RiUpload2Line, RiCloseLine, RiFileMusicLine, RiCheckLine, RiErrorWarningLine } from 'react-icons/ri';
+import {
+    RiCheckLine,
+    RiCloseLine,
+    RiErrorWarningLine,
+    RiFileMusicLine,
+    RiUpload2Line,
+} from 'react-icons/ri';
 
-import { Button } from '/@/shared/components/button/button';
-import { Group } from '/@/shared/components/group/group';
-import { Stack } from '/@/shared/components/stack/stack';
-import { Text } from '/@/shared/components/text/text';
-import { TextInput } from '/@/shared/components/text-input/text-input';
-import { Paper } from '/@/shared/components/paper/paper';
-import { Divider } from '/@/shared/components/divider/divider';
 import { useNoisePortSettings } from '/@/renderer/store/settings.store';
+import { Button } from '/@/shared/components/button/button';
+import { Divider } from '/@/shared/components/divider/divider';
+import { Group } from '/@/shared/components/group/group';
+import { Paper } from '/@/shared/components/paper/paper';
+import { Stack } from '/@/shared/components/stack/stack';
+import { TextInput } from '/@/shared/components/text-input/text-input';
+import { Text } from '/@/shared/components/text/text';
 
 interface UploadedFile {
     file: File;
@@ -16,19 +22,19 @@ interface UploadedFile {
 }
 
 interface UploadResponse {
-    success: boolean;
-    message: string;
-    task_id?: string;
-    files_processed?: number;
-    album_path?: string | null;
+    album_path?: null | string;
     detected_metadata?: {
-        artist: string;
         album: string;
+        artist: string;
         source: 'tags' | 'user_provided';
     };
+    files_processed?: number;
+    message: string;
+    success: boolean;
+    task_id?: string;
 }
 
-type UploadStatus = 'idle' | 'uploading' | 'processing' | 'complete' | 'error';
+type UploadStatus = 'complete' | 'error' | 'idle' | 'processing' | 'uploading';
 
 const ACCEPTED_FORMATS = ['.mp3', '.flac', '.m4a', '.aac', '.ogg', '.opus', '.wav'];
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
@@ -40,8 +46,8 @@ export const AlbumUploader = () => {
     const [isDragging, setIsDragging] = useState(false);
     const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [error, setError] = useState<string | null>(null);
-    const [response, setResponse] = useState<UploadResponse | null>(null);
+    const [error, setError] = useState<null | string>(null);
+    const [response, setResponse] = useState<null | UploadResponse>(null);
     const [artist, setArtist] = useState('');
     const [album, setAlbum] = useState('');
     const [username, setUsername] = useState('');
@@ -54,7 +60,7 @@ export const AlbumUploader = () => {
         return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
     };
 
-    const validateFile = (file: File): string | null => {
+    const validateFile = (file: File): null | string => {
         const extension = `.${file.name.split('.').pop()?.toLowerCase()}`;
         if (!ACCEPTED_FORMATS.includes(extension)) {
             return `Invalid file type: ${file.name}. Accepted formats: ${ACCEPTED_FORMATS.join(', ')}`;
@@ -65,7 +71,7 @@ export const AlbumUploader = () => {
         return null;
     };
 
-    const validateTotalSize = (fileList: File[]): string | null => {
+    const validateTotalSize = (fileList: File[]): null | string => {
         const totalSize = fileList.reduce((sum, f) => sum + f.size, 0);
         if (totalSize > MAX_TOTAL_SIZE) {
             return `Total size too large: ${formatFileSize(totalSize)}. Max total size: 2GB`;
@@ -77,7 +83,7 @@ export const AlbumUploader = () => {
         if (!fileList || fileList.length === 0) return;
 
         const newFiles: File[] = Array.from(fileList);
-        
+
         // Validate each file
         for (const file of newFiles) {
             const validationError = validateFile(file);
@@ -88,7 +94,7 @@ export const AlbumUploader = () => {
         }
 
         // Validate total size
-        const allFiles = [...files.map(f => f.file), ...newFiles];
+        const allFiles = [...files.map((f) => f.file), ...newFiles];
         const totalSizeError = validateTotalSize(allFiles);
         if (totalSizeError) {
             setError(totalSizeError);
@@ -156,7 +162,7 @@ export const AlbumUploader = () => {
 
         const formData = new FormData();
         formData.append('vpn_ip', '100.64.0.2'); // Default VPN IP
-        
+
         // Add optional overrides if provided
         if (artist.trim()) formData.append('artist', artist.trim());
         if (album.trim()) formData.append('album', album.trim());
@@ -248,7 +254,8 @@ export const AlbumUploader = () => {
                                 NoisePort Server Not Configured
                             </Text>
                             <Text c="dimmed" size="xs">
-                                Please configure your server IP in Settings → NoisePort Server to enable uploads
+                                Please configure your server IP in Settings → NoisePort Server to
+                                enable uploads
                             </Text>
                         </div>
                     </Group>
@@ -257,11 +264,11 @@ export const AlbumUploader = () => {
 
             {/* Drag & Drop Zone */}
             <div
+                onClick={() => fileInputRef.current?.click()}
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
                 style={{
                     cursor: 'pointer',
                 }}
@@ -269,29 +276,35 @@ export const AlbumUploader = () => {
                 <Paper
                     p="3rem"
                     style={{
+                        backgroundColor: isDragging
+                            ? 'rgba(var(--primary-color-rgb), 0.05)'
+                            : 'rgba(255, 255, 255, 0.02)',
                         border: `2px dashed ${isDragging ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.1)'}`,
-                        backgroundColor: isDragging ? 'rgba(var(--primary-color-rgb), 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                        transition: 'all 0.2s ease',
                         borderRadius: '12px',
+                        transition: 'all 0.2s ease',
                     }}
                 >
                     <Stack align="center" gap="lg">
                         <div
                             style={{
-                                width: '80px',
-                                height: '80px',
-                                borderRadius: '50%',
-                                backgroundColor: isDragging ? 'rgba(var(--primary-color-rgb), 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                                display: 'flex',
                                 alignItems: 'center',
+                                backgroundColor: isDragging
+                                    ? 'rgba(var(--primary-color-rgb), 0.1)'
+                                    : 'rgba(255, 255, 255, 0.05)',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                height: '80px',
                                 justifyContent: 'center',
                                 transition: 'all 0.2s ease',
+                                width: '80px',
                             }}
                         >
                             <RiUpload2Line
                                 size={40}
                                 style={{
-                                    color: isDragging ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.4)',
+                                    color: isDragging
+                                        ? 'var(--primary-color)'
+                                        : 'rgba(255, 255, 255, 0.4)',
                                     transition: 'all 0.2s ease',
                                 }}
                             />
@@ -300,7 +313,7 @@ export const AlbumUploader = () => {
                             <Text fw={600} size="lg" ta="center">
                                 Drop your music files here
                             </Text>
-                            <Text c="dimmed" size="sm" ta="center" mt="xs">
+                            <Text c="dimmed" mt="xs" size="sm" ta="center">
                                 or click to browse your computer
                             </Text>
                         </div>
@@ -315,7 +328,7 @@ export const AlbumUploader = () => {
                                         borderRadius: '6px',
                                     }}
                                 >
-                                    <Text c="dimmed" size="xs" fw={500}>
+                                    <Text c="dimmed" fw={500} size="xs">
                                         {format.toUpperCase()}
                                     </Text>
                                 </Paper>
@@ -327,10 +340,10 @@ export const AlbumUploader = () => {
                     </Stack>
                 </Paper>
                 <input
-                    ref={fileInputRef}
                     accept={ACCEPTED_FORMATS.join(',')}
                     multiple
                     onChange={handleFileInputChange}
+                    ref={fileInputRef}
                     style={{ display: 'none' }}
                     type="file"
                 />
@@ -353,14 +366,11 @@ export const AlbumUploader = () => {
                                     Selected Files
                                 </Text>
                                 <Text c="dimmed" size="xs">
-                                    {files.length} file{files.length > 1 ? 's' : ''} • {formatFileSize(totalSize)}
+                                    {files.length} file{files.length > 1 ? 's' : ''} •{' '}
+                                    {formatFileSize(totalSize)}
                                 </Text>
                             </div>
-                            <Button
-                                onClick={() => setFiles([])}
-                                size="xs"
-                                variant="subtle"
-                            >
+                            <Button onClick={() => setFiles([])} size="xs" variant="subtle">
                                 Clear All
                             </Button>
                         </Group>
@@ -380,19 +390,31 @@ export const AlbumUploader = () => {
                                         <Group align="center" gap="sm">
                                             <div
                                                 style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    borderRadius: '6px',
-                                                    backgroundColor: 'rgba(var(--primary-color-rgb), 0.1)',
-                                                    display: 'flex',
                                                     alignItems: 'center',
+                                                    backgroundColor:
+                                                        'rgba(var(--primary-color-rgb), 0.1)',
+                                                    borderRadius: '6px',
+                                                    display: 'flex',
+                                                    height: '32px',
                                                     justifyContent: 'center',
+                                                    width: '32px',
                                                 }}
                                             >
-                                                <RiFileMusicLine size={16} style={{ color: 'var(--primary-color)' }} />
+                                                <RiFileMusicLine
+                                                    size={16}
+                                                    style={{ color: 'var(--primary-color)' }}
+                                                />
                                             </div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                <Text size="sm" fw={500} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                <Text
+                                                    fw={500}
+                                                    size="sm"
+                                                    style={{
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap',
+                                                    }}
+                                                >
                                                     {index + 1}. {f.file.name}
                                                 </Text>
                                                 <Text c="dimmed" size="xs">
@@ -406,8 +428,8 @@ export const AlbumUploader = () => {
                                                 removeFile(f.id);
                                             }}
                                             size="xs"
-                                            variant="subtle"
                                             style={{ flexShrink: 0 }}
+                                            variant="subtle"
                                         >
                                             <RiCloseLine size={18} />
                                         </Button>
@@ -483,7 +505,9 @@ export const AlbumUploader = () => {
                         <Group align="center" justify="space-between">
                             <div>
                                 <Text fw={600} size="md">
-                                    {uploadStatus === 'uploading' ? 'Uploading Files...' : 'Processing Upload...'}
+                                    {uploadStatus === 'uploading'
+                                        ? 'Uploading Files...'
+                                        : 'Processing Upload...'}
                                 </Text>
                                 <Text c="dimmed" size="xs">
                                     Please wait while we process your music
@@ -495,21 +519,22 @@ export const AlbumUploader = () => {
                         </Group>
                         <div
                             style={{
-                                width: '100%',
-                                height: '12px',
                                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                                 borderRadius: '6px',
+                                height: '12px',
                                 overflow: 'hidden',
                                 position: 'relative',
+                                width: '100%',
                             }}
                         >
                             <div
                                 style={{
-                                    width: `${uploadProgress}%`,
-                                    height: '100%',
-                                    background: 'linear-gradient(90deg, var(--primary-color), rgba(var(--primary-color-rgb), 0.7))',
-                                    transition: 'width 0.3s ease',
+                                    background:
+                                        'linear-gradient(90deg, var(--primary-color), rgba(var(--primary-color-rgb), 0.7))',
                                     borderRadius: '6px',
+                                    height: '100%',
+                                    transition: 'width 0.3s ease',
+                                    width: `${uploadProgress}%`,
                                 }}
                             />
                         </div>
@@ -531,13 +556,13 @@ export const AlbumUploader = () => {
                         <Group align="center" gap="md">
                             <div
                                 style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(46, 213, 115, 0.2)',
-                                    display: 'flex',
                                     alignItems: 'center',
+                                    backgroundColor: 'rgba(46, 213, 115, 0.2)',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    height: '48px',
                                     justifyContent: 'center',
+                                    width: '48px',
                                 }}
                             >
                                 <RiCheckLine size={28} style={{ color: 'rgb(46, 213, 115)' }} />
@@ -555,25 +580,35 @@ export const AlbumUploader = () => {
                         <Stack gap="sm">
                             {response.task_id && (
                                 <Group gap="xs">
-                                    <Text c="dimmed" size="xs" fw={500}>Task ID:</Text>
-                                    <Text size="xs" style={{ fontFamily: 'monospace' }}>{response.task_id}</Text>
+                                    <Text c="dimmed" fw={500} size="xs">
+                                        Task ID:
+                                    </Text>
+                                    <Text size="xs" style={{ fontFamily: 'monospace' }}>
+                                        {response.task_id}
+                                    </Text>
                                 </Group>
                             )}
                             {response.files_processed && (
                                 <Group gap="xs">
-                                    <Text c="dimmed" size="xs" fw={500}>Files Processed:</Text>
+                                    <Text c="dimmed" fw={500} size="xs">
+                                        Files Processed:
+                                    </Text>
                                     <Text size="xs">{response.files_processed}</Text>
                                 </Group>
                             )}
                             {response.album_path && (
                                 <Group gap="xs">
-                                    <Text c="dimmed" size="xs" fw={500}>Album Path:</Text>
-                                    <Text size="xs" style={{ fontFamily: 'monospace' }}>{response.album_path}</Text>
+                                    <Text c="dimmed" fw={500} size="xs">
+                                        Album Path:
+                                    </Text>
+                                    <Text size="xs" style={{ fontFamily: 'monospace' }}>
+                                        {response.album_path}
+                                    </Text>
                                 </Group>
                             )}
                             {response.detected_metadata && (
                                 <div>
-                                    <Text fw={500} size="sm" mb="xs">
+                                    <Text fw={500} mb="xs" size="sm">
                                         Detected Metadata:
                                     </Text>
                                     <Paper
@@ -586,23 +621,38 @@ export const AlbumUploader = () => {
                                     >
                                         <Stack gap="xs">
                                             <Group gap="xs">
-                                                <Text c="dimmed" size="xs" fw={500}>Artist:</Text>
-                                                <Text size="xs">{response.detected_metadata.artist}</Text>
+                                                <Text c="dimmed" fw={500} size="xs">
+                                                    Artist:
+                                                </Text>
+                                                <Text size="xs">
+                                                    {response.detected_metadata.artist}
+                                                </Text>
                                             </Group>
                                             <Group gap="xs">
-                                                <Text c="dimmed" size="xs" fw={500}>Album:</Text>
-                                                <Text size="xs">{response.detected_metadata.album}</Text>
+                                                <Text c="dimmed" fw={500} size="xs">
+                                                    Album:
+                                                </Text>
+                                                <Text size="xs">
+                                                    {response.detected_metadata.album}
+                                                </Text>
                                             </Group>
                                             <Group gap="xs">
-                                                <Text c="dimmed" size="xs" fw={500}>Source:</Text>
-                                                <Text size="xs" style={{ textTransform: 'capitalize' }}>{response.detected_metadata.source}</Text>
+                                                <Text c="dimmed" fw={500} size="xs">
+                                                    Source:
+                                                </Text>
+                                                <Text
+                                                    size="xs"
+                                                    style={{ textTransform: 'capitalize' }}
+                                                >
+                                                    {response.detected_metadata.source}
+                                                </Text>
                                             </Group>
                                         </Stack>
                                     </Paper>
                                 </div>
                             )}
                         </Stack>
-                        <Button onClick={resetUpload} size="md" fullWidth>
+                        <Button fullWidth onClick={resetUpload} size="md">
                             Upload Another Album
                         </Button>
                     </Stack>
@@ -623,16 +673,19 @@ export const AlbumUploader = () => {
                         <Group align="center" gap="md">
                             <div
                                 style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(235, 77, 75, 0.2)',
-                                    display: 'flex',
                                     alignItems: 'center',
+                                    backgroundColor: 'rgba(235, 77, 75, 0.2)',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    height: '48px',
                                     justifyContent: 'center',
+                                    width: '48px',
                                 }}
                             >
-                                <RiErrorWarningLine size={28} style={{ color: 'rgb(235, 77, 75)' }} />
+                                <RiErrorWarningLine
+                                    size={28}
+                                    style={{ color: 'rgb(235, 77, 75)' }}
+                                />
                             </div>
                             <div style={{ flex: 1 }}>
                                 <Text fw={600} size="lg" style={{ color: 'rgb(235, 77, 75)' }}>
@@ -646,7 +699,7 @@ export const AlbumUploader = () => {
                         {uploadStatus === 'error' && (
                             <>
                                 <Divider />
-                                <Button onClick={resetUpload} size="md" fullWidth variant="outline">
+                                <Button fullWidth onClick={resetUpload} size="md" variant="outline">
                                     Try Again
                                 </Button>
                             </>
@@ -659,14 +712,14 @@ export const AlbumUploader = () => {
             {files.length > 0 && uploadStatus === 'idle' && (
                 <Button
                     disabled={!noiseportSettings.serverIp}
+                    fullWidth
                     leftSection={<RiUpload2Line size={20} />}
                     onClick={handleUpload}
                     size="lg"
-                    fullWidth
                     style={{
-                        height: '50px',
                         fontSize: '16px',
                         fontWeight: 600,
+                        height: '50px',
                     }}
                 >
                     Upload {files.length} file{files.length > 1 ? 's' : ''}

@@ -18,19 +18,19 @@ import { toast } from '/@/shared/components/toast/toast';
 export interface DownloadButtonProps extends Omit<ActionIconProps, 'onClick'> {
     albumArtist?: string;
     albumName?: string;
-    vpnIp?: string;
     onDownloadComplete?: () => void;
     onDownloadError?: (error: string) => void;
     size?: number | string;
+    vpnIp?: string;
 }
 
 export const DownloadButton = ({
     albumArtist = '',
     albumName = '',
-    vpnIp = '',
     className,
     onDownloadComplete,
     onDownloadError,
+    vpnIp = '',
     ...props
 }: DownloadButtonProps) => {
     const [isLoading, setIsLoading] = useState(false);

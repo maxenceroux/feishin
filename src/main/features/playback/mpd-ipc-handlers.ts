@@ -3,70 +3,21 @@
  * Handles IPC communication between renderer and MPD playback service
  */
 
-import { ipcMain, BrowserWindow } from 'electron';
-import { MpdPlaybackService, MpdConfig } from './mpd-playback-service';
+import { BrowserWindow, ipcMain } from 'electron';
+
+import { MpdConfig, MpdPlaybackService } from './mpd-playback-service';
 import { PlaybackEvent } from './types';
 
 let mpdService: MpdPlaybackService | null = null;
 
 /**
- * Get or create MPD service instance
+ * Cleanup MPD service on app quit
  */
-function getMpdService(config?: MpdConfig): MpdPlaybackService {
-    if (!mpdService && config) {
-        mpdService = new MpdPlaybackService(config);
-        
-        // Subscribe to events and forward to renderer
-        mpdService.subscribe((event: PlaybackEvent) => {
-            const mainWindow = BrowserWindow.getAllWindows()[0];
-            if (!mainWindow) return;
-
-            switch (event.type) {
-                case 'status':
-                    mainWindow.webContents.send('renderer-mpd-status', event.data);
-                    break;
-                case 'play':
-                    mainWindow.webContents.send('renderer-mpd-play');
-                    break;
-                case 'pause':
-                    mainWindow.webContents.send('renderer-mpd-pause');
-                    break;
-                case 'stop':
-                    mainWindow.webContents.send('renderer-mpd-stop');
-                    break;
-                case 'next':
-                    mainWindow.webContents.send('renderer-mpd-next');
-                    break;
-                case 'previous':
-                    mainWindow.webContents.send('renderer-mpd-previous');
-                    break;
-                case 'seek':
-                    mainWindow.webContents.send('renderer-mpd-seek', event.data?.position);
-                    break;
-                case 'volume':
-                    mainWindow.webContents.send('renderer-mpd-volume', event.data?.volume);
-                    break;
-                case 'queue':
-                    mainWindow.webContents.send('renderer-mpd-queue', event.data);
-                    break;
-                case 'connected':
-                    mainWindow.webContents.send('renderer-mpd-connected');
-                    break;
-                case 'disconnected':
-                    mainWindow.webContents.send('renderer-mpd-disconnected');
-                    break;
-                case 'error':
-                    mainWindow.webContents.send('renderer-mpd-error', event.data);
-                    break;
-            }
-        });
+export async function cleanupMpdService(): Promise<void> {
+    if (mpdService) {
+        await mpdService.disconnect();
+        mpdService = null;
     }
-    
-    if (!mpdService) {
-        throw new Error('MPD service not initialized. Call mpd-connect first.');
-    }
-    
-    return mpdService;
 }
 
 /**
@@ -82,8 +33,8 @@ export function initializeMpdHandlers(): void {
         } catch (error) {
             console.error('[MPD IPC] Connect failed:', error);
             return {
-                success: false,
                 error: error instanceof Error ? error.message : 'Unknown error',
+                success: false,
             };
         }
     });
@@ -98,8 +49,8 @@ export function initializeMpdHandlers(): void {
         } catch (error) {
             console.error('[MPD IPC] Disconnect failed:', error);
             return {
-                success: false,
                 error: error instanceof Error ? error.message : 'Unknown error',
+                success: false,
             };
         }
     });
@@ -118,8 +69,8 @@ export function initializeMpdHandlers(): void {
         } catch (error) {
             console.error('[MPD IPC] Test connection failed:', error);
             return {
-                success: false,
                 error: error instanceof Error ? error.message : 'Unknown error',
+                success: false,
             };
         }
     });
@@ -228,11 +179,61 @@ export function initializeMpdHandlers(): void {
 }
 
 /**
- * Cleanup MPD service on app quit
+ * Get or create MPD service instance
  */
-export async function cleanupMpdService(): Promise<void> {
-    if (mpdService) {
-        await mpdService.disconnect();
-        mpdService = null;
+function getMpdService(config?: MpdConfig): MpdPlaybackService {
+    if (!mpdService && config) {
+        mpdService = new MpdPlaybackService(config);
+
+        // Subscribe to events and forward to renderer
+        mpdService.subscribe((event: PlaybackEvent) => {
+            const mainWindow = BrowserWindow.getAllWindows()[0];
+            if (!mainWindow) return;
+
+            switch (event.type) {
+                case 'connected':
+                    mainWindow.webContents.send('renderer-mpd-connected');
+                    break;
+                case 'disconnected':
+                    mainWindow.webContents.send('renderer-mpd-disconnected');
+                    break;
+                case 'error':
+                    mainWindow.webContents.send('renderer-mpd-error', event.data);
+                    break;
+                case 'next':
+                    mainWindow.webContents.send('renderer-mpd-next');
+                    break;
+                case 'pause':
+                    mainWindow.webContents.send('renderer-mpd-pause');
+                    break;
+                case 'play':
+                    mainWindow.webContents.send('renderer-mpd-play');
+                    break;
+                case 'previous':
+                    mainWindow.webContents.send('renderer-mpd-previous');
+                    break;
+                case 'queue':
+                    mainWindow.webContents.send('renderer-mpd-queue', event.data);
+                    break;
+                case 'seek':
+                    mainWindow.webContents.send('renderer-mpd-seek', event.data?.position);
+                    break;
+                case 'status':
+                    mainWindow.webContents.send('renderer-mpd-status', event.data);
+                    break;
+                case 'stop':
+                    mainWindow.webContents.send('renderer-mpd-stop');
+                    break;
+                case 'volume':
+                    mainWindow.webContents.send('renderer-mpd-volume', event.data?.volume);
+                    break;
+            }
+        });
     }
+
+    if (!mpdService) {
+        throw new Error('MPD service not initialized. Call mpd-connect first.');
+    }
+
+    return mpdService;
 }

@@ -7,29 +7,29 @@ import { ipcRenderer, IpcRendererEvent } from 'electron';
 
 export interface MpdConnectionConfig {
     host: string;
-    port: number;
     password?: string;
-}
-
-export interface MpdStatus {
-    state: 'playing' | 'paused' | 'stopped';
-    position: number;
-    duration: number;
-    volume: number;
-    currentTrackUri?: string;
-    currentIndex?: number;
+    port: number;
 }
 
 export interface MpdQueueItem {
-    id: string;
-    uri: string;
     duration?: number;
+    id: string;
     metadata?: {
-        title?: string;
-        artist?: string;
-        album?: string | null;
         [key: string]: any;
+        album?: null | string;
+        artist?: string;
+        title?: string;
     };
+    uri: string;
+}
+
+export interface MpdStatus {
+    currentIndex?: number;
+    currentTrackUri?: string;
+    duration: number;
+    position: number;
+    state: 'paused' | 'playing' | 'stopped';
+    volume: number;
 }
 
 // Command methods
@@ -134,7 +134,9 @@ const onDisconnected = (cb: (event: IpcRendererEvent) => void) => {
     ipcRenderer.on('renderer-mpd-disconnected', cb);
 };
 
-const onError = (cb: (event: IpcRendererEvent, error: { message: string; details?: any }) => void) => {
+const onError = (
+    cb: (event: IpcRendererEvent, error: { details?: any; message: string }) => void,
+) => {
     ipcRenderer.on('renderer-mpd-error', cb);
 };
 

@@ -235,7 +235,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                     <Spinner size={24} />
                     <Text>{t('soulseek.loading', { postProcess: 'titleCase' })}</Text>
                     <Text opacity={0.7} size="sm">
-                        Loading search results for "{searchText}"
+                        Loading search results for &ldquo;{searchText}&rdquo;
                     </Text>
                 </Stack>
             </Center>
@@ -281,7 +281,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                         No results found
                     </Text>
                     <Text opacity={0.5} size="sm">
-                        No files found for search "{searchText}"
+                        No files found for search &ldquo;{searchText}&rdquo;
                     </Text>
                 </Stack>
             </Center>
@@ -296,7 +296,7 @@ export const SlskdSearchResults = ({ searchId, searchText }: SlskdSearchResultsP
                         Search Results
                     </Text>
                     <Text opacity={0.7} size="sm">
-                        "{searchText}"
+                        &ldquo;{searchText}&rdquo;
                     </Text>
                 </Stack>
                 <Group gap="sm">

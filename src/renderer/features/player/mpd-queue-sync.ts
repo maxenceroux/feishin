@@ -3,22 +3,23 @@
  * Builds stream URLs and translates noiseport queue to MPD queue
  */
 
+import type { TranscodingConfig } from '/@/renderer/store/settings.store';
+import type { QueueSong } from '/@/shared/types/domain-types';
+
 import { api } from '/@/renderer/api';
 import { getServerById } from '/@/renderer/store/auth.store';
-import type { QueueSong } from '/@/shared/types/domain-types';
-import type { TranscodingConfig } from '/@/renderer/store/settings.store';
 
 // Replicate MpdQueueItem type to avoid preload import issues in renderer
 export interface MpdQueueItem {
-    id: string;
-    uri: string;
     duration?: number;
+    id: string;
     metadata?: {
-        title?: string;
-        artist?: string;
-        album?: string | null;
         [key: string]: any;
+        album?: null | string;
+        artist?: string;
+        title?: string;
     };
+    uri: string;
 }
 
 /**

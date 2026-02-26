@@ -2,8 +2,12 @@ import { useTranslation } from 'react-i18next';
 import { RiSpeaker2Line, RiSpeaker3Line } from 'react-icons/ri';
 
 import { useMpdConnection } from '/@/renderer/hooks/use-mpd-connection';
-import { usePlaybackSettings, usePlaybackType, useSettingsStoreActions } from '/@/renderer/store/settings.store';
 import { useCurrentStatus, usePlayerControls, usePlayerStore } from '/@/renderer/store';
+import {
+    usePlaybackSettings,
+    usePlaybackType,
+    useSettingsStoreActions,
+} from '/@/renderer/store/settings.store';
 import { setQueue } from '/@/renderer/utils/set-transcoded-queue-data';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { DropdownMenu } from '/@/shared/components/dropdown-menu/dropdown-menu';
@@ -98,7 +102,11 @@ export const PlaybackOutputSelector = () => {
                     variant="subtle"
                 >
                     <OutputIcon
-                        color={playbackType === PlaybackType.REMOTE_MPD && isConnected ? 'var(--theme-colors-primary-filled)' : undefined}
+                        color={
+                            playbackType === PlaybackType.REMOTE_MPD && isConnected
+                                ? 'var(--theme-colors-primary-filled)'
+                                : undefined
+                        }
                         size={22}
                     />
                 </ActionIcon>
@@ -119,7 +127,9 @@ export const PlaybackOutputSelector = () => {
                             {t('player.localAudio', { defaultValue: 'Local Audio' })}
                         </Text>
                         <Text c="dimmed" size="xs">
-                            {t('player.localAudioDescription', { defaultValue: 'Play on this device' })}
+                            {t('player.localAudioDescription', {
+                                defaultValue: 'Play on this device',
+                            })}
                         </Text>
                     </Flex>
                 </DropdownMenu.Item>
@@ -132,14 +142,14 @@ export const PlaybackOutputSelector = () => {
                         onClick={() => handleSelectOutput(PlaybackType.REMOTE_MPD)}
                     >
                         <Flex direction="column" gap={2}>
-                            <Text size="sm">
-                                MPD - {mpdHost}
-                            </Text>
+                            <Text size="sm">MPD - {mpdHost}</Text>
                             <Text c="dimmed" size="xs">
                                 {isConnected
                                     ? t('player.connected', { defaultValue: 'Connected' })
                                     : isError
-                                      ? t('player.connectionError', { defaultValue: 'Connection error' })
+                                      ? t('player.connectionError', {
+                                            defaultValue: 'Connection error',
+                                        })
                                       : t('player.disconnected', { defaultValue: 'Disconnected' })}
                             </Text>
                         </Flex>
@@ -152,7 +162,9 @@ export const PlaybackOutputSelector = () => {
                         <DropdownMenu.Divider />
                         <Flex justify="center" p="md">
                             <Text c="dimmed" size="xs" ta="center">
-                                {t('player.noRemoteTargets', { defaultValue: 'No remote outputs configured' })}
+                                {t('player.noRemoteTargets', {
+                                    defaultValue: 'No remote outputs configured',
+                                })}
                             </Text>
                         </Flex>
                     </>

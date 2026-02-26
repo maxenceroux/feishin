@@ -10,7 +10,7 @@ export const PlaybackOutputIndicator = () => {
     const { t } = useTranslation();
     const playbackType = usePlaybackType();
     const settings = usePlaybackSettings();
-    const { isConnected, isError, error } = useMpdConnection();
+    const { error, isConnected, isError } = useMpdConnection();
 
     if (playbackType !== PlaybackType.REMOTE_MPD) {
         return null;

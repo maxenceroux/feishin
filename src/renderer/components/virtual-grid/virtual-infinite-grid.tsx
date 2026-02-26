@@ -26,8 +26,10 @@ export type VirtualInfiniteGridRef = {
 
 type LibraryItemOrGenre = AnyLibraryItem | Genre;
 
-interface VirtualGridProps
-    extends Omit<FixedSizeListProps, 'children' | 'height' | 'itemSize' | 'width'> {
+interface VirtualGridProps extends Omit<
+    FixedSizeListProps,
+    'children' | 'height' | 'itemSize' | 'width'
+> {
     cardRows: CardRow<any>[];
     display?: ListDisplayType;
     fetchFn: (options: { columnCount: number; skip: number; take: number }) => Promise<any>;

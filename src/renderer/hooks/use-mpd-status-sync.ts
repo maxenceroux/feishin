@@ -36,11 +36,11 @@ export const useMpdStatusSync = () => {
         const handleStatusUpdate = (
             _event: any,
             status: {
-                state: 'playing' | 'paused' | 'stopped';
-                position: number;
-                duration: number;
-                volume: number;
                 currentIndex?: number;
+                duration: number;
+                position: number;
+                state: 'paused' | 'playing' | 'stopped';
+                volume: number;
             },
         ) => {
             // Update current time (position)

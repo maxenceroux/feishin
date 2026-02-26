@@ -111,7 +111,6 @@ export const RemoteTargetsSettings = () => {
             control: (
                 <TextInput
                     defaultValue={mpdConfig.host}
-                    placeholder="192.168.1.100"
                     onBlur={(e) =>
                         setSettings({
                             playback: {
@@ -123,6 +122,7 @@ export const RemoteTargetsSettings = () => {
                             },
                         })
                     }
+                    placeholder="192.168.1.100"
                 />
             ),
             description: t('setting.mpdHost', {
@@ -173,7 +173,6 @@ export const RemoteTargetsSettings = () => {
             control: (
                 <PasswordInput
                     defaultValue={mpdConfig.password}
-                    placeholder="Optional"
                     onBlur={(e) =>
                         setSettings({
                             playback: {
@@ -185,6 +184,7 @@ export const RemoteTargetsSettings = () => {
                             },
                         })
                     }
+                    placeholder="Optional"
                 />
             ),
             description: t('setting.mpdPassword', {
@@ -203,8 +203,8 @@ export const RemoteTargetsSettings = () => {
                 <Button
                     disabled={!mpdConfig.host || testingConnection}
                     loading={testingConnection}
-                    variant="filled"
                     onClick={handleTestConnection}
+                    variant="filled"
                 >
                     {t('action.testConnection', {
                         defaultValue: 'Test Connection',
@@ -225,9 +225,5 @@ export const RemoteTargetsSettings = () => {
         },
     ];
 
-    return (
-        <SettingsSection
-            options={remoteTargetOptions}
-        />
-    );
+    return <SettingsSection options={remoteTargetOptions} />;
 };

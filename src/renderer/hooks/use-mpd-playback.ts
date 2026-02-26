@@ -7,7 +7,10 @@ import isElectron from 'is-electron';
 import { useEffect, useRef } from 'react';
 
 import { convertToMpdQueue } from '/@/renderer/features/player/mpd-queue-sync';
-import { mpdStatusDrivenIndexChange, resetMpdStatusFlag } from '/@/renderer/hooks/use-mpd-status-sync';
+import {
+    mpdStatusDrivenIndexChange,
+    resetMpdStatusFlag,
+} from '/@/renderer/hooks/use-mpd-status-sync';
 import {
     useCurrentSong,
     useCurrentStatus,
@@ -37,6 +40,7 @@ export const useMpdPlayback = () => {
     const prevQueueRef = useRef(queue);
     const isConnectedRef = useRef(false);
     const queueSyncedRef = useRef(false);
+    const queueJustSyncedRef = useRef(false);
 
     const isMpdMode = playbackType === PlaybackType.REMOTE_MPD;
     const mpdConfig = settings.remoteTargets?.mpd;
@@ -79,9 +83,9 @@ export const useMpdPlayback = () => {
             }
 
             console.log('[MPD Hook] Attempting to connect to MPD:', {
+                hasPassword: !!mpdConfig.password,
                 host: mpdConfig.host,
                 port: mpdConfig.port,
-                hasPassword: !!mpdConfig.password,
             });
 
             try {
@@ -157,7 +161,9 @@ export const useMpdPlayback = () => {
                 // Convert entire queue to MPD format
                 const mpdQueue = convertToMpdQueue(queue, settings.transcode);
 
-                // Set queue starting at current index
+                // Set queue starting at current index — setQueue includes play,
+                // so mark that the status effect should skip its next play command.
+                queueJustSyncedRef.current = true;
                 mpdPlayer?.setQueue(mpdQueue, currentIndex);
                 queueSyncedRef.current = true;
 
@@ -165,7 +171,9 @@ export const useMpdPlayback = () => {
                 // doesn't also fire a redundant setQueue for the same index change
                 prevIndexRef.current = currentIndex;
 
-                console.log(`[MPD Hook] Queue synced: ${queue.length} tracks, starting at index ${currentIndex}`);
+                console.log(
+                    `[MPD Hook] Queue synced: ${queue.length} tracks, starting at index ${currentIndex}`,
+                );
             } catch (error) {
                 console.error('[MPD Hook] Failed to sync queue:', error);
             }
@@ -186,6 +194,14 @@ export const useMpdPlayback = () => {
         }
 
         if (status === PlayerStatus.PLAYING) {
+            // Skip if a queue sync just happened — setQueue already includes play,
+            // sending an extra play command races with the queue setup and can
+            // restart the first track.
+            if (queueJustSyncedRef.current) {
+                queueJustSyncedRef.current = false;
+                console.log('[MPD Hook] Skipping play — queue sync already started playback');
+                return;
+            }
             mpdPlayer?.play();
             console.log('[MPD Hook] Play command sent');
         } else if (status === PlayerStatus.PAUSED) {

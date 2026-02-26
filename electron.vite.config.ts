@@ -10,12 +10,12 @@ const currentOSEnv = process.platform;
 const config: UserConfig = {
     main: {
         build: {
+            minify: 'esbuild',
             rollupOptions: {
                 external: ['source-map-support'],
             },
             sourcemap: true,
             target: 'node18',
-            minify: 'esbuild',
         },
         define: {
             'import.meta.env.IS_LINUX': JSON.stringify(currentOSEnv === 'linux'),
@@ -48,17 +48,17 @@ const config: UserConfig = {
     },
     renderer: {
         build: {
-            target: 'esnext',
-            minify: 'esbuild',
             cssMinify: true,
+            minify: 'esbuild',
             rollupOptions: {
                 output: {
                     manualChunks: {
-                        vendor: ['react', 'react-dom'],
                         mantine: ['@mantine/core', '@mantine/hooks'],
+                        vendor: ['react', 'react-dom'],
                     },
                 },
             },
+            target: 'esnext',
         },
         css: {
             modules: {

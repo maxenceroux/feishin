@@ -11,13 +11,13 @@ import { PlaybackType } from '/@/shared/types/types';
 const mpdPlayer = isElectron() ? window.api.mpdPlayer : null;
 const mpdPlayerListener = isElectron() ? window.api.mpdPlayerListener : null;
 
-export type MpdConnectionStatus = 'connected' | 'disconnected' | 'connecting' | 'error';
+export type MpdConnectionStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
 
 export const useMpdConnection = () => {
     const playbackType = usePlaybackType();
     const settings = usePlaybackSettings();
     const [status, setStatus] = useState<MpdConnectionStatus>('disconnected');
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<null | string>(null);
 
     const isMpdMode = playbackType === PlaybackType.REMOTE_MPD;
     const mpdConfig = settings.remoteTargets?.mpd;
