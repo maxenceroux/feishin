@@ -155,17 +155,24 @@ export const AlbumUploader = () => {
             return;
         }
 
+        if (!artist.trim()) {
+            setError('Artist is required');
+            return;
+        }
+
+        if (!album.trim()) {
+            setError('Album is required');
+            return;
+        }
+
         setUploadStatus('uploading');
         setUploadProgress(0);
         setError(null);
         setResponse(null);
 
         const formData = new FormData();
-        formData.append('vpn_ip', '100.64.0.2'); // Default VPN IP
-
-        // Add optional overrides if provided
-        if (artist.trim()) formData.append('artist', artist.trim());
-        if (album.trim()) formData.append('album', album.trim());
+        formData.append('artist', artist.trim());
+        formData.append('album', album.trim());
         if (username.trim()) formData.append('username', username.trim());
 
         // Add all files
@@ -454,27 +461,27 @@ export const AlbumUploader = () => {
                     <Stack gap="md">
                         <div>
                             <Text fw={600} size="md">
-                                Metadata Overrides
+                                Album Details
                             </Text>
                             <Text c="dimmed" size="xs">
-                                Only fill these if your files are missing ID3 tags
+                                Required info for organizing your upload
                             </Text>
                         </div>
                         <Divider />
                         <Group grow>
                             <TextInput
-                                description="Leave blank to auto-detect"
                                 label="Artist"
                                 onChange={(e) => setArtist(e.currentTarget.value)}
                                 placeholder="e.g., Pink Floyd"
+                                required
                                 size="sm"
                                 value={artist}
                             />
                             <TextInput
-                                description="Leave blank to auto-detect"
                                 label="Album"
                                 onChange={(e) => setAlbum(e.currentTarget.value)}
                                 placeholder="e.g., The Dark Side of the Moon"
+                                required
                                 size="sm"
                                 value={album}
                             />

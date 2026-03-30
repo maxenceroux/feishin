@@ -17,6 +17,7 @@ const ImportRoute = () => {
                 style={{
                     background:
                         'linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%)',
+                    overflowY: 'auto',
                 }}
                 w="100%"
             >
