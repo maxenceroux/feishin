@@ -129,9 +129,9 @@ const AlbumListRoute = () => {
         ? spotifyArtistAlbums.data?.length
         : showHiddenOnly
           ? hiddenCount
-          : itemCountCheck.data === null
+          : itemCountCheck.data == null
             ? undefined
-            : Math.max(0, (itemCountCheck.data ?? 0) - hiddenCount);
+            : Math.max(0, itemCountCheck.data - hiddenCount);
 
     const handlePlay = useCallback(
         async (args: { initialSongId?: string; playType: Play }) => {

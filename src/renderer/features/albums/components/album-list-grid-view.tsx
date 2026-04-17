@@ -1,5 +1,5 @@
 import { QueryKey, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AutoSizer, { Size } from 'react-virtualized-auto-sizer';
 import { ListOnScrollProps } from 'react-window';
@@ -146,7 +146,6 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             exact: false,
             fetchStatus: 'idle',
             queryKey,
-            stale: false,
         });
 
         // For Spotify artists, we have no local albums, only Spotify albums
@@ -317,15 +316,17 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
         [fetch, server?.id, showHiddenOnly],
     );
 
-    // Reset grid cache when Spotify albums change to ensure proper merging
+    const fetchInitialDataRef = useRef(fetchInitialData);
+    fetchInitialDataRef.current = fetchInitialData;
+
+    // Reset grid cache only when Spotify albums change. Using a ref for
+    // fetchInitialData avoids wiping the grid on unrelated dep churn.
     useEffect(() => {
         if (gridRef.current) {
             gridRef.current.resetLoadMoreItemsCache();
-            // Also directly update the grid's data to ensure it reflects the new state
-            const newData = fetchInitialData();
-            gridRef.current.setItemData(newData);
+            gridRef.current.setItemData(fetchInitialDataRef.current());
         }
-    }, [spotifyAlbums, gridRef, fetchInitialData]);
+    }, [spotifyAlbums, gridRef]);
 
     return (
         <VirtualGridAutoSizerContainer>

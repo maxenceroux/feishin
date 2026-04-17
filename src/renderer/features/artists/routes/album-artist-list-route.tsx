@@ -32,9 +32,7 @@ const AlbumArtistListRoute = () => {
 
     const hiddenCount = useHiddenItemCount(server?.id || '', LibraryItem.ALBUM_ARTIST);
     const itemCount =
-        itemCountCheck.data === null
-            ? undefined
-            : Math.max(0, (itemCountCheck.data ?? 0) - hiddenCount);
+        itemCountCheck.data == null ? undefined : Math.max(0, itemCountCheck.data - hiddenCount);
 
     const providerValue = useMemo(() => {
         return {

@@ -79,9 +79,7 @@ const TrackListRoute = () => {
 
     const hiddenCount = useHiddenItemCount(server?.id || '', LibraryItem.SONG);
     const itemCount =
-        itemCountCheck.data === null
-            ? undefined
-            : Math.max(0, (itemCountCheck.data ?? 0) - hiddenCount);
+        itemCountCheck.data == null ? undefined : Math.max(0, itemCountCheck.data - hiddenCount);
 
     const handlePlay = useCallback(
         async (args: { initialSongId?: string; playType: Play }) => {
