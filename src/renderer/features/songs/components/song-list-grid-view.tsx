@@ -16,7 +16,12 @@ import { useListContext } from '/@/renderer/context/list-context';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { useHandleFavorite } from '/@/renderer/features/shared/hooks/use-handle-favorite';
 import { AppRoute } from '/@/renderer/router/routes';
-import { useCurrentServer, useListStoreActions, useListStoreByKey } from '/@/renderer/store';
+import {
+    useCurrentServer,
+    useHiddenItemsStore,
+    useListStoreActions,
+    useListStoreByKey,
+} from '/@/renderer/store';
 import { useEventStore } from '/@/renderer/store/event.store';
 import {
     LibraryItem,
@@ -163,6 +168,13 @@ export const SongListGridView = ({ gridRef, itemCount }: SongListGridViewProps) 
             }
         }
 
+        const hiddenIds = useHiddenItemsStore
+            .getState()
+            .actions.getHiddenIds(server?.id || '', LibraryItem.SONG);
+        if (hiddenIds.size > 0) {
+            return itemData.filter((item) => !item || !hiddenIds.has(item.id));
+        }
+
         return itemData;
     }, [customFilters, filter, id, queryClient, server?.id]);
 
@@ -191,6 +203,16 @@ export const SongListGridView = ({ gridRef, itemCount }: SongListGridViewProps) 
                     query,
                 }),
             );
+
+            const hiddenIds = useHiddenItemsStore
+                .getState()
+                .actions.getHiddenIds(server?.id || '', LibraryItem.SONG);
+            if (hiddenIds.size > 0 && songs?.items) {
+                return {
+                    ...songs,
+                    items: songs.items.filter((item: Song) => !hiddenIds.has(item.id)),
+                };
+            }
 
             return songs;
         },

@@ -10,6 +10,8 @@ interface ListContextProps {
     handlePlay?: (args: { initialSongId?: string; playType: Play }) => void;
     id?: string;
     pageKey: ListKey;
+    setShowHiddenOnly?: (value: boolean) => void;
+    showHiddenOnly?: boolean;
     spotifyAlbums?: Album[];
     spotifyArtists?: AlbumArtist[];
     spotifyEnabled?: boolean;

@@ -40,6 +40,7 @@ import {
     getServerById,
     useAuthStore,
     useCurrentServer,
+    useHiddenItemsStore,
     usePlayerStore,
     useQueueControls,
     useSettingsStore,
@@ -782,6 +783,58 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
         }
     }, [ctx.data, navigate]);
 
+    const handleHideItem = useCallback(() => {
+        const serverId = ctx.data[0]?.serverId;
+        if (!serverId) return;
+
+        const records = ctx.data.map((item: AnyLibraryItem) => ({
+            hiddenAt: Date.now(),
+            id: item.id,
+            imageUrl: (item as any).imageUrl,
+            name: (item as any).name || (item as any).title || item.id,
+        }));
+
+        useHiddenItemsStore.getState().actions.hideItems(serverId, ctx.type, records);
+
+        toast.success({
+            message: t('page.contextMenu.hideItem', { postProcess: 'sentenceCase' }),
+        });
+
+        if (ctx.tableApi) {
+            ctx.tableApi.refreshInfiniteCache();
+        }
+        if (ctx.resetGridCache) {
+            ctx.resetGridCache();
+        }
+    }, [ctx.data, ctx.resetGridCache, ctx.tableApi, ctx.type, t]);
+
+    const handleUnhideItem = useCallback(() => {
+        const serverId = ctx.data[0]?.serverId;
+        if (!serverId) return;
+
+        const ids = ctx.data.map((item: AnyLibraryItem) => item.id);
+        useHiddenItemsStore.getState().actions.unhideItems(serverId, ctx.type, ids);
+
+        toast.success({
+            message: t('page.contextMenu.unhideItem', { postProcess: 'sentenceCase' }),
+        });
+
+        if (ctx.tableApi) {
+            ctx.tableApi.refreshInfiniteCache();
+        }
+        if (ctx.resetGridCache) {
+            ctx.resetGridCache();
+        }
+    }, [ctx.data, ctx.resetGridCache, ctx.tableApi, ctx.type, t]);
+
+    const isItemHidden = useMemo(() => {
+        if (!ctx.data?.[0]?.serverId) return false;
+        const hiddenIds = useHiddenItemsStore
+            .getState()
+            .actions.getHiddenIds(ctx.data[0].serverId, ctx.type);
+        return ctx.data.some((item: AnyLibraryItem) => hiddenIds.has(item.id));
+    }, [ctx.data, ctx.type]);
+
     const contextMenuItems: Record<ContextMenuItemType, ContextMenuItem> = useMemo(() => {
         return {
             addToFavorites: {
@@ -836,6 +889,13 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
                 label: t('page.contextMenu.goToAlbumArtist', { postProcess: 'sentenceCase' }),
                 leftIcon: <Icon icon="artist" />,
                 onClick: handleGoToAlbumArtist,
+            },
+            hideItem: {
+                disabled: isItemHidden,
+                id: 'hideItem',
+                label: t('page.contextMenu.hideItem', { postProcess: 'sentenceCase' }),
+                leftIcon: <Icon icon="visibilityOff" />,
+                onClick: handleHideItem,
             },
             moveToBottomOfQueue: {
                 id: 'moveToBottomOfQueue',
@@ -935,6 +995,13 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
                 leftIcon: <Icon icon="info" />,
                 onClick: handleOpenItemDetails,
             },
+            unhideItem: {
+                disabled: !isItemHidden,
+                id: 'unhideItem',
+                label: t('page.contextMenu.unhideItem', { postProcess: 'sentenceCase' }),
+                leftIcon: <Icon icon="visibility" />,
+                onClick: handleUnhideItem,
+            },
         };
     }, [
         t,
@@ -944,6 +1011,9 @@ export const ContextMenuProvider = ({ children }: ContextMenuProviderProps) => {
         handleDeselectAll,
         ctx.data,
         handleDownload,
+        handleHideItem,
+        handleUnhideItem,
+        isItemHidden,
         handleMoveToNext,
         handleMoveToBottom,
         handleMoveToTop,

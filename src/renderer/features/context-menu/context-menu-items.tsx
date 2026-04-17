@@ -31,6 +31,8 @@ export const SONG_CONTEXT_MENU_ITEMS: SetContextMenuItems = [
     { divider: true, id: 'shareItem' },
     { id: 'goToAlbum' },
     { id: 'goToAlbumArtist' },
+    { divider: true, id: 'hideItem' },
+    { id: 'unhideItem' },
     { divider: true, id: 'showDetails' },
 ];
 
@@ -89,6 +91,8 @@ export const ALBUM_CONTEXT_MENU_ITEMS: SetContextMenuItems = [
     { divider: true, id: 'download' },
     { divider: true, id: 'shareItem' },
     { id: 'goToAlbumArtist' },
+    { divider: true, id: 'hideItem' },
+    { id: 'unhideItem' },
     { divider: true, id: 'showDetails' },
 ];
 
@@ -110,6 +114,8 @@ export const ARTIST_CONTEXT_MENU_ITEMS: SetContextMenuItems = [
     { divider: true, id: 'removeFromFavorites' },
     { children: true, disabled: false, id: 'setRating' },
     { divider: true, id: 'shareItem' },
+    { divider: true, id: 'hideItem' },
+    { id: 'unhideItem' },
     { divider: true, id: 'showDetails' },
 ];
 

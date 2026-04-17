@@ -8,7 +8,7 @@ import { LibraryItem } from '/@/shared/types/domain-types';
 
 export const AlbumListTableView = ({ itemCount, tableRef }: any) => {
     const server = useCurrentServer();
-    const { customFilters, id, pageKey } = useListContext();
+    const { customFilters, id, pageKey, showHiddenOnly } = useListContext();
 
     const tableProps = useVirtualTable({
         contextMenu: ALBUM_CONTEXT_MENU_ITEMS,
@@ -18,6 +18,7 @@ export const AlbumListTableView = ({ itemCount, tableRef }: any) => {
         itemType: LibraryItem.ALBUM,
         pageKey,
         server,
+        showHiddenOnly,
         tableRef,
     });
 

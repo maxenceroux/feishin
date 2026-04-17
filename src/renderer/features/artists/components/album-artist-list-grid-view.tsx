@@ -15,7 +15,12 @@ import { useListContext } from '/@/renderer/context/list-context';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { useHandleFavorite } from '/@/renderer/features/shared/hooks/use-handle-favorite';
 import { AppRoute } from '/@/renderer/router/routes';
-import { useCurrentServer, useListStoreActions, useListStoreByKey } from '/@/renderer/store';
+import {
+    useCurrentServer,
+    useHiddenItemsStore,
+    useListStoreActions,
+    useListStoreByKey,
+} from '/@/renderer/store';
 import {
     AlbumArtist,
     AlbumArtistListQuery,
@@ -70,6 +75,13 @@ export const AlbumArtistListGridView = ({ gridRef, itemCount }: AlbumArtistListG
             }
         }
 
+        const hiddenIds = useHiddenItemsStore
+            .getState()
+            .actions.getHiddenIds(server?.id || '', LibraryItem.ALBUM_ARTIST);
+        if (hiddenIds.size > 0) {
+            return itemData.filter((item) => !item || !hiddenIds.has(item.id));
+        }
+
         return itemData;
     }, [filter, queryClient, server?.id]);
 
@@ -95,6 +107,18 @@ export const AlbumArtistListGridView = ({ gridRef, itemCount }: AlbumArtistListG
                     }),
                 { cacheTime: 1000 * 60 * 1 },
             );
+
+            const hiddenIds = useHiddenItemsStore
+                .getState()
+                .actions.getHiddenIds(server?.id || '', LibraryItem.ALBUM_ARTIST);
+            if (hiddenIds.size > 0 && albumArtistsRes?.items) {
+                return {
+                    ...albumArtistsRes,
+                    items: albumArtistsRes.items.filter(
+                        (item: AlbumArtist) => !hiddenIds.has(item.id),
+                    ),
+                };
+            }
 
             return albumArtistsRes;
         },

@@ -15,7 +15,12 @@ import { useListContext } from '/@/renderer/context/list-context';
 import { usePlayQueueAdd } from '/@/renderer/features/player';
 import { useHandleFavorite } from '/@/renderer/features/shared/hooks/use-handle-favorite';
 import { AppRoute } from '/@/renderer/router/routes';
-import { useCurrentServer, useListStoreActions, useListStoreByKey } from '/@/renderer/store';
+import {
+    useCurrentServer,
+    useHiddenItemsStore,
+    useListStoreActions,
+    useListStoreByKey,
+} from '/@/renderer/store';
 import {
     Album,
     AlbumListQuery,
@@ -29,7 +34,8 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
     const queryClient = useQueryClient();
     const server = useCurrentServer();
     const handlePlayQueueAdd = usePlayQueueAdd();
-    const { customCardRows, customFilters, id, pageKey, spotifyAlbums } = useListContext();
+    const { customCardRows, customFilters, id, pageKey, showHiddenOnly, spotifyAlbums } =
+        useListContext();
     const { display, filter, grid } = useListStoreByKey<AlbumListQuery>({ key: pageKey });
     const { setGrid } = useListStoreActions();
 
@@ -175,8 +181,27 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
             }
         }
 
-        return itemData;
-    }, [customFilters, filter, id, queryClient, server?.id, spotifyAlbums, itemCount]);
+        const hiddenIds = useHiddenItemsStore
+            .getState()
+            .actions.getHiddenIds(server?.id || '', LibraryItem.ALBUM);
+        if (hiddenIds.size > 0) {
+            if (showHiddenOnly) {
+                return itemData.filter((item) => item && hiddenIds.has(item.id));
+            }
+            return itemData.filter((item) => !item || !hiddenIds.has(item.id));
+        }
+
+        return showHiddenOnly ? [] : itemData;
+    }, [
+        customFilters,
+        filter,
+        id,
+        queryClient,
+        server?.id,
+        showHiddenOnly,
+        spotifyAlbums,
+        itemCount,
+    ]);
 
     const fetch = useCallback(
         async ({ skip, take }: { skip: number; take: number }) => {
@@ -270,6 +295,28 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
         [customFilters, filter, id, queryClient, server, spotifyAlbums, itemCount],
     );
 
+    const filteredFetch = useCallback(
+        async (args: { skip: number; take: number }) => {
+            const result = await fetch(args);
+            const hiddenIds = useHiddenItemsStore
+                .getState()
+                .actions.getHiddenIds(server?.id || '', LibraryItem.ALBUM);
+            if (hiddenIds.size > 0 && result?.items) {
+                return {
+                    ...result,
+                    items: showHiddenOnly
+                        ? result.items.filter((item: Album) => hiddenIds.has(item.id))
+                        : result.items.filter((item: Album) => !hiddenIds.has(item.id)),
+                };
+            }
+            if (showHiddenOnly) {
+                return { ...result, items: [] };
+            }
+            return result;
+        },
+        [fetch, server?.id, showHiddenOnly],
+    );
+
     // Reset grid cache when Spotify albums change to ensure proper merging
     useEffect(() => {
         if (gridRef.current) {
@@ -287,7 +334,7 @@ export const AlbumListGridView = ({ gridRef, itemCount }: any) => {
                     <VirtualInfiniteGrid
                         cardRows={cardRows}
                         display={display || ListDisplayType.CARD}
-                        fetchFn={fetch}
+                        fetchFn={filteredFetch}
                         fetchInitialData={fetchInitialData}
                         handleFavorite={handleFavorite}
                         handlePlayQueueAdd={handlePlayQueueAdd}

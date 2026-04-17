@@ -4,6 +4,7 @@ import { ApplicationSettings } from '/@/renderer/features/settings/components/ge
 import { ArtistSettings } from '/@/renderer/features/settings/components/general/artist-settings';
 import { ContextMenuSettings } from '/@/renderer/features/settings/components/general/context-menu-settings';
 import { ControlSettings } from '/@/renderer/features/settings/components/general/control-settings';
+import { HiddenItemsSettings } from '/@/renderer/features/settings/components/general/hidden-items-settings';
 import { HomeSettings } from '/@/renderer/features/settings/components/general/home-settings';
 import { RemoteSettings } from '/@/renderer/features/settings/components/general/remote-settings';
 import { SidebarReorder } from '/@/renderer/features/settings/components/general/sidebar-reorder';
@@ -23,6 +24,7 @@ export const GeneralTab = () => {
             <SidebarReorder />
             <SidebarSettings />
             <ContextMenuSettings />
+            <HiddenItemsSettings />
             {isElectron() && <RemoteSettings />}
             <CacheSettings />
         </Stack>

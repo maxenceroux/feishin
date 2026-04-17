@@ -3,6 +3,7 @@ export * from './album-list-data.store';
 export * from './app.store';
 export * from './auth.store';
 export * from './full-screen-player.store';
+export * from './hidden-items.store';
 export * from './list.store';
 export * from './player.store';
 export * from './playlist.store';

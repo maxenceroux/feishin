@@ -18,7 +18,7 @@ import { AnimatedPage } from '/@/renderer/features/shared';
 import { useSpotifyArtistAlbums } from '/@/renderer/hooks/use-spotify-artist-albums';
 import { useSpotifySearch } from '/@/renderer/hooks/use-spotify-search';
 import { queryClient } from '/@/renderer/lib/react-query';
-import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
+import { useCurrentServer, useHiddenItemCount, useListFilterByKey } from '/@/renderer/store';
 import { getSpotifyToggleState } from '/@/renderer/utils';
 import {
     Album,
@@ -37,6 +37,8 @@ const AlbumListRoute = () => {
     const { albumArtistId, genreId } = useParams();
     const pageKey = albumArtistId ? `albumArtistAlbum` : 'album';
     const handlePlayQueueAdd = usePlayQueueAdd();
+
+    const [showHiddenOnly, setShowHiddenOnly] = useState(false);
 
     // State for Spotify integration toggle - initialize from stored preference
     const [spotifyEnabled] = useState(() => getSpotifyToggleState());
@@ -120,12 +122,16 @@ const AlbumListRoute = () => {
         serverId: server?.id,
     });
 
+    const hiddenCount = useHiddenItemCount(server?.id || '', LibraryItem.ALBUM);
+
     // For Spotify artists, use the length of the albums array as item count
     const itemCount = isSpotifyArtist
         ? spotifyArtistAlbums.data?.length
-        : itemCountCheck.data === null
-          ? undefined
-          : itemCountCheck.data;
+        : showHiddenOnly
+          ? hiddenCount
+          : itemCountCheck.data === null
+            ? undefined
+            : Math.max(0, (itemCountCheck.data ?? 0) - hiddenCount);
 
     const handlePlay = useCallback(
         async (args: { initialSongId?: string; playType: Play }) => {
@@ -194,6 +200,8 @@ const AlbumListRoute = () => {
             handlePlay,
             id: albumArtistId ?? genreId,
             pageKey,
+            setShowHiddenOnly,
+            showHiddenOnly,
             spotifyAlbums,
             spotifyEnabled: spotifyEnabled || isSpotifyArtist, // Enable Spotify display for Spotify artists
             spotifySearchQuery: searchTerm,
@@ -205,6 +213,7 @@ const AlbumListRoute = () => {
         handlePlay,
         isSpotifyArtist,
         pageKey,
+        showHiddenOnly,
         spotifyArtistAlbums.data,
         spotifyEnabled,
         spotifySearchResult.data,

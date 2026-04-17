@@ -21,7 +21,7 @@ import { queryKeys, QueryPagination } from '/@/renderer/api/query-keys';
 import { getColumnDefs, VirtualTableProps } from '/@/renderer/components/virtual-table';
 import { SetContextMenuItems, useHandleTableContextMenu } from '/@/renderer/features/context-menu';
 import { AppRoute } from '/@/renderer/router/routes';
-import { PersistedTableColumn, useListStoreActions } from '/@/renderer/store';
+import { PersistedTableColumn, useHiddenItemsStore, useListStoreActions } from '/@/renderer/store';
 import { ListKey, useListStoreByKey } from '/@/renderer/store/list.store';
 import {
     BasePaginatedResponse,
@@ -47,6 +47,7 @@ interface UseAgGridProps<TFilter> {
     itemType: LibraryItem;
     pageKey: string;
     server: null | ServerListItem;
+    showHiddenOnly?: boolean;
     tableRef: MutableRefObject<AgGridReactType | null>;
 }
 
@@ -63,6 +64,7 @@ export const useVirtualTable = <TFilter extends BaseQuery<any>>({
     itemType,
     pageKey,
     server,
+    showHiddenOnly,
     tableRef,
 }: UseAgGridProps<TFilter>) => {
     const queryClient = useQueryClient();
@@ -179,31 +181,52 @@ export const useVirtualTable = <TFilter extends BaseQuery<any>>({
                         return res;
                     })) as BasePaginatedResponse<any>;
 
+                    const hiddenIds = useHiddenItemsStore
+                        .getState()
+                        .actions.getHiddenIds(server?.id || '', itemType);
+                    const filterHidden = (items: any[]) => {
+                        if (hiddenIds.size === 0) {
+                            return showHiddenOnly ? [] : items;
+                        }
+                        return showHiddenOnly
+                            ? items.filter((item: any) => hiddenIds.has(item.id))
+                            : items.filter((item: any) => !hiddenIds.has(item.id));
+                    };
+                    const adjustCount = (count: null | number | undefined) =>
+                        count != null ? Math.max(0, count - hiddenIds.size) : count;
+
                     if (isClientSideSort && results?.items) {
                         const sortedResults = orderBy(
-                            results.items,
+                            filterHidden(results.items),
                             [(item) => String(item[properties.filter.sortBy]).toLowerCase()],
                             properties.filter.sortOrder === 'DESC' ? ['desc'] : ['asc'],
                         );
 
-                        params.successCallback(sortedResults || [], results?.totalRecordCount || 0);
+                        params.successCallback(
+                            sortedResults || [],
+                            adjustCount(results?.totalRecordCount) || 0,
+                        );
                         return;
                     }
 
                     if (results.totalRecordCount === null) {
+                        const filteredItems = filterHidden(results?.items || []);
                         const hasMoreRows = results?.items?.length === BLOCK_SIZE;
                         const lastRowIndex = hasMoreRows
                             ? undefined
-                            : params.startRow + results.items.length;
+                            : params.startRow + filteredItems.length;
 
                         params.successCallback(
-                            results?.items || [],
+                            filteredItems,
                             hasMoreRows ? undefined : lastRowIndex,
                         );
                         return;
                     }
 
-                    params.successCallback(results?.items || [], results?.totalRecordCount || 0);
+                    params.successCallback(
+                        filterHidden(results?.items || []),
+                        adjustCount(results?.totalRecordCount) || 0,
+                    );
                 },
                 rowCount: undefined,
             };
@@ -215,6 +238,7 @@ export const useVirtualTable = <TFilter extends BaseQuery<any>>({
             initialTableIndex,
             queryKeyFn,
             server,
+            showHiddenOnly,
             properties.filter,
             queryClient,
             isClientSideSort,

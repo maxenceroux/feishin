@@ -17,6 +17,7 @@ export type ContextMenuItemType =
     | 'download'
     | 'goToAlbum'
     | 'goToAlbumArtist'
+    | 'hideItem'
     | 'moveToBottomOfQueue'
     | 'moveToNextOfQueue'
     | 'moveToTopOfQueue'
@@ -30,7 +31,8 @@ export type ContextMenuItemType =
     | 'removeFromQueue'
     | 'setRating'
     | 'shareItem'
-    | 'showDetails';
+    | 'showDetails'
+    | 'unhideItem';
 
 export type OpenContextMenuProps = {
     context?: any;
@@ -61,6 +63,7 @@ export const CONFIGURABLE_CONTEXT_MENU_ITEMS: ContextMenuItemType[] = [
     'shareItem',
     'goToAlbum',
     'goToAlbumArtist',
+    'hideItem',
     'showDetails',
 ];
 

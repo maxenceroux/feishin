@@ -9,6 +9,7 @@ import { AlbumArtistListHeader } from '/@/renderer/features/artists/components/a
 import { useAlbumArtistListCount } from '/@/renderer/features/artists/queries/album-artist-list-count-query';
 import { AnimatedPage } from '/@/renderer/features/shared';
 import { useCurrentServer } from '/@/renderer/store/auth.store';
+import { useHiddenItemCount } from '/@/renderer/store/hidden-items.store';
 import { useListFilterByKey } from '/@/renderer/store/list.store';
 import { AlbumArtistListQuery, LibraryItem } from '/@/shared/types/domain-types';
 
@@ -29,7 +30,11 @@ const AlbumArtistListRoute = () => {
         serverId: server?.id,
     });
 
-    const itemCount = itemCountCheck.data === null ? undefined : itemCountCheck.data;
+    const hiddenCount = useHiddenItemCount(server?.id || '', LibraryItem.ALBUM_ARTIST);
+    const itemCount =
+        itemCountCheck.data === null
+            ? undefined
+            : Math.max(0, (itemCountCheck.data ?? 0) - hiddenCount);
 
     const providerValue = useMemo(() => {
         return {

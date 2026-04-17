@@ -12,7 +12,7 @@ import { AnimatedPage } from '/@/renderer/features/shared';
 import { SongListContent } from '/@/renderer/features/songs/components/song-list-content';
 import { SongListHeader } from '/@/renderer/features/songs/components/song-list-header';
 import { useSongListCount } from '/@/renderer/features/songs/queries/song-list-count-query';
-import { useCurrentServer, useListFilterByKey } from '/@/renderer/store';
+import { useCurrentServer, useHiddenItemCount, useListFilterByKey } from '/@/renderer/store';
 import { GenreListSort, LibraryItem, SongListQuery, SortOrder } from '/@/shared/types/domain-types';
 import { Play } from '/@/shared/types/types';
 
@@ -77,7 +77,11 @@ const TrackListRoute = () => {
         serverId: server?.id,
     });
 
-    const itemCount = itemCountCheck.data === null ? undefined : itemCountCheck.data;
+    const hiddenCount = useHiddenItemCount(server?.id || '', LibraryItem.SONG);
+    const itemCount =
+        itemCountCheck.data === null
+            ? undefined
+            : Math.max(0, (itemCountCheck.data ?? 0) - hiddenCount);
 
     const handlePlay = useCallback(
         async (args: { initialSongId?: string; playType: Play }) => {

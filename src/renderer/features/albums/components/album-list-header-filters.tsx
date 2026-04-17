@@ -25,6 +25,7 @@ import { useListFilterRefresh } from '/@/renderer/hooks/use-list-filter-refresh'
 import {
     AlbumListFilter,
     useCurrentServer,
+    useHiddenItemCount,
     useListStoreActions,
     useListStoreByKey,
 } from '/@/renderer/store';
@@ -206,7 +207,8 @@ export const AlbumListHeaderFilters = ({
 }: AlbumListHeaderFiltersProps) => {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
-    const { customFilters, handlePlay, pageKey } = useListContext();
+    const { customFilters, handlePlay, pageKey, setShowHiddenOnly, showHiddenOnly } =
+        useListContext();
     const server = useCurrentServer();
     const { setDisplayType, setFilter, setGrid, setTable } = useListStoreActions();
     const { display, filter, grid, table } = useListStoreByKey<AlbumListQuery>({
@@ -511,6 +513,22 @@ export const AlbumListHeaderFilters = ({
                     </>
                 )}
                 <FilterButton isActive={!!isFilterApplied} onClick={handleOpenFiltersModal} />
+                {useHiddenItemCount(server?.id || '', LibraryItem.ALBUM) > 0 && (
+                    <ActionIcon
+                        icon={showHiddenOnly ? 'visibility' : 'visibilityOff'}
+                        iconProps={{
+                            fill: showHiddenOnly ? 'primary' : 'default',
+                            size: 'lg',
+                        }}
+                        onClick={() => setShowHiddenOnly?.(!showHiddenOnly)}
+                        tooltip={{
+                            label: t(showHiddenOnly ? 'filter.showAll' : 'filter.showHiddenOnly', {
+                                postProcess: 'sentenceCase',
+                            }),
+                        }}
+                        variant="subtle"
+                    />
+                )}
                 {isFilterApplied && (
                     <ActionIcon
                         icon="x"
